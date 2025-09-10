@@ -124,16 +124,16 @@ echo "==========================================================================
 # Check if filter.FCStd.clean exists
 CURRENT_CLEAN=$(git config --get filter.FCStd.clean 2>/dev/null)
 if [ -n "$CURRENT_CLEAN" ]; then
-    if [ "$CURRENT_CLEAN" = "git show /dev/null" ]; then
+    if [ "$CURRENT_CLEAN" = "cat /dev/null" ]; then
         echo "filter.FCStd.clean is already set to the desired value"
         echo
     else
         echo "filter.FCStd.clean already exists:"
-        echo "  - Permission to change \`$CURRENT_CLEAN\` --> \`git show /dev/null\`?"
+        echo "  - Permission to change \`$CURRENT_CLEAN\` --> \`cat /dev/null\`?"
         read -p "    (( This makes git see .FCStd files as being empty ))  (y/n): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            git config filter.FCStd.clean "git show /dev/null"
+            git config filter.FCStd.clean "cat /dev/null"
             echo "    Updated filter.FCStd.clean"
             echo
         else
@@ -142,7 +142,7 @@ if [ -n "$CURRENT_CLEAN" ]; then
         fi
     fi
 else
-    git config filter.FCStd.clean "git show /dev/null"
+    git config filter.FCStd.clean "cat /dev/null"
     echo "Set filter.FCStd.clean"
     echo
 fi
