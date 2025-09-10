@@ -162,27 +162,25 @@ if [ -n "$LINE" ]; then
     else
         if echo "$LINE" | grep -q "filter="; then
             ORIGINAL_FILTER="$FILTER_VALUE"
-        else
-            ORIGINAL_FILTER="none"
-        fi
-        echo "*.FCStd has different filter in .gitattributes:"
-        read -p "  - Permission to change \`filter=$ORIGINAL_FILTER\` --> \`filter=FCStd\`? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            if echo "$LINE" | grep -q "filter="; then
-                sed -i "s/filter=[^ ]*/filter=FCStd/" "$GITATTRIBUTES"
-            else
-                sed -i "s/$/ filter=FCStd/" "$GITATTRIBUTES"
-            fi
-            echo "    Updated .gitattributes for *.FCStd"
+            echo "*.FCStd has different filter in .gitattributes:"
+            read -p "  - Permission to change \`filter=$ORIGINAL_FILTER\` --> \`filter=FCStd\`? (y/n): " -n 1 -r
             echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                sed -i "s/filter=[^ ]*/filter=FCStd/" "$GITATTRIBUTES"
+                echo "    Updated .gitattributes for *.FCStd"
+                echo
+            else
+                echo "    Skipping update of .gitattributes for *.FCStd"
+                echo
+            fi
         else
-            echo "    Skipping update of .gitattributes for *.FCStd"
+            sed -i "s/$/ filter=FCStd/" "$GITATTRIBUTES"
+            echo "Added filter=FCStd to existing *.FCStd line"
             echo
         fi
     fi
 else
     echo "*.FCStd filter=FCStd" >> "$GITATTRIBUTES"
-    echo "    Added *.FCStd filter=FCStd to .gitattributes"
+    echo "Added *.FCStd filter=FCStd to .gitattributes"
     echo
 fi
