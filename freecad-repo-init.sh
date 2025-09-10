@@ -112,6 +112,10 @@ for hook in "${HOOKS[@]}"; do
         echo
     fi
 done
+echo "=============================================================================================="
+echo "                                   Initializing Git-LFS"
+echo "=============================================================================================="
+
 
 echo "=============================================================================================="
 echo "                                     Adding Filters"
@@ -122,9 +126,11 @@ CURRENT_CLEAN=$(git config --get filter.FCStd.clean 2>/dev/null)
 if [ -n "$CURRENT_CLEAN" ]; then
     if [ "$CURRENT_CLEAN" = "git show /dev/null" ]; then
         echo "filter.FCStd.clean is already set to the desired value"
+        echo
     else
-        echo "filter.FCStd.clean already exists with value: $CURRENT_CLEAN"
-        read -p "  - Permission to change it to 'git show /dev/null' to make *.FCStd files appear empty in git? (y/n): " -n 1 -r
+        echo "filter.FCStd.clean already exists:"
+        echo "  - Permission to change \`$CURRENT_CLEAN\` --> \`git show /dev/null\`?"
+        read -p "    (( This makes git see .FCStd files as being empty ))  (y/n): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             git config filter.FCStd.clean "git show /dev/null"
@@ -150,14 +156,24 @@ fi
 
 LINE=$(grep "^\*\.FCStd" "$GITATTRIBUTES" 2>/dev/null)
 if [ -n "$LINE" ]; then
-    if echo "$LINE" | grep -q "filter=FCStd"; then
+    FILTER_VALUE=$(echo "$LINE" | sed 's/.*filter=\([^ ]*\).*/\1/')
+    if [ "$FILTER_VALUE" = "FCStd" ]; then
         echo "*.FCStd already has filter=FCStd in .gitattributes"
     else
-        echo "*.FCStd has different filter in .gitattributes: $LINE"
-        read -p "  - Permission to change it to filter=FCStd? (y/n): " -n 1 -r
+        if echo "$LINE" | grep -q "filter="; then
+            ORIGINAL_FILTER="$FILTER_VALUE"
+        else
+            ORIGINAL_FILTER="none"
+        fi
+        echo "*.FCStd has different filter in .gitattributes:"
+        read -p "  - Permission to change \`filter=$ORIGINAL_FILTER\` --> \`filter=FCStd\`? (y/n): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            sed -i "s/^\*\.FCStd.*/\*.FCStd filter=FCStd/" "$GITATTRIBUTES"
+            if echo "$LINE" | grep -q "filter="; then
+                sed -i "s/filter=[^ ]*/filter=FCStd/" "$GITATTRIBUTES"
+            else
+                sed -i "s/$/ filter=FCStd/" "$GITATTRIBUTES"
+            fi
             echo "    Updated .gitattributes for *.FCStd"
             echo
         else
