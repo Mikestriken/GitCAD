@@ -35,7 +35,10 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
     exit 1
 fi
 
-CONFIG_FILE="git-freecad-config.json"
+GIT_ROOT=$(git rev-parse --show-toplevel)
+cd "$GIT_ROOT"
+
+CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 
 # Extract Python path
 PYTHON_PATH=$(get_json_value "$CONFIG_FILE" "python")
@@ -85,8 +88,8 @@ if [ ! -d "$HOOKS_DIR" ]; then
     exit 1
 fi
 
-if [ ! -d "./hooks" ]; then
-    echo "Error: ./hooks directory not found"
+if [ ! -d "FreeCAD_Automation/hooks" ]; then
+    echo "Error: FreeCAD_Automation/hooks directory not found"
     exit 1
 fi
 
@@ -97,7 +100,7 @@ for hook in "${HOOKS[@]}"; do
         read -p "  - Do you want to overwrite it? (y/n): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            cp "./hooks/$hook" "$HOOKS_DIR/$hook"
+            cp "FreeCAD_Automation/hooks/$hook" "$HOOKS_DIR/$hook"
             chmod +x "$HOOKS_DIR/$hook"
             echo "    Installed $hook hook"
             echo
@@ -106,7 +109,7 @@ for hook in "${HOOKS[@]}"; do
             echo
         fi
     else
-        cp "./hooks/$hook" "$HOOKS_DIR/$hook"
+        cp "FreeCAD_Automation/hooks/$hook" "$HOOKS_DIR/$hook"
         chmod +x "$HOOKS_DIR/$hook"
         echo "Installed $hook hook"
         echo
