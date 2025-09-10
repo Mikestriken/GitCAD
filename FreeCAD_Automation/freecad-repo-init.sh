@@ -49,12 +49,6 @@ fi
 
 echo "Extracted Python path: $PYTHON_PATH"
 
-# Example: Extract locking (boolean)
-LOCKING=$(get_json_value "$CONFIG_FILE" "locking")
-if [ $? -eq 0 ]; then
-    echo "Extracted locking: $LOCKING"
-fi
-
 # Check if Python runs correctly
 if "$PYTHON_PATH" --version > /dev/null 2>&1; then
     echo "Python runs correctly"

@@ -1,4 +1,6 @@
 {
     "python": "D:/Programs/Miscellaneous/FreeCAD 1.0/bin/python.exe",
-    "locking": true
+    "require-lock-to-modify-FreeCAD-files": true,
+    "include-thumbnails": true,
+    "compress-non-human-readable-FreeCAD-files": true
 }

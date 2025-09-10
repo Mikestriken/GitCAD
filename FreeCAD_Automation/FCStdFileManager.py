@@ -1,33 +1,51 @@
 from freecad import project_utility as PU
 import os
 import argparse
+import json
+import zipfile
 
+CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
+
+EXPORT_CMD:str = '--export'
+IMPORT_CMD:str = '--import'
+        
 def main():
     parser = argparse.ArgumentParser(description="FreeCAD FCStd file manager")
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
-
-    # Extract command
-    extract_parser = subparsers.add_parser('extract', help='Extract files from FCStd archive')
-    extract_parser.add_argument('input_file', help='Path to the FCStd file')
-    extract_parser.add_argument('output_dir', help='Directory to extract files to')
-
-    # Create command
-    create_parser = subparsers.add_parser('create', help='Create FCStd archive from directory')
-    create_parser.add_argument('input_dir', help='Directory containing Document.xml')
-    create_parser.add_argument('output_file', help='Path for the output FCStd file')
+    parser.add_argument(EXPORT_CMD, dest='export_flag', nargs=2, metavar=('INPUT_FILE', 'OUTPUT_DIR'), help='export files from .FCStd archive')
+    parser.add_argument(IMPORT_CMD, dest='import_flag', nargs=2, metavar=('INPUT_DIR', 'OUTPUT_FILE'), help='Create .FCStd archive from directory')
 
     args = parser.parse_args()
 
-    if args.command == 'extract':
-        if not os.path.exists(args.output_dir):
-            os.makedirs(args.output_dir)
+    if args.export_flag:
+        input_file, output_dir = args.export_flag
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
 
-        PU.extractDocument(args.input_file, args.output_dir)
-        print(f"Extracted {args.input_file} to {args.output_dir}")
+        PU.extractDocument(input_file, output_dir)
 
-    elif args.command == 'create':
-        PU.createDocument(os.path.join(args.input_dir, 'Document.xml'), args.output_file)
-        print(f"Created {args.output_file} from {args.input_dir}")
+        print(f"Exported {input_file} to {output_dir}")
+
+    elif args.import_flag:
+        input_dir, output_file = args.import_flag
+        PU.createDocument(os.path.join(input_dir, 'Document.xml'), output_file)
+
+        with open(CONFIG_PATH, 'r') as f:
+            config = json.load(f)
+
+        if config.get('include-thumbnails', False):
+            thumbnails_dir = os.path.join(input_dir, 'thumbnails')
+
+            if os.path.exists(thumbnails_dir):
+
+                with zipfile.ZipFile(output_file, 'a', zipfile.ZIP_DEFLATED) as zf:
+
+                    for root, dirs, files in os.walk(thumbnails_dir):
+                        for file in files:
+                            filepath = os.path.join(root, file)
+                            arcname = os.path.relpath(filepath, input_dir)
+                            zf.write(filepath, arcname)
+
+        print(f"Created {output_file} from {input_dir}")
 
     else:
         parser.print_help()
