@@ -41,7 +41,7 @@ cd "$GIT_ROOT"
 CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 
 # Extract Python path
-PYTHON_PATH=$(get_json_value "$CONFIG_FILE" "python")
+PYTHON_PATH=$(get_json_value "$CONFIG_FILE" "freecad-python-instance-path")
 if [ $? -ne 0 ] || [ -z "$PYTHON_PATH" ]; then
     echo "Error: Could not extract Python path"
     exit 1
