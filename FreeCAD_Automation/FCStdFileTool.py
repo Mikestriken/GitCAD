@@ -32,7 +32,7 @@ def main():
     # Load config files
     config = {}
     
-    if not CLI_MODE:
+    if not args.cli_flag:
         with open(CONFIG_PATH, 'r') as f:
             config = json.load(f)
     
