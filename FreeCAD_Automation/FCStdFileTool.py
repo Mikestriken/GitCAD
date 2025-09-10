@@ -28,10 +28,6 @@ def main():
     parser.add_argument(CLI_FLAG, dest="cli_flag", action='store_true', help='Use CLI mode, ignore configurations, user just interfaces with project_utility API')
 
     args = parser.parse_args()
-    
-    # Store booleans used globally in easier to read bool variables
-    CLI_MODE:bool = args.cli_flag
-    INCLUDE_THUMBNAIL:bool = config.get(INCLUDE_THUMBNAILS, DEFAULT_CONFIG[INCLUDE_THUMBNAILS])
 
     # Load config files
     config = {}
@@ -39,6 +35,10 @@ def main():
     if not CLI_MODE:
         with open(CONFIG_PATH, 'r') as f:
             config = json.load(f)
+    
+    # Store booleans used globally in easier to read bool variables
+    CLI_MODE:bool = args.cli_flag
+    INCLUDE_THUMBNAIL:bool = config.get(INCLUDE_THUMBNAILS, DEFAULT_CONFIG[INCLUDE_THUMBNAILS])
 
     # Main Logic
     if args.export_flag:
