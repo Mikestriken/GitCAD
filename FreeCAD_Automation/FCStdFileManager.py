@@ -8,8 +8,8 @@ import shutil
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 
 # Config file keys
-INCLUDE_THUMBNAILS = 'include-thumbnails'
-COMPRESS_NON_HUMAN = 'compress-non-human-readable-FreeCAD-files'
+INCLUDE_THUMBNAILS:str = 'include-thumbnails'
+COMPRESS_NON_HUMAN:str = 'compress-non-human-readable-FreeCAD-files'
 
 DEFAULT_CONFIG = {
     INCLUDE_THUMBNAILS: False,
@@ -20,7 +20,7 @@ EXPORT_CMD:str = '--export'
 IMPORT_CMD:str = '--import'
         
 def main():
-    parser = argparse.ArgumentParser(description="FreeCAD FCStd file manager")
+    parser:argparse.ArgumentParser = argparse.ArgumentParser(description="FreeCAD .FCStd file manager")
     parser.add_argument(EXPORT_CMD, dest='export_flag', nargs=2, metavar=('INPUT_FILE', 'OUTPUT_DIR'), help='export files from .FCStd archive')
     parser.add_argument(IMPORT_CMD, dest='import_flag', nargs=2, metavar=('INPUT_DIR', 'OUTPUT_FILE'), help='Create .FCStd archive from directory')
 
@@ -52,13 +52,11 @@ def main():
 
             if os.path.exists(thumbnails_dir):
 
-                with zipfile.ZipFile(output_file, 'a', zipfile.ZIP_DEFLATED) as zf:
-
-                    for root, dirs, files in os.walk(thumbnails_dir):
-                        for file in files:
-                            filepath = os.path.join(root, file)
-                            arcname = os.path.relpath(filepath, input_dir)
-                            zf.write(filepath, arcname)
+                thumbnail_path = os.path.join(input_dir, 'thumbnails', 'Thumbnail.png')
+                
+                if os.path.exists(thumbnail_path):
+                    with zipfile.ZipFile(output_file, 'a', zipfile.ZIP_DEFLATED) as zf:
+                        zf.write(thumbnail_path, 'thumbnails/Thumbnail.png')
 
         print(f"Created {output_file} from {input_dir}")
 
