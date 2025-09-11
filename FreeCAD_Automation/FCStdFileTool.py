@@ -1,5 +1,28 @@
-"""
-Automate the process
+EXPORT_FLAG:str = '--export'
+IMPORT_FLAG:str = '--import'
+CONFIG_FILE_FLAG:str = '--CONFIG-FILE' # Uses config file to determine configurations. Args interpreted differently from what's listed in help()
+
+HELP_MESSAGE:str =f"""
+usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} {IMPORT_FLAG} FCSTD_FILE]
+
+FreeCAD .FCStd file tool. Used to automate the process of importing and exporting .FCStd files.
+Importing => Compressing a .FCStd file from an uncompressed directory.
+Exporting => Decompressing a .FCStd file to an uncompressed directory.
+
+options:
+  -h, --help            
+                        show this help message and exit
+                        
+  {EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR
+                        export files from .FCStd archive
+                        
+  {IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE
+                        Create .FCStd archive from directory
+                        
+  {CONFIG_FILE_FLAG}
+                    Use config file to determine configurations. Args interpreted differently from what's listed:
+                        {EXPORT_FLAG} INPUT_FCSTD_FILE, OUTPUT_FCSTD_DIR -> {EXPORT_FLAG} FCSTD_FILE
+                        {IMPORT_FLAG} INPUT_FCSTD_DIR, OUTPUT_FCSTD_FILE -> {IMPORT_FLAG} FCSTD_FILE
 """
 
 from freecad import project_utility as PU
@@ -10,10 +33,6 @@ import zipfile
 import shutil
 
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
-    
-EXPORT_FLAG:str = '--export'
-IMPORT_FLAG:str = '--import'
-CONFIG_FILE_FLAG:str = '--CONFIG-FILE' # Uses config file to determine configurations. Args interpreted differently from what's listed in help()
 
 def load_config_file(config_path:str) -> dict:
     """
@@ -151,42 +170,19 @@ def bad_args(args:argparse.Namespace) -> bool:
     script_called_directly_by_user:bool = not args.configFile_flag
     
     if missing_output_arg and script_called_directly_by_user: return True
-    
-def print_help():
-    """
-    Prints help message.
-    """
-    print(f"""
-usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} {IMPORT_FLAG} FCSTD_FILE]
-
-FreeCAD .FCStd file tool. Used to automate the process of importing and exporting .FCStd files.
-Importing => Compressing a .FCStd file from an uncompressed directory.
-Exporting => Decompressing a .FCStd file to an uncompressed directory.
-
-options:
-  {EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR
-                        export files from .FCStd archive
-                        
-  {IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE
-                        Create .FCStd archive from directory
-                        
-  {CONFIG_FILE_FLAG}
-                    Use config file to determine configurations. Args interpreted differently from what's listed:
-                        {EXPORT_FLAG} INPUT_FCSTD_FILE, OUTPUT_FCSTD_DIR -> {EXPORT_FLAG} FCSTD_FILE
-                        {IMPORT_FLAG} INPUT_FCSTD_DIR, OUTPUT_FCSTD_FILE -> {IMPORT_FLAG} FCSTD_FILE
-""")
 
 def main():
     # Setup CLI args
-    parser:argparse.ArgumentParser = argparse.ArgumentParser(description="FreeCAD .FCStd file manager")
+    parser:argparse.ArgumentParser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+')
     parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+')
     parser.add_argument(CONFIG_FILE_FLAG, dest="configFile_flag", action='store_true')
+    parser.add_argument("-h", "--help", dest="help_flag", action="store_true")
     
     args = parser.parse_args()
     
-    if bad_args(args):
-        print_help()
+    if bad_args(args) or args.help_flag:
+        print(HELP_MESSAGE)
         return
 
     # Load config file
@@ -227,7 +223,7 @@ def main():
         print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
 
     else:
-        print_help()
+        print(HELP_MESSAGE)
 
 if __name__ == "__main__":
     main()
