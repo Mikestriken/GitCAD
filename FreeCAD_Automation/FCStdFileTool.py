@@ -1,3 +1,7 @@
+"""
+Automate the process
+"""
+
 from freecad import project_utility as PU
 import os
 import argparse
@@ -9,7 +13,7 @@ CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
     
 EXPORT_FLAG:str = '--export'
 IMPORT_FLAG:str = '--import'
-CLI_FLAG:str = '--CLI' # Ignores config file, just directly interface with the `from freecad import project_utility as PU` API
+CONFIG_FILE_FLAG:str = '--CONFIG-FILE' # Uses config file to determine configurations. Args interpreted differently from what's listed in help()
 
 def load_config_file(config_path:str) -> dict:
     """
@@ -71,9 +75,9 @@ def get_FCStd_dir_path(FCStd_file_path:str, config:dict) -> str:
     FCStd_file_name:str = os.path.splitext(os.path.basename(FCStd_file_path))[0] # remove .FCStd extension
     FCStd_constructed_dir_name:str = f"{prefix}{FCStd_file_name}{suffix}"
     
-    if USE_SUBDIR: return os.path.abspath(os.path.join(FCStd_file_dir, subdir_name, FCStd_constructed_dir_name))
+    if USE_SUBDIR: return os.path.relpath(os.path.join(FCStd_file_dir, subdir_name, FCStd_constructed_dir_name))
     
-    else: return os.path.abspath(os.path.join(FCStd_file_dir, FCStd_constructed_dir_name))
+    else: return os.path.relpath(os.path.join(FCStd_file_dir, FCStd_constructed_dir_name))
 
 def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     """
@@ -97,9 +101,9 @@ def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     FCStd_dir_name = os.path.basename(FCStd_dir_path).removesuffix(suffix).removeprefix(prefix)
     FCStd_constructed_file_name = f"{FCStd_dir_name}.FCStd"
     
-    if USE_SUBDIR: return os.path.abspath(os.path.join(FCStd_dir_path, "../..", FCStd_constructed_file_name))
+    if USE_SUBDIR: return os.path.relpath(os.path.join(FCStd_dir_path, "../..", FCStd_constructed_file_name))
     
-    else: return os.path.abspath(os.path.join(FCStd_dir_path, "..", FCStd_constructed_file_name))
+    else: return os.path.relpath(os.path.join(FCStd_dir_path, "..", FCStd_constructed_file_name))
 
 def remove_export_thumbnail(FCStd_dir_path:str):
     """
@@ -135,44 +139,71 @@ def bad_args(args:argparse.Namespace) -> bool:
     Returns:
         bool: True if invalid, else False.
     """
+    no_mode_specified:bool = True if not args.export_flag and not args.import_flag else False
+    
+    if no_mode_specified: return True
     
     bad_arg_count:bool = True if args.export_flag and len(args.export_flag) > 2 or args.import_flag and len(args.import_flag) > 2 else False
     
     if bad_arg_count: return True
     
     missing_output_arg:bool = True if args.export_flag and len(args.export_flag) != 2 or args.import_flag and len(args.import_flag) != 2 else False
+    script_called_directly_by_user:bool = not args.configFile_flag
     
-    if missing_output_arg and args.cli_flag: return True
+    if missing_output_arg and script_called_directly_by_user: return True
+    
+def print_help():
+    """
+    Prints help message.
+    """
+    print(f"""
+usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} {IMPORT_FLAG} FCSTD_FILE]
+
+FreeCAD .FCStd file tool. Used to automate the process of importing and exporting .FCStd files.
+Importing => Compressing a .FCStd file from an uncompressed directory.
+Exporting => Decompressing a .FCStd file to an uncompressed directory.
+
+options:
+  {EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR
+                        export files from .FCStd archive
+                        
+  {IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE
+                        Create .FCStd archive from directory
+                        
+  {CONFIG_FILE_FLAG}
+                    Use config file to determine configurations. Args interpreted differently from what's listed:
+                        {EXPORT_FLAG} INPUT_FCSTD_FILE, OUTPUT_FCSTD_DIR -> {EXPORT_FLAG} FCSTD_FILE
+                        {IMPORT_FLAG} INPUT_FCSTD_DIR, OUTPUT_FCSTD_FILE -> {IMPORT_FLAG} FCSTD_FILE
+""")
 
 def main():
     # Setup CLI args
     parser:argparse.ArgumentParser = argparse.ArgumentParser(description="FreeCAD .FCStd file manager")
-    parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+', metavar=('INPUT_FCSTD_FILE', 'OUTPUT_FCSTD_DIR'), help='export files from .FCStd archive')
-    parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+', metavar=('INPUT_FCSTD_DIR', 'OUTPUT_FCSTD_FILE'), help='Create .FCStd archive from directory')
-    parser.add_argument(CLI_FLAG, dest="cli_flag", action='store_true', help='Use CLI mode, ignore configurations, user just interfaces with project_utility API')
+    parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+')
+    parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+')
+    parser.add_argument(CONFIG_FILE_FLAG, dest="configFile_flag", action='store_true')
     
     args = parser.parse_args()
     
     if bad_args(args):
-        parser.print_help()
+        print_help()
         return
 
     # Load config file
     config:dict
-    if not args.cli_flag:
+    if args.configFile_flag:
         config:dict = load_config_file(CONFIG_PATH)
     else:
         config = {}
     
-    
-    # I think that by default the thumbnail should be included if using the CLI.
-    INCLUDE_THUMBNAIL:bool = args.cli_flag or config.get('include_thumbnails', False)
+    script_called_directly_by_user:bool = not args.configFile_flag
+    INCLUDE_THUMBNAIL:bool = script_called_directly_by_user or config.get('include_thumbnails', False)
     
     # Main Logic
     if args.export_flag:
-        FCStd_file_path, FCStd_dir_path = os.path.abspath(args.export_flag[0]), os.path.abspath(args.export_flag[1]) if len(args.export_flag) > 1 else None
+        FCStd_file_path, FCStd_dir_path = os.path.relpath(args.export_flag[0]), os.path.relpath(args.export_flag[1]) if len(args.export_flag) > 1 else None
         
-        if not args.cli_flag: FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
+        if args.configFile_flag: FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
         
         if not os.path.exists(FCStd_dir_path): os.makedirs(FCStd_dir_path)
 
@@ -184,11 +215,9 @@ def main():
         print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
     elif args.import_flag:
-        FCStd_dir_path, FCStd_file_path = os.path.abspath(args.import_flag[0]), os.path.abspath(args.import_flag[1]) if len(args.import_flag) > 1 else None
-        if not args.cli_flag:
+        FCStd_dir_path, FCStd_file_path = os.path.relpath(args.import_flag[0]), os.path.relpath(args.import_flag[1]) if len(args.import_flag) > 1 else None
+        if args.configFile_flag:
             FCStd_file_path = get_FCStd_file_path(FCStd_dir_path, config)
-        
-        os.makedirs(os.path.dirname(FCStd_file_path), exist_ok=True)
         
         # PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
 
@@ -198,7 +227,7 @@ def main():
         print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
 
     else:
-        parser.print_help()
+        print_help()
 
 if __name__ == "__main__":
     main()
