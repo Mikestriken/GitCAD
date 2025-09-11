@@ -6,60 +6,79 @@ import zipfile
 import shutil
 
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
-
-# Config file keys
-def load_config_file(config_path: str) -> dict:
-    with open(config_path, 'r') as f:
-        data = json.load(f)
-
-    return {
-        "require_lock": data.get("require-lock-to-modify-FreeCAD-files"),
-        "include_thumbnails": data.get("include-thumbnails"),
-
-        "uncompressed_directory_structure": {
-            "uncompressed_directory_suffix": data.get("uncompressed-directory-structure",{}).get("uncompressed-directory-suffix"),
-            "uncompressed_directory_prefix": data.get("uncompressed-directory-structure",{}).get("uncompressed-directory-prefix"),
-            "subdirectory": {
-                "put_uncompressed_directory_in_subdirectory": data.get("subdirectory",{}).get("put-uncompressed-directory-in-subdirectory"),
-                "subdirectory_name": data.get("subdirectory",{}).get("subdirectory-name")
-            }
-        },
-
-        "compress_binaries": {
-            "enabled": data.get("compress-non-human-readable-FreeCAD-files", {}).get("enabled"),
-            "binary_file_patterns": data.get("compress-non-human-readable-FreeCAD-files", {}).get("files-to-compress")
-        }
-    }
     
 EXPORT_FLAG:str = '--export'
 IMPORT_FLAG:str = '--import'
 CLI_FLAG:str = '--CLI' # Ignores config file, just directly interface with the `from freecad import project_utility as PU` API
-        
-def construct_output_dir(FCStd_file_path: str, config):
-    structure = config['uncompressed_directory_structure']
-    suffix = structure['uncompressed_directory_suffix']
-    prefix = structure['uncompressed_directory_prefix']
-    sub = structure['subdirectory']
-    base_name = os.path.basename(FCStd_file_path).replace('.FCStd', '').replace('.fcstd', '')
-    constructed_name = f"{prefix}{base_name}{suffix}"
-    if sub['put_uncompressed_directory_in_subdirectory']:
-        subdir = sub['subdirectory_name']
-        return os.path.join(subdir, constructed_name)
-    else:
-        return constructed_name
 
-def construct_output_file(FCStd_dir_path: str, FCStd_file_path: str, config: dict):
-    structure = config['uncompressed_directory_structure']
-    suffix = structure['uncompressed_directory_suffix']
-    prefix = structure['uncompressed_directory_prefix']
-    sub = structure['subdirectory']
-    base_name = os.path.basename(FCStd_dir_path)
-    constructed_name = f"{prefix}{base_name}{suffix}"
-    if sub['put_uncompressed_directory_in_subdirectory']:
-        subdir = sub['subdirectory_name']
-        return os.path.join(subdir, constructed_name, os.path.basename(FCStd_file_path))
-    else:
-        return os.path.join(constructed_name, os.path.basename(FCStd_file_path))
+def load_config_file(config_path: str) -> dict:
+    """
+    Redefines config file keys for this script.
+    This way if the keys for the config file changes, it will not be necessary to update the keys throughout this entire script.
+    Instead only the key names in this function need be updated.
+
+    Args:
+        config_path (str): Path to config file.
+
+
+    Returns:
+        dict: Config file contents using redefined keys.
+    """
+    
+    data:dict
+    with open(config_path, 'r') as f:
+        data = json.load(f)
+
+    return {
+        "require_lock": data["require-lock-to-modify-FreeCAD-files"],
+        "include_thumbnails": data["include-thumbnails"],
+
+        "uncompressed_directory_structure": {
+            "uncompressed_directory_suffix": data["uncompressed-directory-structure"]["uncompressed-directory-suffix"],
+            "uncompressed_directory_prefix": data["uncompressed-directory-structure"]["uncompressed-directory-prefix"],
+            "subdirectory": {
+                "put_uncompressed_directory_in_subdirectory": data["subdirectory"]["put-uncompressed-directory-in-subdirectory"],
+                "subdirectory_name": data["subdirectory"]["subdirectory-name"]
+            }
+        },
+
+        "compress_binaries": {
+            "enabled": data["compress-non-human-readable-FreeCAD-files"]["enabled"],
+            "binary_file_patterns": data["compress-non-human-readable-FreeCAD-files"]["files-to-compress"]
+        }
+    }
+        
+def construct_output_dir(FCStd_file_path: str, config: dict) -> str:
+    # Load relevant configs
+    suffix:str = config['uncompressed_directory_structure']['uncompressed_directory_suffix']
+    prefix:str = config['uncompressed_directory_structure']['uncompressed_directory_prefix']
+    subdir_name:str = config['uncompressed_directory_structure']['subdirectory']['subdirectory_name']
+    
+    USE_SUBDIR:bool = config['uncompressed_directory_structure']['subdirectory']['put_uncompressed_directory_in_subdirectory']
+    
+    # Construct output path
+    FCStd_file_name:str = os.path.splitext(os.path.basename(FCStd_file_path))[0] # remove .FCStd extension
+    FCStd_constructed_dir_name:str = f"{prefix}{FCStd_file_name}{suffix}"
+    
+    if USE_SUBDIR: return os.path.join(subdir_name, FCStd_constructed_dir_name)
+    
+    else: return FCStd_constructed_dir_name
+
+def construct_output_file(FCStd_dir_path: str, FCStd_file_path: str, config: dict) -> str:
+    # Load relevant configs
+    suffix:str = config['uncompressed_directory_structure']['uncompressed_directory_suffix']
+    prefix:str = config['uncompressed_directory_structure']['uncompressed_directory_prefix']
+    subdir_name:str = config['uncompressed_directory_structure']['subdirectory']['subdirectory_name']
+    
+    USE_SUBDIR:bool = config['uncompressed_directory_structure']['subdirectory']['put_uncompressed_directory_in_subdirectory']
+    
+    # Construct output path
+    FCStd_dir_name = os.path.basename(FCStd_dir_path).replace(suffix, '').replace(prefix, '')
+    FCStd_constructed_file_name = f"{FCStd_dir_name}.FCStd"
+    
+    if USE_SUBDIR: return os.path.join(subdir_name, FCStd_constructed_file_name, os.path.basename(FCStd_file_path))
+    
+    else: return os.path.join(FCStd_constructed_file_name, os.path.basename(FCStd_file_path))
 
 def remove_export_thumbnail(FCStd_dir_path: str):
     """
@@ -101,7 +120,7 @@ def main():
         config = {}
     
     # Store booleans used globally in easier to read bool variables
-    INCLUDE_THUMBNAIL: bool = args.cli_flag or config.get('include_thumbnails', False)
+    INCLUDE_THUMBNAIL: bool = args.cli_flag or config.get('include_thumbnails', default=False)
     
     # Main Logic
     if args.export_flag:
