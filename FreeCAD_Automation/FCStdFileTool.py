@@ -8,55 +8,57 @@ import shutil
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 
 # Config file keys
-INCLUDE_THUMBNAILS:str = 'include-thumbnails'
-COMPRESS_NON_HUMAN:str = 'compress-non-human-readable-FreeCAD-files'
-UNCOMPRESSED_DIR_STRUCTURE:str = 'uncompressed-directory-structure'
-UNCOMPRESSED_SUFFIX:str = 'uncompressed-directory-suffix'
-UNCOMPRESSED_PREFIX:str = 'uncompressed-directory-prefix'
-SUBDIRECTORY:str = 'subdirectory'
-PUT_IN_SUBDIR:str = 'put-uncompressed-directory-in-subdirectory'
-SUBDIR_NAME:str = 'subdirectory-name'
+def load_config_file(CONFIG_PATH:str) -> dict:
+    with open(CONFIG_PATH, 'r') as f:
+        config = json.load(f)
+        
+        # config.get(uncompressed_dir_structure, CONFIG[uncompressed_dir_structure])
+        
+    return {
+        "require_lock": config.get("require-lock-to-modify-FreeCAD-files"),
+        "include_thumbnails": config.get("include-thumbnails"),
 
-# Config file dictionary and its default values
-CONFIG = {
-    INCLUDE_THUMBNAILS: False,
-    COMPRESS_NON_HUMAN: True,
-    UNCOMPRESSED_DIR_STRUCTURE: {
-        UNCOMPRESSED_SUFFIX: '_FCStd',
-        UNCOMPRESSED_PREFIX: 'FCStd_',
-        SUBDIRECTORY: {
-            PUT_IN_SUBDIR: True,
-            SUBDIR_NAME: 'uncompressed'
+        "uncompressed_directory_structure": {
+            "uncompressed_directory_suffix": config.get("uncompressed-directory-structure",{}).get("uncompressed-directory-suffix"),
+            "uncompressed_directory_prefix": config.get("uncompressed-directory-structure",{}).get("uncompressed-directory-prefix"),
+            "subdirectory": {
+                "put_uncompressed_directory_in_subdirectory": config.get("subdirectory",{}).get("put-uncompressed-directory-in-subdirectory"),
+                "subdirectory_name": config.get("subdirectory",{}).get("subdirectory-name")
+            }
+        },
+
+        "compress_binaries": {
+            "enabled": config.get("compress-non-human-readable-FreeCAD-files", {}).get("enabled"),
+            "binary_file_patterns": config.get("compress-non-human-readable-FreeCAD-files", {}).get("files-to-compress")
         }
     }
-}
-
+    
 EXPORT_FLAG:str = '--export'
 IMPORT_FLAG:str = '--import'
 CLI_FLAG:str = '--CLI' # Ignores config file, just directly interface with the `from freecad import project_utility as PU` API
         
 def construct_output_dir(FCStd_file_path:str, config):
-    structure = config.get(UNCOMPRESSED_DIR_STRUCTURE, CONFIG[UNCOMPRESSED_DIR_STRUCTURE])
-    suffix = structure.get(UNCOMPRESSED_SUFFIX, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][UNCOMPRESSED_SUFFIX])
-    prefix = structure.get(UNCOMPRESSED_PREFIX, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][UNCOMPRESSED_PREFIX])
-    sub = structure.get(SUBDIRECTORY, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][SUBDIRECTORY])
+    structure = config.get(uncompressed_dir_structure, CONFIG[uncompressed_dir_structure])
+    suffix = structure.get(uncompressed_dir_suffix, CONFIG[uncompressed_dir_structure][uncompressed_dir_suffix])
+    prefix = structure.get(uncompressed_dir_prefix, CONFIG[uncompressed_dir_structure][uncompressed_dir_prefix])
+    sub = structure.get(SUBDIRECTORY, CONFIG[uncompressed_dir_structure][SUBDIRECTORY])
     base_name = os.path.basename(FCStd_file_path).replace('.FCStd', '').replace('.fcstd', '')
     constructed_name = f"{prefix}{base_name}{suffix}"
-    if sub.get(PUT_IN_SUBDIR, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][SUBDIRECTORY][PUT_IN_SUBDIR]):
-        subdir = sub.get(SUBDIR_NAME, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][SUBDIRECTORY][SUBDIR_NAME])
+    if sub.get(PUT_IN_SUBDIR, CONFIG[uncompressed_dir_structure][SUBDIRECTORY][PUT_IN_SUBDIR]):
+        subdir = sub.get(SUBDIR_NAME, CONFIG[uncompressed_dir_structure][SUBDIRECTORY][SUBDIR_NAME])
         return os.path.join(subdir, constructed_name)
     else:
         return constructed_name
 
 def construct_output_file(FCStd_dir_path:str, FCStd_file_path:str, config):
-    structure = config.get(UNCOMPRESSED_DIR_STRUCTURE, CONFIG[UNCOMPRESSED_DIR_STRUCTURE])
-    suffix = structure.get(UNCOMPRESSED_SUFFIX, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][UNCOMPRESSED_SUFFIX])
-    prefix = structure.get(UNCOMPRESSED_PREFIX, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][UNCOMPRESSED_PREFIX])
-    sub = structure.get(SUBDIRECTORY, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][SUBDIRECTORY])
+    structure = config.get(uncompressed_dir_structure, CONFIG[uncompressed_dir_structure])
+    suffix = structure.get(uncompressed_dir_suffix, CONFIG[uncompressed_dir_structure][uncompressed_dir_suffix])
+    prefix = structure.get(uncompressed_dir_prefix, CONFIG[uncompressed_dir_structure][uncompressed_dir_prefix])
+    sub = structure.get(SUBDIRECTORY, CONFIG[uncompressed_dir_structure][SUBDIRECTORY])
     base_name = os.path.basename(FCStd_dir_path)
     constructed_name = f"{prefix}{base_name}{suffix}"
-    if sub.get(PUT_IN_SUBDIR, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][SUBDIRECTORY][PUT_IN_SUBDIR]):
-        subdir = sub.get(SUBDIR_NAME, CONFIG[UNCOMPRESSED_DIR_STRUCTURE][SUBDIRECTORY][SUBDIR_NAME])
+    if sub.get(PUT_IN_SUBDIR, CONFIG[uncompressed_dir_structure][SUBDIRECTORY][PUT_IN_SUBDIR]):
+        subdir = sub.get(SUBDIR_NAME, CONFIG[uncompressed_dir_structure][SUBDIRECTORY][SUBDIR_NAME])
         return os.path.join(subdir, constructed_name, os.path.basename(FCStd_file_path))
     else:
         return os.path.join(constructed_name, os.path.basename(FCStd_file_path))
@@ -94,15 +96,12 @@ def main():
 
     args = parser.parse_args()
 
-    # Load config files
-    config = {}
-    
+    # Load config file
     if not args.cli_flag:
-        with open(CONFIG_PATH, 'r') as f:
-            config = json.load(f)
+        config:dict = load_config_file()
     
     # Store booleans used globally in easier to read bool variables
-    INCLUDE_THUMBNAIL:bool = args.cli_flag or config.get(INCLUDE_THUMBNAILS, CONFIG[INCLUDE_THUMBNAILS])
+    INCLUDE_THUMBNAIL:bool = args.cli_flag or config.get(include_thumbnails, CONFIG[include_thumbnails])
 
     # Main Logic
     if args.export_flag:
