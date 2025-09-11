@@ -67,12 +67,13 @@ def get_FCStd_dir_path(FCStd_file_path:str, config:dict) -> str:
     USE_SUBDIR:bool = config['uncompressed_directory_structure']['subdirectory']['put_uncompressed_directory_in_subdirectory']
     
     # Construct output path
+    FCStd_file_dir:str = os.path.dirname(FCStd_file_path)
     FCStd_file_name:str = os.path.splitext(os.path.basename(FCStd_file_path))[0] # remove .FCStd extension
     FCStd_constructed_dir_name:str = f"{prefix}{FCStd_file_name}{suffix}"
     
-    if USE_SUBDIR: return os.path.join(FCStd_file_path, subdir_name, FCStd_constructed_dir_name)
+    if USE_SUBDIR: return os.path.abspath(os.path.join(FCStd_file_dir, subdir_name, FCStd_constructed_dir_name))
     
-    else: return os.path.join(FCStd_file_path, FCStd_constructed_dir_name)
+    else: return os.path.abspath(os.path.join(FCStd_file_dir, FCStd_constructed_dir_name))
 
 def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     """
@@ -96,9 +97,9 @@ def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     FCStd_dir_name = os.path.basename(FCStd_dir_path).removesuffix(suffix).removeprefix(prefix)
     FCStd_constructed_file_name = f"{FCStd_dir_name}.FCStd"
     
-    if USE_SUBDIR: return os.path.join(FCStd_dir_path, "../..", FCStd_constructed_file_name)
+    if USE_SUBDIR: return os.path.abspath(os.path.join(FCStd_dir_path, "../..", FCStd_constructed_file_name))
     
-    else: return os.path.join(FCStd_dir_path, "..", FCStd_constructed_file_name)
+    else: return os.path.abspath(os.path.join(FCStd_dir_path, "..", FCStd_constructed_file_name))
 
 def remove_export_thumbnail(FCStd_dir_path:str):
     """
@@ -165,34 +166,34 @@ def main():
     
     
     # I think that by default the thumbnail should be included if using the CLI.
-    INCLUDE_THUMBNAIL:bool = args.cli_flag or config.get('include_thumbnails', default=False)
+    INCLUDE_THUMBNAIL:bool = args.cli_flag or config.get('include_thumbnails', False)
     
     # Main Logic
     if args.export_flag:
-        FCStd_file_path, FCStd_dir_path = args.export_flag
+        FCStd_file_path, FCStd_dir_path = os.path.abspath(args.export_flag[0]), os.path.abspath(args.export_flag[1]) if len(args.export_flag) > 1 else None
         
         if not args.cli_flag: FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
         
         if not os.path.exists(FCStd_dir_path): os.makedirs(FCStd_dir_path)
 
-        PU.extractDocument(FCStd_file_path, FCStd_dir_path)
+        # PU.extractDocument(FCStd_file_path, FCStd_dir_path)
 
-        if not INCLUDE_THUMBNAIL:
-            remove_export_thumbnail(FCStd_dir_path)
+        # if not INCLUDE_THUMBNAIL:
+        #     remove_export_thumbnail(FCStd_dir_path)
 
         print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
     elif args.import_flag:
-        FCStd_dir_path, FCStd_file_path = args.import_flag
+        FCStd_dir_path, FCStd_file_path = os.path.abspath(args.import_flag[0]), os.path.abspath(args.import_flag[1]) if len(args.import_flag) > 1 else None
         if not args.cli_flag:
             FCStd_file_path = get_FCStd_file_path(FCStd_dir_path, config)
         
         os.makedirs(os.path.dirname(FCStd_file_path), exist_ok=True)
         
-        PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
+        # PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
 
-        if INCLUDE_THUMBNAIL:
-            add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
+        # if INCLUDE_THUMBNAIL:
+        #     add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
 
         print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
 
