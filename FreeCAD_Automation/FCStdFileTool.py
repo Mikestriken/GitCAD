@@ -37,8 +37,8 @@ def load_config_file(config_path:str) -> dict:
             "uncompressed_directory_suffix": data["uncompressed-directory-structure"]["uncompressed-directory-suffix"],
             "uncompressed_directory_prefix": data["uncompressed-directory-structure"]["uncompressed-directory-prefix"],
             "subdirectory": {
-                "put_uncompressed_directory_in_subdirectory": data["subdirectory"]["put-uncompressed-directory-in-subdirectory"],
-                "subdirectory_name": data["subdirectory"]["subdirectory-name"]
+                "put_uncompressed_directory_in_subdirectory": data["uncompressed-directory-structure"]["subdirectory"]["put-uncompressed-directory-in-subdirectory"],
+                "subdirectory_name": data["uncompressed-directory-structure"]["subdirectory"]["subdirectory-name"]
             }
         },
 
