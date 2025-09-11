@@ -197,9 +197,11 @@ def main():
     
     # Main Logic
     if args.export_flag:
-        FCStd_file_path, FCStd_dir_path = os.path.relpath(args.export_flag[0]), os.path.relpath(args.export_flag[1]) if len(args.export_flag) > 1 else None
+        FCStd_file_path = os.path.relpath(args.export_flag[0])
+        FCStd_dir_path = os.path.relpath(args.export_flag[1]) if len(args.export_flag) > 1 else None
         
-        if args.configFile_flag: FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
+        if args.configFile_flag: 
+            FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
         
         if not os.path.exists(FCStd_dir_path): os.makedirs(FCStd_dir_path)
 
@@ -211,9 +213,12 @@ def main():
         print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
     elif args.import_flag:
-        FCStd_dir_path, FCStd_file_path = os.path.relpath(args.import_flag[0]), os.path.relpath(args.import_flag[1]) if len(args.import_flag) > 1 else None
+        FCStd_dir_path = os.path.relpath(args.import_flag[0])
+        FCStd_file_path = os.path.relpath(args.import_flag[1]) if len(args.import_flag) > 1 else None
+        
         if args.configFile_flag:
-            FCStd_file_path = get_FCStd_file_path(FCStd_dir_path, config)
+            FCStd_file_path = FCStd_dir_path
+            FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
         
         # PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
 
