@@ -146,10 +146,10 @@ def bad_args(args:argparse.Namespace) -> bool:
 def main():
     # Setup CLI args
     parser:argparse.ArgumentParser = argparse.ArgumentParser(description="FreeCAD .FCStd file manager")
-    parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs=2, metavar=('INPUT_FCSTD_FILE', 'OUTPUT_FCSTD_DIR'), help='export files from .FCStd archive')
-    parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs=2, metavar=('INPUT_FCSTD_DIR', 'OUTPUT_FCSTD_FILE'), help='Create .FCStd archive from directory')
+    parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+', metavar=('INPUT_FCSTD_FILE', 'OUTPUT_FCSTD_DIR'), help='export files from .FCStd archive')
+    parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+', metavar=('INPUT_FCSTD_DIR', 'OUTPUT_FCSTD_FILE'), help='Create .FCStd archive from directory')
     parser.add_argument(CLI_FLAG, dest="cli_flag", action='store_true', help='Use CLI mode, ignore configurations, user just interfaces with project_utility API')
-
+    
     args = parser.parse_args()
     
     if bad_args(args):
