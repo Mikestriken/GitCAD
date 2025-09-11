@@ -10,19 +10,19 @@ Importing => Compressing a .FCStd file from an uncompressed directory.
 Exporting => Decompressing a .FCStd file to an uncompressed directory.
 
 options:
-  -h, --help            
+    -h, --help            
                         show this help message and exit
                         
-  {EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR
+    {EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR
                         export files from .FCStd archive
                         
-  {IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE
+    {IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE
                         Create .FCStd archive from directory
                         
-  {CONFIG_FILE_FLAG}
-                    Use config file to determine configurations. Args interpreted differently from what's listed:
-                        {EXPORT_FLAG} INPUT_FCSTD_FILE, OUTPUT_FCSTD_DIR -> {EXPORT_FLAG} FCSTD_FILE
-                        {IMPORT_FLAG} INPUT_FCSTD_DIR, OUTPUT_FCSTD_FILE -> {IMPORT_FLAG} FCSTD_FILE
+    {CONFIG_FILE_FLAG}
+                        Use config file to determine configurations. Args interpreted differently from what's listed:
+                            {EXPORT_FLAG} INPUT_FCSTD_FILE, OUTPUT_FCSTD_DIR -> {EXPORT_FLAG} FCSTD_FILE
+                            {IMPORT_FLAG} INPUT_FCSTD_DIR, OUTPUT_FCSTD_FILE -> {IMPORT_FLAG} FCSTD_FILE
 """
 
 from freecad import project_utility as PU
@@ -98,6 +98,7 @@ def get_FCStd_dir_path(FCStd_file_path:str, config:dict) -> str:
     
     else: return os.path.relpath(os.path.join(FCStd_file_dir, FCStd_constructed_dir_name))
 
+# * Legacy function. Maybe it'll come in use again in the future
 def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     """
     Gets path to .FCStd file according to set configurations.
@@ -109,6 +110,7 @@ def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     Returns:
         str: Path to .FCStd file.
     """
+    """ 
     # Load relevant configs
     suffix:str = config['uncompressed_directory_structure']['uncompressed_directory_suffix']
     prefix:str = config['uncompressed_directory_structure']['uncompressed_directory_prefix']
@@ -123,6 +125,8 @@ def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     if USE_SUBDIR: return os.path.relpath(os.path.join(FCStd_dir_path, "../..", FCStd_constructed_file_name))
     
     else: return os.path.relpath(os.path.join(FCStd_dir_path, "..", FCStd_constructed_file_name))
+    """
+    return None
 
 def remove_export_thumbnail(FCStd_dir_path:str):
     """
@@ -189,8 +193,6 @@ def main():
     config:dict
     if args.configFile_flag:
         config:dict = load_config_file(CONFIG_PATH)
-    else:
-        config = {}
     
     script_called_directly_by_user:bool = not args.configFile_flag
     INCLUDE_THUMBNAIL:bool = script_called_directly_by_user or config.get('include_thumbnails', False)
@@ -205,10 +207,10 @@ def main():
         
         if not os.path.exists(FCStd_dir_path): os.makedirs(FCStd_dir_path)
 
-        # PU.extractDocument(FCStd_file_path, FCStd_dir_path)
+        PU.extractDocument(FCStd_file_path, FCStd_dir_path)
 
-        # if not INCLUDE_THUMBNAIL:
-        #     remove_export_thumbnail(FCStd_dir_path)
+        if not INCLUDE_THUMBNAIL:
+            remove_export_thumbnail(FCStd_dir_path)
 
         print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
@@ -220,10 +222,10 @@ def main():
             FCStd_file_path = FCStd_dir_path
             FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
         
-        # PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
+        PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
 
-        # if INCLUDE_THUMBNAIL:
-        #     add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
+        if INCLUDE_THUMBNAIL:
+            add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
 
         print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
 
