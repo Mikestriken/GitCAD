@@ -133,7 +133,7 @@ def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     """
     return None
 
-def remove_export_thumbnail(FCStd_dir_path:str):
+def remove_exported_thumbnail(FCStd_dir_path:str):
     """
     Remove thumbnail folder and contents from uncompressed FCStd file directory.
 
@@ -365,7 +365,7 @@ def main():
         PU.extractDocument(FCStd_file_path, FCStd_dir_path)
 
         if not INCLUDE_THUMBNAIL:
-            remove_export_thumbnail(FCStd_dir_path)
+            remove_exported_thumbnail(FCStd_dir_path)
             
         if config['compress_binaries']['enabled']: compress_binaries(FCStd_dir_path, config)
 
