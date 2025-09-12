@@ -1,19 +1,3 @@
-Is it better instead of doing filters put all the code in pre commit and post checkout hooks?
-
-### Pre-commit:
-1. Extract added zip files to a subdir the name of the zip file with `_zipFileExtension` appended to the folder name.
-2. Add extracted contents, exclude added zip file.
-
-
-### Problem:
-1. Friend locks .FCStd file.
-2. I clone the repo
-3. * I need to update the .FCStd file with uncompressed data
-
-
-
-Is there a way I can make git pretend that a file has no changes, but if I make another change to that file then it will note those changes, like a local commit that is never pushed.
-
 ### ToDo:
 - [ ] Make sure `./FreeCAD_Automation/freecad-repo-init.sh` triggers Post-Checkout hook after execution (for sake of initializing a newly cloned repo)
 
