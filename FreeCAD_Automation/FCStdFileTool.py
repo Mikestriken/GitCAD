@@ -32,6 +32,7 @@ import json
 import zipfile
 import shutil
 import fnmatch
+import io
 
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 
@@ -158,14 +159,13 @@ def add_thumbnail_to_FCStd_file(FCStd_dir_path:str, FCStd_file_path:str):
 def compress_binaries(FCStd_dir_path: str, config: dict):
     """
     Compresses binary files and folders in the FCStd directory that match the configured patterns.
-    Creates zip archives with size limits and removes the original files after compression.
+    Uses io.BytesIO buffers to manage and size limits. Files are removed after compression
 
     Args:
         FCStd_dir_path (str): Path to the FCStd directory.
         config (dict): Configuration dictionary.
     """
-    if not config['compress_binaries']['enabled']:
-        return
+    assert config['compress_binaries']['enabled'], "ERROR: Attempting to compress binaries despite that config being disabled!"
 
     patterns:list = config['compress_binaries']['binary_file_patterns']
     max_size_gb:float = config['compress_binaries']['max_compressed_file_size_gigabyte']
@@ -184,58 +184,77 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
 
     # Compress items into zip files
     zip_index:int = 1
-    current_zip:zipfile.ZipFile = None
-    current_size:float = 0
-    
-    for item in to_compress:
-        # Instantiate a new zip file
-        if current_zip is None or current_size >= max_size_bytes:
-            if current_zip is not None: current_zip.close()
-            zip_name:str = f"compressed_binaries_{zip_index}.zip"
-            zip_path:str = os.path.join(FCStd_dir_path, zip_name)
-            current_zip = zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=compression_level)
-            zip_index += 1
-            current_size = 0
-
-        # Add item / directory to zip file
+    current_zip:io.BytesIO = io.BytesIO()
+    i:int = 0
+    while (i < len(to_compress)):
+        item:str = to_compress[i]
+        # Backup before adding
+        backup:io.BytesIO = io.BytesIO(current_zip.getvalue())
+        path_to_item_in_zip:str = os.path.relpath(path=item, start=FCStd_dir_path)
         if os.path.isfile(item):
-            path_to_item_in_zip = os.path.relpath(path=item, start=FCStd_dir_path)
-            current_zip.write(item, path_to_item_in_zip)
+            # Add file
+            with zipfile.ZipFile(current_zip, 'a', zipfile.ZIP_DEFLATED, compresslevel=compression_level) as zf:
+                zf.write(item, path_to_item_in_zip)
             
-            current_zip.fp.flush()
-            os.fsync(current_zip.fp.fileno()) 
-            current_size += os.path.getsize(zip_path)
+            if current_zip.tell() > max_size_bytes:
+                # Restore
+                current_zip:io.BytesIO = backup
+                
+                # Write to disk
+                zip_name:str = f"compressed_binaries_{zip_index}.zip"
+                zip_path:str = os.path.join(FCStd_dir_path, zip_name)
+                with open(zip_path, 'wb') as f:
+                    f.write(current_zip.getvalue())
+                zip_index += 1
+                
+                # New buffer
+                current_zip:io.BytesIO = io.BytesIO()
+                
+                # Retry this file with new archive
+                continue
             
-            if current_size >= max_size_bytes:
-                # Restore version of io.BytesIO() before adding this file
-                # Write that version to disk
-                # set current_zip = None
-                # go back one iteration of the for loop to repeat loop for this item in new zip file. 
+            # Remove file
+            os.remove(item)
             
-            else: os.remove(item)
-            
-        
         elif os.path.isdir(item):
-            for root_dir, _, files_dir in os.walk(item):
-                for file in files_dir:
-                    file_path = os.path.join(root_dir, file)
-                    path_to_item_in_zip = os.path.relpath(path=file_path, start=FCStd_dir_path)
-                    current_zip.write(file_path, path_to_item_in_zip)
+            # Add Directory
+            with zipfile.ZipFile(current_zip, 'a', zipfile.ZIP_DEFLATED, compresslevel=compression_level) as zf:
+                for root_dir, _, files_dir in os.walk(item):
+                    for file in files_dir:
+                        file_path:str = os.path.join(root_dir, file)
+                        path_to_item_in_zip:str = os.path.relpath(path=file_path, start=FCStd_dir_path)
+                        zf.write(file_path, path_to_item_in_zip)
             
-            current_zip.fp.flush()
-            os.fsync(current_zip.fp.fileno()) 
-            current_size += os.path.getsize(zip_path)
             
-            if current_size >= max_size_bytes:
-                # Restore version of io.BytesIO() before adding this dir
-                # Write that version to disk
-                # set current_zip = None
-                # go back one iteration of the for loop to repeat loop for this item in new zip file. 
+            if current_zip.tell() >= max_size_bytes:
+                # Restore
+                current_zip:io.BytesIO = backup
+                
+                # Write to disk
+                zip_name:str = f"compressed_binaries_{zip_index}.zip"
+                zip_path:str = os.path.join(FCStd_dir_path, zip_name)
+                with open(zip_path, 'wb') as f:
+                    f.write(current_zip.getvalue())
+                zip_index += 1
+                
+                # New buffer
+                current_zip:io.BytesIO = io.BytesIO()
+                
+                # Retry this file with new archive
+                continue
             
-            else: shutil.rmtree(item)
+            # Remove Directory
+            shutil.rmtree(item)
+        
+        i += 1
+        # End of while loop
 
-    if current_zip:
-        current_zip.close()
+    # Write last opened archive (that didn't exceed size) to disk
+    if current_zip.tell() > 0:
+        zip_name = f"compressed_binaries_{zip_index}.zip"
+        zip_path = os.path.join(FCStd_dir_path, zip_name)
+        with open(zip_path, 'wb') as f:
+            f.write(current_zip.getvalue())
 
 
 class DecompressBinaries:
