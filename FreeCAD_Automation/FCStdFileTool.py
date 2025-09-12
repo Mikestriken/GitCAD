@@ -271,8 +271,7 @@ def write_zip_to_disk(FCStd_dir_path:str, zip_file_prefix:str, zip_index:int, cu
     zip_index += 1
     return zip_index
 
-
-class DecompressBinaries:
+class DecompressBinariesContext:
     """
     Context manager for decompressing binary zip files in the FCStd directory.
     Extracts files in __enter__ and removes them in __exit__.
@@ -380,7 +379,7 @@ def main():
             FCStd_file_path:str = FCStd_dir_path
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
-        with DecompressBinaries(FCStd_dir_path, config):
+        with DecompressBinariesContext(FCStd_dir_path, config):
             
             PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
 
