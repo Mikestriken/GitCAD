@@ -175,6 +175,10 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
         
         // Note 2: Pattern matching uses PurePosixPath().match(). See documentation here: https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.match
         //         FreeCAD's python is version Python 3.11.13 FYI (hence not using full_match())
+
+        // Note 3: My template pattern matching is also compressing certain text files. This is because they are written in a way that only
+        //         a computer / algorithm could understand. Diffing them has no value in my opinion.
+        //         Basically the only thing left uncompressed with this template is Document.xml and GuiDocument.xml.
         "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"],
         
         // --------------------------------------------------------------
