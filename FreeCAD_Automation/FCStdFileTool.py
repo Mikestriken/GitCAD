@@ -31,6 +31,7 @@ import argparse
 import json
 import zipfile
 import shutil
+import fnmatch
 
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 
@@ -149,10 +150,117 @@ def add_thumbnail_to_FCStd_file(FCStd_dir_path:str, FCStd_file_path:str):
         FCStd_dir_path (str): Path to uncompressed FCStd file directory.
         FCStd_file_path (str): Path to .FCStd file.
     """
-    thumbnail_path = os.path.join(FCStd_dir_path, 'thumbnails', 'Thumbnail.png')
+    thumbnail_path:str = os.path.join(FCStd_dir_path, 'thumbnails', 'Thumbnail.png')
     if os.path.exists(thumbnail_path):
         with zipfile.ZipFile(FCStd_file_path, 'a', zipfile.ZIP_DEFLATED) as zf:
             zf.write(thumbnail_path, 'thumbnails/Thumbnail.png')
+
+def compress_binaries(FCStd_dir_path: str, config: dict):
+    """
+    Compresses binary files and folders in the FCStd directory that match the configured patterns.
+    Creates zip archives with size limits and removes the original files after compression.
+
+    Args:
+        FCStd_dir_path (str): Path to the FCStd directory.
+        config (dict): Configuration dictionary.
+    """
+    if not config['compress_binaries']['enabled']:
+        return
+
+    patterns:list = config['compress_binaries']['binary_file_patterns']
+    max_size_gb:float = config['compress_binaries']['max_compressed_file_size_gigabyte']
+    comp_level:int = config['compress_binaries']['compression_level']
+    max_size_bytes:float = max_size_gb * (1024 ** 3)
+
+    # Collect items to compress
+    to_compress:list = []
+    for root, dirs, files in os.walk(FCStd_dir_path):
+        for name in dirs + files:
+            full_path:str = os.path.join(root, name)
+            for pattern in patterns:
+                if fnmatch.fnmatch(name, pattern):
+                    to_compress.append(full_path)
+                    break
+
+    # Compress items into zip files
+    zip_index:int = 1
+    current_zip:zipfile.ZipFile = None
+    current_size:float = 0
+    
+    for item in to_compress:
+        # Instantiate a new zip file
+        if current_zip is None or current_size >= max_size_bytes:
+            if current_zip is not None: current_zip.close()
+            zip_name:str = f"compressed_binaries_{zip_index}.zip"
+            zip_path:str = os.path.join(FCStd_dir_path, zip_name)
+            current_zip = zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=comp_level)
+            zip_index += 1
+            current_size = 0
+
+        path_to_item = os.path.relpath(path=item, start=FCStd_dir_path)
+        if os.path.isfile(item):
+            current_zip.write(item, path_to_item)
+            current_size += os.path.getsize(item)
+            os.remove(item)
+        
+        elif os.path.isdir(item):
+            for root_dir, dirs_dir, files_dir in os.walk(item):
+                for file in files_dir:
+                    file_path = os.path.join(root_dir, file)
+                    arcname = os.path.relpath(path=file_path, start=FCStd_dir_path)
+                    current_zip.write(file_path, arcname)
+                    current_size += os.path.getsize(file_path)
+            shutil.rmtree(item)
+
+    if current_zip:
+        current_zip.close()
+
+
+class DecompressBinaries:
+    """
+    Context manager for decompressing binary zip files in the FCStd directory.
+    Extracts files in __enter__ and removes them in __exit__.
+    """
+    def __init__(self, FCStd_dir_path: str, config: dict):
+        self.FCStd_dir_path = FCStd_dir_path
+        self.config = config
+        self.extracted_items = []
+
+    def __enter__(self):
+        if not self.config['compress_binaries']['enabled']:
+            return self.FCStd_dir_path
+
+        zip_files = [f for f in os.listdir(self.FCStd_dir_path) if f.startswith('compressed_binaries_') and f.endswith('.zip')]
+        for zip_file in sorted(zip_files):
+            zip_path = os.path.join(self.FCStd_dir_path, zip_file)
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                zf.extractall(self.FCStd_dir_path)
+                self.extracted_items.extend(zf.namelist())
+            os.remove(zip_path)
+        return self.FCStd_dir_path
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        for item in self.extracted_items:
+            full_path = os.path.join(self.FCStd_dir_path, item)
+            if os.path.exists(full_path):
+                if os.path.isdir(full_path):
+                    shutil.rmtree(full_path)
+                else:
+                    os.remove(full_path)
+
+
+def decompress_binaries(dir_path: str, config: dict):
+    """
+    Returns a context manager for decompressing binaries.
+
+    Args:
+        dir_path (str): Path to the FCStd directory.
+        config (dict): Configuration dictionary.
+
+    Returns:
+        DecompressBinaries: Context manager instance.
+    """
+    return DecompressBinaries(dir_path, config)
 
 def bad_args(args:argparse.Namespace) -> bool:
     """
@@ -226,7 +334,7 @@ def main():
             FCStd_file_path = FCStd_dir_path
             FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
         
-        with decompress_binaries(FCStd_dir_path, config):
+        with DecompressBinaries(FCStd_dir_path, config):
             
             PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
 
