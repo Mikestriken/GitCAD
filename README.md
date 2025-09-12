@@ -33,14 +33,16 @@ This repository contains tools and scripts to automate the Git workflow for comm
     - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
         Example: `C:/Path/To/FreeCAD 1.0/bin/python.exe`
     
-5. Run the initialization script:
+5. ****Test your configurations on python script:
+
+6. Run the initialization script:
    ```bash
    ./FreeCAD_Automation/freecad-repo-init.sh
    ```
    *The Script can be ran multiple times without error.*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
-6. Update your `.gitattributes` with LFS files you want to track.  
+7. Update your `.gitattributes` with LFS files you want to track.  
    - `git lfs track "*.zip"`
    - `git lfs track "**/no_extension/*"` -- folder created by this script to track files without extension
    - `git lfs track "*.brp"`
@@ -171,8 +173,8 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
         // Note 1: "*/no_extension" is a directory all files without extension are added to. 
         //         This is for convenience of being able to use git LFS to track specifically files without extension.
         
-        // Note 2: Pattern matching uses fnmatch. See documentation here: https://docs.python.org/3/library/fnmatch.html
-        "files-to-compress": ["*/no_extension", "*.brp", "*/thumbnails", "*.Map.*"],
+        // ****************Note 2: Pattern matching uses fnmatch. See documentation here: https://docs.python.org/3/library/fnmatch.html
+        "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*"],
         
         // --------------------------------------------------------------
         
