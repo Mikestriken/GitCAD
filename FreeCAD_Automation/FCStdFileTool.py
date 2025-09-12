@@ -376,10 +376,10 @@ def main():
         
         os.makedirs(FCStd_dir_path, exist_ok=True)
         
-        # ToDo:
-        """
-        FileExistsError: [WinError 183] Cannot create a file when that file already exists: 'uncompressed\\FCStd_AssemblyExample_FCStd/thumbnails'
-        """
+        # Remove previously exported thumbnail directory (PU.extractDocument() throws error if still there)
+        with zipfile.ZipFile(FCStd_file_path, 'r') as zf:
+            if any("thumbnails" in PurePosixPath(file_name).parts for file_name in zf.namelist()):
+                remove_exported_thumbnail(FCStd_dir_path)
 
         PU.extractDocument(FCStd_file_path, FCStd_dir_path)
 
