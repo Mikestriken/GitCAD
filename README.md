@@ -173,8 +173,9 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
         // Note 1: "*/no_extension" is a directory all files without extension are added to. 
         //         This is for convenience of being able to use git LFS to track specifically files without extension.
         
-        // ****************Note 2: Pattern matching uses fnmatch. See documentation here: https://docs.python.org/3/library/fnmatch.html
-        "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*"],
+        // Note 2: Pattern matching uses PurePosixPath().match(). See documentation here: https://docs.python.org/3/library/pathlib.html#pathlib.PurePath.match
+        //         FreeCAD's python is version Python 3.11.13 FYI (hence not using full_match())
+        "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"],
         
         // --------------------------------------------------------------
         

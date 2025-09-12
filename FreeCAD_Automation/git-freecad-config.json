@@ -14,7 +14,7 @@
 
     "compress-non-human-readable-FreeCAD-files": {
         "enabled": true,
-        "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*"],
+        "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"],
         "max-compressed-file-size-gigabyte": 2,
         "compression-level": 9,
         "zip-file-prefix": "compressed_binaries_"
