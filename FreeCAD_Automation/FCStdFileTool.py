@@ -52,7 +52,7 @@ def load_config_file(config_path:str) -> dict:
     
     data:dict
     with open(config_path, 'r') as f:
-        data = json.load(f)
+        data:dict = json.load(f)
 
     return {
         "require_lock": data["require-lock-to-modify-FreeCAD-files"],
@@ -124,8 +124,8 @@ def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     USE_SUBDIR:bool = config['uncompressed_directory_structure']['subdirectory']['put_uncompressed_directory_in_subdirectory']
     
     # Construct output path
-    FCStd_dir_name = os.path.basename(FCStd_dir_path).removesuffix(suffix).removeprefix(prefix)
-    FCStd_constructed_file_name = f"{FCStd_dir_name}.FCStd"
+    FCStd_dir_name:str = os.path.basename(FCStd_dir_path).removesuffix(suffix).removeprefix(prefix)
+    FCStd_constructed_file_name:str = f"{FCStd_dir_name}.FCStd"
     
     if USE_SUBDIR: return os.path.relpath(os.path.join(FCStd_dir_path, "../..", FCStd_constructed_file_name))
     
@@ -140,7 +140,7 @@ def remove_exported_thumbnail(FCStd_dir_path:str):
     Args:
         FCStd_dir_path (str): Path to uncompressed FCStd file directory.
     """
-    thumbnails_dir = os.path.join(FCStd_dir_path, 'thumbnails')
+    thumbnails_dir:str = os.path.join(FCStd_dir_path, 'thumbnails')
     if os.path.exists(thumbnails_dir):
         shutil.rmtree(thumbnails_dir)
 
@@ -204,7 +204,7 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
                 current_zip:io.BytesIO = backup
                 
                 # Write to disk
-                zip_index = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
+                zip_index:int = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
                 
                 # New buffer
                 current_zip:io.BytesIO = io.BytesIO()
@@ -230,7 +230,7 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
                 current_zip:io.BytesIO = backup
                 
                 # Write to disk
-                zip_index = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
+                zip_index:int = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
                 
                 # New buffer
                 current_zip:io.BytesIO = io.BytesIO()
@@ -246,7 +246,7 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
 
     # Write last opened archive (that didn't exceed size) to disk
     if current_zip.tell() > 0:
-        zip_index = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
+        zip_index:int = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
 
 def write_zip_to_disk(FCStd_dir_path:str, zip_file_prefix:str, zip_index:int, current_zip:io.BytesIO) -> int:
     """
@@ -338,7 +338,7 @@ def main():
     parser.add_argument(CONFIG_FILE_FLAG, dest="configFile_flag", action='store_true')
     parser.add_argument("-h", "--help", dest="help_flag", action="store_true")
     
-    args = parser.parse_args()
+    args:argparse.Namespace = parser.parse_args()
     
     if bad_args(args) or args.help_flag:
         print(HELP_MESSAGE)
@@ -354,11 +354,11 @@ def main():
     
     # Main Logic
     if args.export_flag:
-        FCStd_file_path = os.path.relpath(args.export_flag[0])
-        FCStd_dir_path = os.path.relpath(args.export_flag[1]) if len(args.export_flag) > 1 else None
+        FCStd_file_path:str = os.path.relpath(args.export_flag[0])
+        FCStd_dir_path:str = os.path.relpath(args.export_flag[1]) if len(args.export_flag) > 1 else None
         
         if args.configFile_flag: 
-            FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
+            FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
         if not os.path.exists(FCStd_dir_path): os.makedirs(FCStd_dir_path)
 
@@ -372,12 +372,12 @@ def main():
         print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
     elif args.import_flag:
-        FCStd_dir_path = os.path.relpath(args.import_flag[0])
-        FCStd_file_path = os.path.relpath(args.import_flag[1]) if len(args.import_flag) > 1 else None
+        FCStd_dir_path:str = os.path.relpath(args.import_flag[0])
+        FCStd_file_path:str = os.path.relpath(args.import_flag[1]) if len(args.import_flag) > 1 else None
         
         if args.configFile_flag:
-            FCStd_file_path = FCStd_dir_path
-            FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
+            FCStd_file_path:str = FCStd_dir_path
+            FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
         with DecompressBinaries(FCStd_dir_path, config):
             
