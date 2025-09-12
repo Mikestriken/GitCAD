@@ -213,6 +213,8 @@ def main():
 
         if not INCLUDE_THUMBNAIL:
             remove_export_thumbnail(FCStd_dir_path)
+            
+        if config['compress_binaries']['enabled']: compress_binaries(FCStd_dir_path, config)
 
         print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
@@ -224,11 +226,13 @@ def main():
             FCStd_file_path = FCStd_dir_path
             FCStd_dir_path = get_FCStd_dir_path(FCStd_file_path, config)
         
-        PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
+        with decompress_binaries(FCStd_dir_path, config):
+            
+            PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
 
-        if INCLUDE_THUMBNAIL:
-            add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
-
+            if INCLUDE_THUMBNAIL:
+                add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)        
+        
         print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
 
     else:
