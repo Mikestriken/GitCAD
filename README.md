@@ -165,6 +165,12 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
         // If enabled, after exporting the .FCStd file to a directory,
         // files/folders with names matching strings listed
         // will be further compressed to save git LFS space.
+
+        // Using template patterns and compression level 9 reduces FreeCAD BIMExample.FCStd's
+        // created folder by 67.98%.
+
+        // Enabling this option makes exporting .FCStd files take considerably longer on max compression level.
+        // If too unbearable and you don't mind a reduced compression, reduce the compression-level property below.
         "enabled": true,
         
         // --------------------------------------------------------------
