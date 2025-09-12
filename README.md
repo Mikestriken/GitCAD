@@ -174,7 +174,13 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
 
         // level of compression 0-9
         // zlib documentation: https://docs.python.org/3/library/zlib.html#zlib.compress
-        "compression-level": 9
+        "compression-level": 9,
+        
+        // --------------------------------------------------------------
+
+        // Prefix for created zip files.
+        // IE: Current setting will create `compressed_binaries_{i}.zip` where {i} is an iterator for all created zip files (that exceed `max-compressed-file-size-gigabyte`).
+        "zip-file-prefix": "compressed_binaries_"
     }
 }
 ```

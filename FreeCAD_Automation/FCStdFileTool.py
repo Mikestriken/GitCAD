@@ -71,7 +71,8 @@ def load_config_file(config_path:str) -> dict:
             "enabled": data["compress-non-human-readable-FreeCAD-files"]["enabled"],
             "binary_file_patterns": data["compress-non-human-readable-FreeCAD-files"]["files-to-compress"],
             "max_compressed_file_size_gigabyte": data["compress-non-human-readable-FreeCAD-files"]["max-compressed-file-size-gigabyte"],
-            "compression_level": data["compress-non-human-readable-FreeCAD-files"]["compression-level"]
+            "compression_level": data["compress-non-human-readable-FreeCAD-files"]["compression-level"],
+            "zip_file_prefix": data["compress-non-human-readable-FreeCAD-files"]["zip-file-prefix"]
         }
     }
         
@@ -170,6 +171,8 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
     patterns:list = config['compress_binaries']['binary_file_patterns']
     max_size_gb:float = config['compress_binaries']['max_compressed_file_size_gigabyte']
     compression_level:int = config['compress_binaries']['compression_level']
+    zip_file_prefix:str = config['compress_binaries']['zip_file_prefix']
+
     max_size_bytes:float = max_size_gb * (1024 ** 3)
 
     # Collect items to compress
@@ -201,7 +204,7 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
                 current_zip:io.BytesIO = backup
                 
                 # Write to disk
-                zip_index = write_zip_to_disk(FCStd_dir_path, zip_index, current_zip)
+                zip_index = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
                 
                 # New buffer
                 current_zip:io.BytesIO = io.BytesIO()
@@ -227,7 +230,7 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
                 current_zip:io.BytesIO = backup
                 
                 # Write to disk
-                zip_index = write_zip_to_disk(FCStd_dir_path, zip_index, current_zip)
+                zip_index = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
                 
                 # New buffer
                 current_zip:io.BytesIO = io.BytesIO()
@@ -243,23 +246,24 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
 
     # Write last opened archive (that didn't exceed size) to disk
     if current_zip.tell() > 0:
-        zip_index = write_zip_to_disk(FCStd_dir_path, zip_index, current_zip)
+        zip_index = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
 
-def write_zip_to_disk(FCStd_dir_path:str, zip_index:int, current_zip:io.BytesIO) -> int:
+def write_zip_to_disk(FCStd_dir_path:str, zip_file_prefix:str, zip_index:int, current_zip:io.BytesIO) -> int:
     """
-    Writes current_zip to disk (from memory). 
-    Constructs name and path of zip file using current zip index and FCStd_dir_path.
+    Writes current_zip to disk (from memory).
+    Zip files are named f"{zip_file_prefix}{zip_index}.zip".
 
     Args:
         FCStd_dir_path (str): Path were to write zip file to on disk.
-        zip_index (int): Index of current zip file being written. This function is called by compress_binaries(), 
+        zip_file_prefix (str): Prefix for zip file name.
+        zip_index (int): Index/iterator of current zip file name being written. This function is called by compress_binaries(), 
                          so the zip_index is essentially the only unique part of the name for each zip file created by compress_binaries().
         current_zip (io.BytesIO): Zip file being written to disk.
 
     Returns:
         int: next zip_index for next time this function is called. Essentially it's zip_index + 1.
     """
-    zip_name:str = f"compressed_binaries_{zip_index}.zip"
+    zip_name:str = f"{zip_file_prefix}{zip_index}.zip"
     zip_path:str = os.path.join(FCStd_dir_path, zip_name)
     with open(zip_path, 'wb') as f:
         f.write(current_zip.getvalue())
@@ -273,45 +277,35 @@ class DecompressBinaries:
     Extracts files in __enter__ and removes them in __exit__.
     """
     def __init__(self, FCStd_dir_path: str, config: dict):
-        self.FCStd_dir_path = FCStd_dir_path
-        self.config = config
-        self.extracted_items = []
+        self.FCStd_dir_path:str = FCStd_dir_path
+        self.config:dict = config
+        self.extracted_items:list = []
 
     def __enter__(self):
-        if not self.config['compress_binaries']['enabled']:
-            return self.FCStd_dir_path
+        # Do nothing if compress_binaries are disabled
+        if not self.config['compress_binaries']['enabled']: return
 
-        zip_files = [f for f in os.listdir(self.FCStd_dir_path) if f.startswith('compressed_binaries_') and f.endswith('.zip')]
+        # Decompress zip files into self.FCStd_dir_path
+        zip_files:list = [f for f in os.listdir(self.FCStd_dir_path) if f.startswith(self.config['compress_binaries']['zip_file_prefix']) and f.endswith('.zip')]
+        
         for zip_file in sorted(zip_files):
-            zip_path = os.path.join(self.FCStd_dir_path, zip_file)
+            zip_path:str = os.path.join(self.FCStd_dir_path, zip_file)
             with zipfile.ZipFile(zip_path, 'r') as zf:
                 zf.extractall(self.FCStd_dir_path)
                 self.extracted_items.extend(zf.namelist())
-            os.remove(zip_path)
-        return self.FCStd_dir_path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # Do nothing if compress_binaries are disabled (admittedly redundant)
+        if not self.config['compress_binaries']['enabled']: return
+        
+        # When leaving context, remove all extracted items
         for item in self.extracted_items:
-            full_path = os.path.join(self.FCStd_dir_path, item)
-            if os.path.exists(full_path):
-                if os.path.isdir(full_path):
-                    shutil.rmtree(full_path)
+            item_path:str = os.path.join(self.FCStd_dir_path, item)
+            if os.path.exists(item_path):
+                if os.path.isdir(item_path):
+                    shutil.rmtree(item_path)
                 else:
-                    os.remove(full_path)
-
-
-def decompress_binaries(dir_path: str, config: dict):
-    """
-    Returns a context manager for decompressing binaries.
-
-    Args:
-        dir_path (str): Path to the FCStd directory.
-        config (dict): Configuration dictionary.
-
-    Returns:
-        DecompressBinaries: Context manager instance.
-    """
-    return DecompressBinaries(dir_path, config)
+                    os.remove(item_path)
 
 def bad_args(args:argparse.Namespace) -> bool:
     """

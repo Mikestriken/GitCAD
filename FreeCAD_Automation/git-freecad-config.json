@@ -16,6 +16,7 @@
         "enabled": true,
         "files-to-compress": ["*.", "*.brp", "/thumbnails", "*.Map.*"],
         "max-compressed-file-size-gigabyte": 2,
-        "compression-level": 9
+        "compression-level": 9,
+        "zip-file-prefix": "compressed_binaries_"
     }
 }
