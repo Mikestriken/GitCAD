@@ -301,6 +301,15 @@ class ImportingContext:
         self.moved_items:list = []
 
     def __enter__(self):
+        # Move files from NO_EXTENSION_SUBDIR_NAME to self.FCStd_dir_path
+        os.makedirs(self.no_extension_subdir_path, exist_ok=True)
+        for item in os.listdir(self.no_extension_subdir_path):
+            src:str = os.path.join(self.no_extension_subdir_path, item)
+            dst:str = os.path.join(self.FCStd_dir_path, item)
+            if os.path.exists(src):
+                shutil.move(src, dst)
+                self.moved_items.append(item)
+        
         if self.config['compress_binaries']['enabled']:
             # Decompress zip files into self.FCStd_dir_path
             zip_files:list = [f for f in os.listdir(self.FCStd_dir_path) if f.startswith(self.config['compress_binaries']['zip_file_prefix']) and f.endswith('.zip')]
@@ -311,17 +320,16 @@ class ImportingContext:
                 with zipfile.ZipFile(zip_path, 'r') as zf:
                     zf.extractall(self.FCStd_dir_path)
                     self.extracted_items.extend(zf.namelist())
-        else:
-            # Move files from NO_EXTENSION_SUBDIR_NAME to self.FCStd_dir_path
-            os.makedirs(self.no_extension_subdir_path, exist_ok=True)
-            for item in os.listdir(self.no_extension_subdir_path):
-                src:str = os.path.join(self.no_extension_subdir_path, item)
-                dst:str = os.path.join(self.FCStd_dir_path, item)
-                if os.path.exists(src):
-                    shutil.move(src, dst)
-                    self.moved_items.append(item)
                         
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # Move files back to NO_EXTENSION_SUBDIR_NAME
+        os.makedirs(self.no_extension_subdir_path, exist_ok=True)
+        for item_name in self.moved_items:
+            src:str = os.path.join(self.FCStd_dir_path, item_name)
+            dst:str = os.path.join(self.no_extension_subdir_path, item_name)
+            if os.path.exists(src):
+                shutil.move(src, dst)
+        
         if self.config['compress_binaries']['enabled']:
             # When leaving context, remove all extracted items
             for item_name in self.extracted_items:
@@ -331,14 +339,6 @@ class ImportingContext:
                         shutil.rmtree(item_path)
                     else:
                         os.remove(item_path)
-        else:
-            # Move files back to NO_EXTENSION_SUBDIR_NAME
-            os.makedirs(self.no_extension_subdir_path, exist_ok=True)
-            for item_name in self.moved_items:
-                src:str = os.path.join(self.FCStd_dir_path, item_name)
-                dst:str = os.path.join(self.no_extension_subdir_path, item_name)
-                if os.path.exists(src):
-                    shutil.move(src, dst)
 
 def bad_args(args:argparse.Namespace) -> bool:
     """
@@ -399,9 +399,11 @@ def main():
 
         if not INCLUDE_THUMBNAIL:
             remove_exported_thumbnail(FCStd_dir_path)
+            
+        move_files_without_extension_to_subdir(FCStd_dir_path)
         
-        if config['compress_binaries']['enabled']: compress_binaries(FCStd_dir_path, config)
-        else: move_files_without_extension_to_subdir(FCStd_dir_path)
+        if config['compress_binaries']['enabled']: 
+            compress_binaries(FCStd_dir_path, config)
 
         print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
