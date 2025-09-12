@@ -30,6 +30,7 @@ Is there a way I can make git pretend that a file has no changes, but if I make 
 	- [ ] if the .lockfile is not locked by the user, the .FCStd file is set to readonly.
 - [ ] On Pre-Commit Hook:
 	- [ ] Extracts non-locked .FCStd files
+	- [ ] Cancel commit if user doesn't have lock despite lock requirement being configured
 - [ ] On Pre-Push Hook:
 	- [ ] If locked dir changed, cancel push
 - [ ] To lock, use lock.sh path/to/file.FCStd | path/to/.lockfile:
