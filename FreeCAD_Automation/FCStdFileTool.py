@@ -67,7 +67,9 @@ def load_config_file(config_path:str) -> dict:
 
         "compress_binaries": {
             "enabled": data["compress-non-human-readable-FreeCAD-files"]["enabled"],
-            "binary_file_patterns": data["compress-non-human-readable-FreeCAD-files"]["files-to-compress"]
+            "binary_file_patterns": data["compress-non-human-readable-FreeCAD-files"]["files-to-compress"],
+            "max_compressed_file_size_gigabyte": data["compress-non-human-readable-FreeCAD-files"]["max-compressed-file-size-gigabyte"],
+            "compression_level": data["compress-non-human-readable-FreeCAD-files"]["compression-level"]
         }
     }
         
