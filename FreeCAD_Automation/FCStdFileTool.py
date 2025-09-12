@@ -31,8 +31,8 @@ import argparse
 import json
 import zipfile
 import shutil
-import fnmatch
 import io
+from pathlib import Path
 
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 
@@ -179,12 +179,14 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
 
     # Collect items to compress
     to_compress:list = []
-    for root, dirs, files in os.walk(FCStd_dir_path):
-        for name in dirs + files:
-            full_path:str = os.path.join(root, name)
+    for root, _, files in os.walk(FCStd_dir_path):
+        for item_name in files:
+            item_full_path:str = os.path.join(root, item_name)
+            item_rel_path:str = os.path.relpath(item_full_path, FCStd_dir_path).replace('\\', '/')
+            item_p_type:Path = Path(item_rel_path)
             for pattern in patterns:
-                if fnmatch.fnmatch(name, pattern):
-                    to_compress.append(full_path)
+                if item_p_type.match(pattern):
+                    to_compress.append(item_full_path)
                     break
 
     # Compress items into zip files
@@ -196,6 +198,9 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
         # Backup before adding
         backup:io.BytesIO = io.BytesIO(current_zip.getvalue())
         path_to_item_in_zip:str = os.path.relpath(path=item, start=FCStd_dir_path)
+        
+        assert not os.path.isdir(item), "ERR: Only individual files should be matched."
+        
         if os.path.isfile(item):
             # Add file
             with zipfile.ZipFile(current_zip, 'a', zipfile.ZIP_DEFLATED, compresslevel=compression_level) as zf:
@@ -217,32 +222,6 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
             # Remove file
             os.remove(item)
             
-        elif os.path.isdir(item):
-            # Add Directory
-            with zipfile.ZipFile(current_zip, 'a', zipfile.ZIP_DEFLATED, compresslevel=compression_level) as zf:
-                for root, _, files in os.walk(item):
-                    for file in files:
-                        file_path:str = os.path.join(root, file)
-                        path_to_item_in_zip:str = os.path.relpath(path=file_path, start=FCStd_dir_path)
-                        zf.write(file_path, path_to_item_in_zip)
-            
-            
-            if current_zip.tell() >= max_size_bytes:
-                # Restore
-                current_zip:io.BytesIO = backup
-                
-                # Write to disk
-                zip_index:int = write_zip_to_disk(FCStd_dir_path, zip_file_prefix, zip_index, current_zip)
-                
-                # New buffer
-                current_zip:io.BytesIO = io.BytesIO()
-                
-                # Retry this file with new archive
-                continue
-            
-            # Remove Directory
-            shutil.rmtree(item)
-        
         i += 1
         # End of while loop
 
@@ -301,17 +280,8 @@ class ImportingContext:
         self.moved_items:list = []
 
     def __enter__(self):
-        # Move files from NO_EXTENSION_SUBDIR_NAME to self.FCStd_dir_path
-        os.makedirs(self.no_extension_subdir_path, exist_ok=True)
-        for item in os.listdir(self.no_extension_subdir_path):
-            src:str = os.path.join(self.no_extension_subdir_path, item)
-            dst:str = os.path.join(self.FCStd_dir_path, item)
-            if os.path.exists(src):
-                shutil.move(src, dst)
-                self.moved_items.append(item)
-        
+        # Decompress zip files into self.FCStd_dir_path
         if self.config['compress_binaries']['enabled']:
-            # Decompress zip files into self.FCStd_dir_path
             zip_files:list = [f for f in os.listdir(self.FCStd_dir_path) if f.startswith(self.config['compress_binaries']['zip_file_prefix']) and f.endswith('.zip')]
                 
     
@@ -320,6 +290,15 @@ class ImportingContext:
                 with zipfile.ZipFile(zip_path, 'r') as zf:
                     zf.extractall(self.FCStd_dir_path)
                     self.extracted_items.extend(zf.namelist())
+        
+        # Move files from NO_EXTENSION_SUBDIR_NAME to self.FCStd_dir_path
+        os.makedirs(self.no_extension_subdir_path, exist_ok=True)
+        for item in os.listdir(self.no_extension_subdir_path):
+            src:str = os.path.join(self.no_extension_subdir_path, item)
+            dst:str = os.path.join(self.FCStd_dir_path, item)
+            if os.path.exists(src):
+                shutil.move(src, dst)
+                self.moved_items.append(item)
                         
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Move files back to NO_EXTENSION_SUBDIR_NAME
@@ -330,8 +309,8 @@ class ImportingContext:
             if os.path.exists(src):
                 shutil.move(src, dst)
         
+        # When leaving context, remove all extracted items
         if self.config['compress_binaries']['enabled']:
-            # When leaving context, remove all extracted items
             for item_name in self.extracted_items:
                 item_path:str = os.path.join(self.FCStd_dir_path, item_name)
                 if os.path.exists(item_path):
