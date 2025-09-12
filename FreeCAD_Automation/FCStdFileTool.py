@@ -32,7 +32,7 @@ import json
 import zipfile
 import shutil
 import io
-from pathlib import Path
+from pathlib import PurePosixPath
 
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 
@@ -135,6 +135,7 @@ def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     """
     return None
 
+
 def remove_exported_thumbnail(FCStd_dir_path:str):
     """
     Remove thumbnail folder and contents from uncompressed FCStd file directory.
@@ -182,10 +183,11 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
     for root, _, files in os.walk(FCStd_dir_path):
         for item_name in files:
             item_full_path:str = os.path.join(root, item_name)
-            item_rel_path:str = os.path.relpath(item_full_path, FCStd_dir_path).replace('\\', '/')
-            item_p_type:Path = Path(item_rel_path)
+            item_rel_path:str = os.path.relpath(item_full_path, FCStd_dir_path)
+            posix_path:PurePosixPath = PurePosixPath('/' + item_rel_path.replace(os.sep, '/'))
+            
             for pattern in patterns:
-                if item_p_type.match(pattern):
+                if posix_path.match(pattern):
                     to_compress.append(item_full_path)
                     break
 
@@ -373,6 +375,11 @@ def main():
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
         os.makedirs(FCStd_dir_path, exist_ok=True)
+        
+        # ToDo:
+        """
+        FileExistsError: [WinError 183] Cannot create a file when that file already exists: 'uncompressed\\FCStd_AssemblyExample_FCStd/thumbnails'
+        """
 
         PU.extractDocument(FCStd_file_path, FCStd_dir_path)
 
