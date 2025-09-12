@@ -36,6 +36,8 @@ import io
 
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 
+NO_EXTENSION_SUBDIR_NAME:str = 'no_extension'
+
 def load_config_file(config_path:str) -> dict:
     """
     Redefines config file keys for this script.
@@ -181,8 +183,7 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
         for name in dirs + files:
             full_path:str = os.path.join(root, name)
             for pattern in patterns:
-                # "!." is a custom pattern (file has no extension)
-                if fnmatch.fnmatch(name, pattern) or (pattern == "!." and os.path.isfile(full_path) and fnmatch.fnmatch(name, "*") and "." not in name):
+                if fnmatch.fnmatch(name, pattern):
                     to_compress.append(full_path)
                     break
 
@@ -271,10 +272,10 @@ def write_zip_to_disk(FCStd_dir_path:str, zip_file_prefix:str, zip_index:int, cu
     zip_index += 1
     return zip_index
 
-class DecompressBinariesContext:
+class ImportingContext:
     """
-    Context manager for decompressing binary zip files in the FCStd directory.
-    Extracts files in __enter__ and removes them in __exit__.
+    Context manager for importing data to .FCStd file.
+    Extracts (compressed and in NO_EXTENSION_SUBDIR_NAME) files in __enter__ to self.FCStd_dir_path and removes them in __exit__.
     """
     def __init__(self, FCStd_dir_path: str, config: dict):
         self.FCStd_dir_path:str = FCStd_dir_path
@@ -360,14 +361,15 @@ def main():
         if args.configFile_flag: 
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
-        if not os.path.exists(FCStd_dir_path): os.makedirs(FCStd_dir_path)
+        os.makedirs(FCStd_dir_path, exist_ok=True)
 
         PU.extractDocument(FCStd_file_path, FCStd_dir_path)
 
         if not INCLUDE_THUMBNAIL:
             remove_exported_thumbnail(FCStd_dir_path)
-            
+        
         if config['compress_binaries']['enabled']: compress_binaries(FCStd_dir_path, config)
+        else: move_files_without_extension_to_subdir(FCStd_dir_path)
 
         print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
@@ -379,7 +381,7 @@ def main():
             FCStd_file_path:str = FCStd_dir_path
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
-        with DecompressBinariesContext(FCStd_dir_path, config):
+        with ImportingContext(FCStd_dir_path, config):
             
             PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
 
