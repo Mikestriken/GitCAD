@@ -181,7 +181,8 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
         for name in dirs + files:
             full_path:str = os.path.join(root, name)
             for pattern in patterns:
-                if fnmatch.fnmatch(name, pattern):
+                # "!." is a custom pattern (file has no extension)
+                if fnmatch.fnmatch(name, pattern) or (pattern == "!." and os.path.isfile(full_path) and fnmatch.fnmatch(name, "*") and "." not in name):
                     to_compress.append(full_path)
                     break
 
@@ -218,9 +219,9 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
         elif os.path.isdir(item):
             # Add Directory
             with zipfile.ZipFile(current_zip, 'a', zipfile.ZIP_DEFLATED, compresslevel=compression_level) as zf:
-                for root_dir, _, files_dir in os.walk(item):
-                    for file in files_dir:
-                        file_path:str = os.path.join(root_dir, file)
+                for root, _, files in os.walk(item):
+                    for file in files:
+                        file_path:str = os.path.join(root, file)
                         path_to_item_in_zip:str = os.path.relpath(path=file_path, start=FCStd_dir_path)
                         zf.write(file_path, path_to_item_in_zip)
             

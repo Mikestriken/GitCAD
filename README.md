@@ -158,7 +158,9 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
         // --------------------------------------------------------------
             
         // File/folder names to match
-        "files-to-compress": ["*.", "*.brp", "/thumbnails", "*.Map.*"],
+        // Note 1: "!." is a custom pattern that matches files that have no extension their name.
+        // Note 2: Pattern matching uses fnmatch. See documentation here: https://docs.python.org/3/library/fnmatch.html
+        "files-to-compress": ["!.", "*.brp", "*/thumbnails", "*.Map.*"],
         
         // --------------------------------------------------------------
         
