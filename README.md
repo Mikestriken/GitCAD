@@ -40,7 +40,17 @@ This repository contains tools and scripts to automate the Git workflow for comm
    *The Script can be ran multiple times without error.*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
-6. Update your `README.md` documentation for collaboration.  
+6. Update your `.gitattributes` with LFS files you want to track.  
+   - `git lfs track "*.zip"`
+   - `git lfs track "**/no_extension/*"` -- folder created by this script to track files without extension
+   - `git lfs track "*.brp"`
+   - `git lfs track "*.Map.*"`
+   - `git lfs track "*.png"` -- thumbnail pictures
+
+8. Verify `.gitattributes` tracking files you want to track:  
+   `git check-attr --all /path/to/file/to/check`
+
+9.  Update your `README.md` documentation for collaboration.  
    *Template available in [Template Readme](#template-readmemd).*
 
 ## Updating
