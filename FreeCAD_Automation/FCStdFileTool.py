@@ -271,6 +271,21 @@ def write_zip_to_disk(FCStd_dir_path:str, zip_file_prefix:str, zip_index:int, cu
         f.write(current_zip.getvalue())
     zip_index += 1
     return zip_index
+def move_files_without_extension_to_subdir(FCStd_dir_path: str):
+    """
+    Moves files without extensions from FCStd_dir_path to a subdirectory named NO_EXTENSION_SUBDIR_NAME.
+    
+    Args:
+        FCStd_dir_path (str): Path to the FCStd directory.
+    """
+    no_extension_subdir_path:str = os.path.join(FCStd_dir_path, NO_EXTENSION_SUBDIR_NAME)
+    os.makedirs(no_extension_subdir_path, exist_ok=True)
+    
+    for item_name in os.listdir(FCStd_dir_path):
+        item_path:str = os.path.join(FCStd_dir_path, item_name)
+        if os.path.isfile(item_path) and '.' not in item_name:
+            shutil.move(item_path, os.path.join(no_extension_subdir_path, item_name))
+
 
 class ImportingContext:
     """
@@ -279,34 +294,51 @@ class ImportingContext:
     """
     def __init__(self, FCStd_dir_path: str, config: dict):
         self.FCStd_dir_path:str = FCStd_dir_path
+        self.no_extension_subdir_path:str = os.path.join(self.FCStd_dir_path, NO_EXTENSION_SUBDIR_NAME)
+        
         self.config:dict = config
         self.extracted_items:list = []
+        self.moved_items:list = []
 
     def __enter__(self):
-        # Do nothing if compress_binaries are disabled
-        if not self.config['compress_binaries']['enabled']: return
-
-        # Decompress zip files into self.FCStd_dir_path
-        zip_files:list = [f for f in os.listdir(self.FCStd_dir_path) if f.startswith(self.config['compress_binaries']['zip_file_prefix']) and f.endswith('.zip')]
-        
-        for zip_file in sorted(zip_files):
-            zip_path:str = os.path.join(self.FCStd_dir_path, zip_file)
-            with zipfile.ZipFile(zip_path, 'r') as zf:
-                zf.extractall(self.FCStd_dir_path)
-                self.extracted_items.extend(zf.namelist())
-
+        if self.config['compress_binaries']['enabled']:
+            # Decompress zip files into self.FCStd_dir_path
+            zip_files:list = [f for f in os.listdir(self.FCStd_dir_path) if f.startswith(self.config['compress_binaries']['zip_file_prefix']) and f.endswith('.zip')]
+                
+    
+            for zip_file in sorted(zip_files):
+                zip_path:str = os.path.join(self.FCStd_dir_path, zip_file)
+                with zipfile.ZipFile(zip_path, 'r') as zf:
+                    zf.extractall(self.FCStd_dir_path)
+                    self.extracted_items.extend(zf.namelist())
+        else:
+            # Move files from NO_EXTENSION_SUBDIR_NAME to self.FCStd_dir_path
+            os.makedirs(self.no_extension_subdir_path, exist_ok=True)
+            for item in os.listdir(self.no_extension_subdir_path):
+                src:str = os.path.join(self.no_extension_subdir_path, item)
+                dst:str = os.path.join(self.FCStd_dir_path, item)
+                if os.path.exists(src):
+                    shutil.move(src, dst)
+                    self.moved_items.append(item)
+                        
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Do nothing if compress_binaries are disabled (admittedly redundant)
-        if not self.config['compress_binaries']['enabled']: return
-        
-        # When leaving context, remove all extracted items
-        for item in self.extracted_items:
-            item_path:str = os.path.join(self.FCStd_dir_path, item)
-            if os.path.exists(item_path):
-                if os.path.isdir(item_path):
-                    shutil.rmtree(item_path)
-                else:
-                    os.remove(item_path)
+        if self.config['compress_binaries']['enabled']:
+            # When leaving context, remove all extracted items
+            for item_name in self.extracted_items:
+                item_path:str = os.path.join(self.FCStd_dir_path, item_name)
+                if os.path.exists(item_path):
+                    if os.path.isdir(item_path):
+                        shutil.rmtree(item_path)
+                    else:
+                        os.remove(item_path)
+        else:
+            # Move files back to NO_EXTENSION_SUBDIR_NAME
+            os.makedirs(self.no_extension_subdir_path, exist_ok=True)
+            for item_name in self.moved_items:
+                src:str = os.path.join(self.FCStd_dir_path, item_name)
+                dst:str = os.path.join(self.no_extension_subdir_path, item_name)
+                if os.path.exists(src):
+                    shutil.move(src, dst)
 
 def bad_args(args:argparse.Namespace) -> bool:
     """
