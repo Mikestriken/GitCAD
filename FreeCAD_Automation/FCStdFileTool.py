@@ -169,7 +169,7 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
 
     patterns:list = config['compress_binaries']['binary_file_patterns']
     max_size_gb:float = config['compress_binaries']['max_compressed_file_size_gigabyte']
-    comp_level:int = config['compress_binaries']['compression_level']
+    compression_level:int = config['compress_binaries']['compression_level']
     max_size_bytes:float = max_size_gb * (1024 ** 3)
 
     # Collect items to compress
@@ -193,24 +193,46 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
             if current_zip is not None: current_zip.close()
             zip_name:str = f"compressed_binaries_{zip_index}.zip"
             zip_path:str = os.path.join(FCStd_dir_path, zip_name)
-            current_zip = zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=comp_level)
+            current_zip = zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=compression_level)
             zip_index += 1
             current_size = 0
 
-        path_to_item = os.path.relpath(path=item, start=FCStd_dir_path)
+        # Add item / directory to zip file
         if os.path.isfile(item):
-            current_zip.write(item, path_to_item)
-            current_size += os.path.getsize(item)
-            os.remove(item)
+            path_to_item_in_zip = os.path.relpath(path=item, start=FCStd_dir_path)
+            current_zip.write(item, path_to_item_in_zip)
+            
+            current_zip.fp.flush()
+            os.fsync(current_zip.fp.fileno()) 
+            current_size += os.path.getsize(zip_path)
+            
+            if current_size >= max_size_bytes:
+                # Restore version of io.BytesIO() before adding this file
+                # Write that version to disk
+                # set current_zip = None
+                # go back one iteration of the for loop to repeat loop for this item in new zip file. 
+            
+            else: os.remove(item)
+            
         
         elif os.path.isdir(item):
-            for root_dir, dirs_dir, files_dir in os.walk(item):
+            for root_dir, _, files_dir in os.walk(item):
                 for file in files_dir:
                     file_path = os.path.join(root_dir, file)
-                    arcname = os.path.relpath(path=file_path, start=FCStd_dir_path)
-                    current_zip.write(file_path, arcname)
-                    current_size += os.path.getsize(file_path)
-            shutil.rmtree(item)
+                    path_to_item_in_zip = os.path.relpath(path=file_path, start=FCStd_dir_path)
+                    current_zip.write(file_path, path_to_item_in_zip)
+            
+            current_zip.fp.flush()
+            os.fsync(current_zip.fp.fileno()) 
+            current_size += os.path.getsize(zip_path)
+            
+            if current_size >= max_size_bytes:
+                # Restore version of io.BytesIO() before adding this dir
+                # Write that version to disk
+                # set current_zip = None
+                # go back one iteration of the for loop to repeat loop for this item in new zip file. 
+            
+            else: shutil.rmtree(item)
 
     if current_zip:
         current_zip.close()
