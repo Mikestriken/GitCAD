@@ -201,11 +201,7 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
                 current_zip:io.BytesIO = backup
                 
                 # Write to disk
-                zip_name:str = f"compressed_binaries_{zip_index}.zip"
-                zip_path:str = os.path.join(FCStd_dir_path, zip_name)
-                with open(zip_path, 'wb') as f:
-                    f.write(current_zip.getvalue())
-                zip_index += 1
+                zip_index = write_zip_to_disk(FCStd_dir_path, zip_index, current_zip)
                 
                 # New buffer
                 current_zip:io.BytesIO = io.BytesIO()
@@ -231,11 +227,7 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
                 current_zip:io.BytesIO = backup
                 
                 # Write to disk
-                zip_name:str = f"compressed_binaries_{zip_index}.zip"
-                zip_path:str = os.path.join(FCStd_dir_path, zip_name)
-                with open(zip_path, 'wb') as f:
-                    f.write(current_zip.getvalue())
-                zip_index += 1
+                zip_index = write_zip_to_disk(FCStd_dir_path, zip_index, current_zip)
                 
                 # New buffer
                 current_zip:io.BytesIO = io.BytesIO()
@@ -251,10 +243,28 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
 
     # Write last opened archive (that didn't exceed size) to disk
     if current_zip.tell() > 0:
-        zip_name = f"compressed_binaries_{zip_index}.zip"
-        zip_path = os.path.join(FCStd_dir_path, zip_name)
-        with open(zip_path, 'wb') as f:
-            f.write(current_zip.getvalue())
+        zip_index = write_zip_to_disk(FCStd_dir_path, zip_index, current_zip)
+
+def write_zip_to_disk(FCStd_dir_path:str, zip_index:int, current_zip:io.BytesIO) -> int:
+    """
+    Writes current_zip to disk (from memory). 
+    Constructs name and path of zip file using current zip index and FCStd_dir_path.
+
+    Args:
+        FCStd_dir_path (str): Path were to write zip file to on disk.
+        zip_index (int): Index of current zip file being written. This function is called by compress_binaries(), 
+                         so the zip_index is essentially the only unique part of the name for each zip file created by compress_binaries().
+        current_zip (io.BytesIO): Zip file being written to disk.
+
+    Returns:
+        int: next zip_index for next time this function is called. Essentially it's zip_index + 1.
+    """
+    zip_name:str = f"compressed_binaries_{zip_index}.zip"
+    zip_path:str = os.path.join(FCStd_dir_path, zip_name)
+    with open(zip_path, 'wb') as f:
+        f.write(current_zip.getvalue())
+    zip_index += 1
+    return zip_index
 
 
 class DecompressBinaries:
