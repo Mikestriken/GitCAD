@@ -70,6 +70,12 @@ This repository contains tools and scripts to automate the Git workflow for comm
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
 ## Quick Guide
+### Adding a new FreeCAD file
+1. `git add` your file.  
+   *`*.FCStd` file filter will extract the contents*
+
+2. 
+
 ### Cloning and Initializing Your Git Repository
 1. Clone your repository.
    
