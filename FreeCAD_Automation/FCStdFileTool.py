@@ -135,7 +135,6 @@ def get_FCStd_file_path(FCStd_dir_path:str, config:dict) -> str:
     """
     return None
 
-
 def remove_exported_thumbnail(FCStd_dir_path:str):
     """
     Remove thumbnail folder and contents from uncompressed FCStd file directory.
@@ -252,6 +251,7 @@ def write_zip_to_disk(FCStd_dir_path:str, zip_file_prefix:str, zip_index:int, cu
         f.write(current_zip.getvalue())
     zip_index += 1
     return zip_index
+
 def move_files_without_extension_to_subdir(FCStd_dir_path: str):
     """
     Moves files without extensions from FCStd_dir_path to a subdirectory named NO_EXTENSION_SUBDIR_NAME.
@@ -266,7 +266,6 @@ def move_files_without_extension_to_subdir(FCStd_dir_path: str):
         item_path:str = os.path.join(FCStd_dir_path, item_name)
         if os.path.isfile(item_path) and '.' not in item_name:
             shutil.move(item_path, os.path.join(no_extension_subdir_path, item_name))
-
 
 class ImportingContext:
     """
@@ -344,6 +343,19 @@ def bad_args(args:argparse.Namespace) -> bool:
     
     if missing_output_arg and script_called_directly_by_user: return True
 
+def ensure_lockfile_exists(FCStd_dir_path:str):
+    """
+    Ensures file called `.lockfile` exists in FCStd_dir_path.
+    (Creates one if it doesn't exist)
+
+    Args:
+        FCStd_dir_path (str): Path to FCStd directory.
+    """
+    lock_file_path:str = os.path.join(FCStd_dir_path, '.lockfile')
+    if not os.path.exists(lock_file_path):
+        with open(lock_file_path, 'w') as f:
+            f.write('')
+
 def main():
     # Setup CLI args
     parser:argparse.ArgumentParser = argparse.ArgumentParser(add_help=False)
@@ -390,7 +402,10 @@ def main():
         
         if config['compress_binaries']['enabled']: 
             compress_binaries(FCStd_dir_path, config)
-
+            
+        if config["require_lock"]:
+            ensure_lockfile_exists(FCStd_dir_path)
+                
         print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
     elif args.import_flag:
@@ -406,7 +421,10 @@ def main():
             PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
 
             if INCLUDE_THUMBNAIL:
-                add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)        
+                add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
+        
+        if config["require_lock"]:
+            ensure_lockfile_exists(FCStd_dir_path)
         
         print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
 
