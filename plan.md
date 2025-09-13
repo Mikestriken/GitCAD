@@ -8,6 +8,8 @@
 
 - [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` set `git config filter.FCStd.required true`
 
+- [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` set `git config filter.FCStd.smudge cat`
+
 ### Workflow Idea:
 - [x] Git clean filter
     - [x] Makes .FCStd files look empty (from git's pov)
