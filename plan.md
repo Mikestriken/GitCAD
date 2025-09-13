@@ -6,6 +6,8 @@
 
 - [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` set .FCStd files to readonly if config requires it and remove readonly if config doesn't require it.
 
+- [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` set `git config filter.FCStd.required true`
+
 ### Workflow Idea:
 - [x] Git clean filter
     - [x] Makes .FCStd files look empty (from git's pov)
