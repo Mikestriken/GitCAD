@@ -1,26 +1,4 @@
 #!/bin/bash
-# ==============================================================================================
-#                                           Functions
-# ==============================================================================================
-
-# Function to extract JSON value by key (handles strings, numbers, booleans, null; basic arrays/objects as strings)
-get_json_value() {
-    local file=$1
-    local key=$2
-    # Find the line containing the key
-    local line=$(grep "\"$key\"" "$file")
-    if [ -z "$line" ]; then
-        echo "Error: Key '$key' not found in $file" >&2
-        return 1
-    fi
-    # Extract value after : (stops at , or } for simple cases)
-    local value=$(echo "$line" | sed 's/.*"'"$key"'": \([^,}]*\).*/\1/')
-    # Strip surrounding quotes if it's a string
-    if [[ $value =~ ^\".*\"$ ]]; then
-        value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
-    fi
-    echo "$value"
-}
 
 
 # ==============================================================================================
@@ -29,7 +7,7 @@ get_json_value() {
 echo "=============================================================================================="
 echo "                                     Verifying Dependencies"
 echo "=============================================================================================="
-# Check if inside a Git repository
+# Check if inside a Git repository and ensure working dir is the root of the repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
     echo "Error: Not inside a Git repository" >&2
     exit 1
@@ -37,6 +15,10 @@ fi
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
 cd "$GIT_ROOT"
+
+# Import code used in this script
+FUNCTIONS_FILE="FreeCAD_Automation/functions.sh"
+source "$FUNCTIONS_FILE"
 
 CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 
@@ -120,17 +102,19 @@ echo "==========================================================================
 
 # Check if filter.FCStd.clean exists
 CURRENT_CLEAN=$(git config --get filter.FCStd.clean 2>/dev/null)
+desired_clean_filter="./FreeCAD_Automation/FCStd-filter.sh %f"
+
 if [ -n "$CURRENT_CLEAN" ]; then
-    if [ "$CURRENT_CLEAN" = "cat /dev/null" ]; then
+    if [ "$CURRENT_CLEAN" = "$desired_clean_filter" ]; then
         echo "filter.FCStd.clean is already set to the desired value"
         echo
     else
         echo "filter.FCStd.clean already exists:"
-        echo "  - Permission to change \`$CURRENT_CLEAN\` --> \`cat /dev/null\`?"
-        read -p "    (( This makes git see .FCStd files as being empty ))  (y/n): " -n 1 -r
+        echo "  - Permission to change \`$CURRENT_CLEAN\` --> \`$desired_clean_filter\`?"
+        read -p "    (( This makes git see .FCStd files as being empty and exports the contents of the file ))  (y/n): " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            git config filter.FCStd.clean "cat /dev/null"
+            git config filter.FCStd.clean "$desired_clean_filter"
             echo "    Updated filter.FCStd.clean"
             echo
         else
@@ -139,7 +123,7 @@ if [ -n "$CURRENT_CLEAN" ]; then
         fi
     fi
 else
-    git config filter.FCStd.clean "cat /dev/null"
+    git config filter.FCStd.clean "$desired_clean_filter"
     echo "Set filter.FCStd.clean"
     echo
 fi
