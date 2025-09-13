@@ -1,5 +1,6 @@
 EXPORT_FLAG:str = '--export'
 IMPORT_FLAG:str = '--import'
+SILENT_FLAG:str = '--SILENT'
 CONFIG_FILE_FLAG:str = '--CONFIG-FILE' # Uses config file to determine configurations. Args interpreted differently from what's listed in help()
 
 HELP_MESSAGE:str =f"""
@@ -23,6 +24,9 @@ options:
                         Use config file to determine configurations. Args interpreted differently from what's listed:
                             {EXPORT_FLAG} INPUT_FCSTD_FILE, OUTPUT_FCSTD_DIR -> {EXPORT_FLAG} FCSTD_FILE
                             {IMPORT_FLAG} INPUT_FCSTD_DIR, OUTPUT_FCSTD_FILE -> {IMPORT_FLAG} FCSTD_FILE
+    
+    {SILENT_FLAG}
+                        Suppress all print statements. Nothing will be printed to console
 """
 
 from freecad import project_utility as PU
@@ -362,11 +366,12 @@ def main():
     parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+')
     parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+')
     parser.add_argument(CONFIG_FILE_FLAG, dest="configFile_flag", action='store_true')
+    parser.add_argument(SILENT_FLAG, dest="silent_flag", action='store_true')
     parser.add_argument("-h", "--help", dest="help_flag", action="store_true")
     
     args:argparse.Namespace = parser.parse_args()
     
-    if bad_args(args) or args.help_flag:
+    if (bad_args(args) or args.help_flag) and not args.silent_flag:
         print(HELP_MESSAGE)
         return
 
@@ -406,7 +411,8 @@ def main():
         if config["require_lock"]:
             ensure_lockfile_exists(FCStd_dir_path)
                 
-        print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
+        if not args.silent_flag:
+            print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
     elif args.import_flag:
         FCStd_dir_path:str = os.path.relpath(args.import_flag[0])
@@ -426,9 +432,10 @@ def main():
         if config["require_lock"]:
             ensure_lockfile_exists(FCStd_dir_path)
         
-        print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
+        if not args.silent_flag:
+            print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
 
-    else:
+    elif not args.silent_flag:
         print(HELP_MESSAGE)
 
 if __name__ == "__main__":
