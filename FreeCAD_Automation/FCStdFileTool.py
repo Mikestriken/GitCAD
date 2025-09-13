@@ -43,6 +43,10 @@ CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 
 NO_EXTENSION_SUBDIR_NAME:str = 'no_extension'
 
+DEBUG:bool = True
+def print_debug(message:str):
+    if DEBUG: print(message)
+
 def load_config_file(config_path:str) -> dict:
     """
     Redefines config file keys for this script.
