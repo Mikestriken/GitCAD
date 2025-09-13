@@ -1,30 +1,31 @@
 EXPORT_FLAG:str = '--export'
 IMPORT_FLAG:str = '--import'
 SILENT_FLAG:str = '--SILENT'
-CONFIG_FILE_FLAG:str = '--CONFIG-FILE' # Uses config file to determine configurations. Args interpreted differently from what's listed in help()
+CONFIG_FILE_FLAG:str = '--CONFIG-FILE' # Uses config file to determine configurations. Optionally provide path to config file. Args interpreted differently from what's listed in help()
 
 HELP_MESSAGE:str =f"""
-usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} {IMPORT_FLAG} FCSTD_FILE]
+usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {IMPORT_FLAG} FCSTD_FILE]
 
 FreeCAD .FCStd file tool. Used to automate the process of importing and exporting .FCStd files.
 Importing => Compressing a .FCStd file from an uncompressed directory.
 Exporting => Decompressing a .FCStd file to an uncompressed directory.
 
 options:
-    -h, --help            
+    -h, --help
                         show this help message and exit
-                        
+
     {EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR
                         export files from .FCStd archive
-                        
+
     {IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE
                         Create .FCStd archive from directory
-                        
-    {CONFIG_FILE_FLAG}
-                        Use config file to determine configurations. Args interpreted differently from what's listed:
+
+    {CONFIG_FILE_FLAG} [CONFIG_PATH]
+                        Use config file to determine configurations. Optionally provide path to config file. If not provided, uses default path.
+                        Args interpreted differently from what's listed:
                             {EXPORT_FLAG} INPUT_FCSTD_FILE, OUTPUT_FCSTD_DIR -> {EXPORT_FLAG} FCSTD_FILE
                             {IMPORT_FLAG} INPUT_FCSTD_DIR, OUTPUT_FCSTD_FILE -> {IMPORT_FLAG} FCSTD_FILE
-    
+
     {SILENT_FLAG}
                         Suppress all print statements. Nothing will be printed to console
 """
@@ -279,12 +280,15 @@ class ImportingContext:
     def __init__(self, FCStd_dir_path: str, config: dict):
         self.FCStd_dir_path:str = FCStd_dir_path
         self.no_extension_subdir_path:str = os.path.join(self.FCStd_dir_path, NO_EXTENSION_SUBDIR_NAME)
-        
+
         self.config:dict = config
+        self.no_config:bool = config is None
         self.extracted_items:list = []
         self.moved_items:list = []
 
     def __enter__(self):
+        if self.no_config: return
+        
         # Decompress zip files into self.FCStd_dir_path
         if self.config['compress_binaries']['enabled']:
             zip_files:list = [f for f in os.listdir(self.FCStd_dir_path) if f.startswith(self.config['compress_binaries']['zip_file_prefix']) and f.endswith('.zip')]
@@ -306,6 +310,8 @@ class ImportingContext:
                 self.moved_items.append(item)
                         
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.no_config: return
+        
         # Move files back to NO_EXTENSION_SUBDIR_NAME
         os.makedirs(self.no_extension_subdir_path, exist_ok=True)
         for item_name in self.moved_items:
@@ -335,17 +341,17 @@ def bad_args(args:argparse.Namespace) -> bool:
         bool: True if invalid, else False.
     """
     no_mode_specified:bool = True if not args.export_flag and not args.import_flag else False
-    
+
     if no_mode_specified: return True
-    
+
     bad_arg_count:bool = True if args.export_flag and len(args.export_flag) > 2 or args.import_flag and len(args.import_flag) > 2 else False
-    
+
     if bad_arg_count: return True
-    
+
     missing_output_arg:bool = True if args.export_flag and len(args.export_flag) != 2 or args.import_flag and len(args.import_flag) != 2 else False
-    script_called_directly_by_user:bool = not args.configFile_flag
-    
-    if missing_output_arg and script_called_directly_by_user: return True
+    no_config:bool = args.config_file_path is None
+
+    if missing_output_arg and no_config: return True
 
 def ensure_lockfile_exists(FCStd_dir_path:str):
     """
@@ -365,7 +371,7 @@ def main():
     parser:argparse.ArgumentParser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+')
     parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+')
-    parser.add_argument(CONFIG_FILE_FLAG, dest="configFile_flag", action='store_true')
+    parser.add_argument(CONFIG_FILE_FLAG, dest="config_file_path", nargs='?', const=CONFIG_PATH, default=None)
     parser.add_argument(SILENT_FLAG, dest="silent_flag", action='store_true')
     parser.add_argument("-h", "--help", dest="help_flag", action="store_true")
     
@@ -374,21 +380,23 @@ def main():
     if (bad_args(args) or args.help_flag) and not args.silent_flag:
         print(HELP_MESSAGE)
         return
-
-    # Load config file
-    config:dict
-    if args.configFile_flag:
-        config:dict = load_config_file(CONFIG_PATH)
     
-    script_called_directly_by_user:bool = not args.configFile_flag
-    INCLUDE_THUMBNAIL:bool = script_called_directly_by_user or config.get('include_thumbnails', False)
+    config_provided:bool = not args.config_file_path is None
+    
+    # Load config file
+    config:dict = None
+    if config_provided:
+        config:dict = load_config_file(args.config_file_path)
+
+    # Thumbnails should be included (by default) if config isn't provided.
+    INCLUDE_THUMBNAIL:bool = not config_provided or config['include_thumbnails']
     
     # Main Logic
     if args.export_flag:
         FCStd_file_path:str = os.path.relpath(args.export_flag[0])
         FCStd_dir_path:str = os.path.relpath(args.export_flag[1]) if len(args.export_flag) > 1 else None
         
-        if args.configFile_flag: 
+        if config_provided:
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
         os.makedirs(FCStd_dir_path, exist_ok=True)
@@ -403,13 +411,14 @@ def main():
         if not INCLUDE_THUMBNAIL:
             remove_exported_thumbnail(FCStd_dir_path)
             
-        move_files_without_extension_to_subdir(FCStd_dir_path)
-        
-        if config['compress_binaries']['enabled']: 
-            compress_binaries(FCStd_dir_path, config)
+        if config_provided:
+            move_files_without_extension_to_subdir(FCStd_dir_path)
             
-        if config["require_lock"]:
-            ensure_lockfile_exists(FCStd_dir_path)
+            if config['compress_binaries']['enabled']:
+                compress_binaries(FCStd_dir_path, config)
+
+            if config['require_lock']:
+                ensure_lockfile_exists(FCStd_dir_path)
                 
         if not args.silent_flag:
             print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
@@ -418,7 +427,7 @@ def main():
         FCStd_dir_path:str = os.path.relpath(args.import_flag[0])
         FCStd_file_path:str = os.path.relpath(args.import_flag[1]) if len(args.import_flag) > 1 else None
         
-        if args.configFile_flag:
+        if config_provided:
             FCStd_file_path:str = FCStd_dir_path
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
@@ -428,9 +437,10 @@ def main():
 
             if INCLUDE_THUMBNAIL:
                 add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
-        
-        if config["require_lock"]:
-            ensure_lockfile_exists(FCStd_dir_path)
+
+        if config_provided:
+            if config['require_lock']:
+                ensure_lockfile_exists(FCStd_dir_path)
         
         if not args.silent_flag:
             print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
