@@ -1,0 +1,22 @@
+{
+    "freecad-python-instance-path": "D:/Programs/Miscellaneous/FreeCAD 1.0/bin/python.exe",
+    "require-lock-to-modify-FreeCAD-files": true,
+    "include-thumbnails": true,
+
+    "uncompressed-directory-structure": {
+        "uncompressed-directory-suffix": "_FCStd",
+        "uncompressed-directory-prefix": "FCStd_",
+        "subdirectory": {
+            "put-uncompressed-directory-in-subdirectory": true,
+            "subdirectory-name": "uncompressed"
+        }
+    },
+
+    "compress-non-human-readable-FreeCAD-files": {
+        "enabled": true,
+        "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"],
+        "max-compressed-file-size-gigabyte": 2,
+        "compression-level": 9,
+        "zip-file-prefix": "compressed_binaries_"
+    }
+}
