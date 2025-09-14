@@ -37,6 +37,7 @@ import json
 import zipfile
 import shutil
 import io
+import warnings
 from pathlib import PurePosixPath
 
 CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
@@ -271,7 +272,6 @@ def repackFCStd(FCStd_file_path:str):
     Args:
         FCStd_file_path (str): Path to .FCStd file that needs to be repacked.
     """
-    
     namelist:list = None
     file_data:dict = {}
     with zipfile.ZipFile(FCStd_file_path, 'r') as zf:
@@ -412,6 +412,9 @@ def main():
         print(HELP_MESSAGE)
         return
     
+    if args.silent_flag:
+        warnings.filterwarnings("ignore")
+    
     config_provided:bool = not args.config_file_path is None
     
     # Load config file
@@ -464,16 +467,24 @@ def main():
         
         with ImportingContext(FCStd_dir_path, config):
             
-            PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
+            duplicate_warning:bool = False
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                
+                PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
+                
+                duplicate_warning:bool = any(
+                isinstance(warning.message, UserWarning) and "Duplicate name: './'" in str(warning.message)
+                for warning in caught
+                )
+            
+            # Fix for this issue: https://github.com/FreeCAD/FreeCAD/issues/23914
+            if duplicate_warning:
+                repackFCStd(FCStd_file_path)
 
             if INCLUDE_THUMBNAIL:
                 add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
         
-        # Fix for this issue: https://github.com/FreeCAD/FreeCAD/issues/23914
-        with zipfile.ZipFile(FCStd_file_path, 'r') as zf:
-            if any('./' in file_name for file_name in zf.namelist()):
-                repackFCStd(FCStd_file_path)
-
         if config_provided:
             if config['require_lock']:
                 ensure_lockfile_exists(FCStd_dir_path)
