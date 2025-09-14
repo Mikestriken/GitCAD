@@ -44,6 +44,9 @@ CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 
 NO_EXTENSION_SUBDIR_NAME:str = 'no_extension'
 
+INPUT_ARG:int = 0
+OUTPUT_ARG:int = 1
+
 DEBUG:bool = True
 def print_debug(message:str, endswith:str='\n'):
     if DEBUG: print(message, end=endswith)
@@ -87,7 +90,23 @@ def load_config_file(config_path:str) -> dict:
             "zip_file_prefix": data["compress-non-human-readable-FreeCAD-files"]["zip-file-prefix"]
         }
     }
-        
+
+def parseArgs() -> argparse.Namespace:
+    """
+    Configures and parses CLI arguments.
+
+    Returns:
+        argparse.Namespace: Parsed args.
+    """
+    parser:argparse.ArgumentParser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+')
+    parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+')
+    parser.add_argument(CONFIG_FILE_FLAG, dest="config_file_path", nargs='?', const=CONFIG_PATH, default=None)
+    parser.add_argument(SILENT_FLAG, dest="silent_flag", action='store_true')
+    parser.add_argument("-h", "--help", dest="help_flag", action="store_true")
+    
+    return parser.parse_args()
+
 def get_FCStd_dir_path(FCStd_file_path:str, config:dict) -> str:
     """
     Gets path to uncompressed FCStd file directory according to set configurations.
@@ -398,15 +417,7 @@ def ensure_lockfile_exists(FCStd_dir_path:str):
             f.write('')
 
 def main():
-    # Setup CLI args
-    parser:argparse.ArgumentParser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+')
-    parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+')
-    parser.add_argument(CONFIG_FILE_FLAG, dest="config_file_path", nargs='?', const=CONFIG_PATH, default=None)
-    parser.add_argument(SILENT_FLAG, dest="silent_flag", action='store_true')
-    parser.add_argument("-h", "--help", dest="help_flag", action="store_true")
-    
-    args:argparse.Namespace = parser.parse_args()
+    args:argparse.Namespace = parseArgs()
     
     if (bad_args(args) or args.help_flag) and not args.silent_flag:
         print(HELP_MESSAGE)
@@ -415,20 +426,19 @@ def main():
     if args.silent_flag:
         warnings.filterwarnings("ignore")
     
+    # Load config file
     config_provided:bool = not args.config_file_path is None
     
-    # Load config file
     config:dict = None
     if config_provided:
         config:dict = load_config_file(args.config_file_path)
 
-    # Thumbnails should be included (by default) if config isn't provided.
-    INCLUDE_THUMBNAIL:bool = not config_provided or config['include_thumbnails']
+    INCLUDE_THUMBNAIL:bool = not config_provided or config['include_thumbnails'] # Thumbnails should be included (by default) if config isn't provided.
     
     # Main Logic
     if args.export_flag:
-        FCStd_file_path:str = os.path.relpath(args.export_flag[0])
-        FCStd_dir_path:str = os.path.relpath(args.export_flag[1]) if len(args.export_flag) > 1 else None
+        FCStd_file_path:str = os.path.relpath(args.export_flag[INPUT_ARG])
+        FCStd_dir_path:str = os.path.relpath(args.export_flag[OUTPUT_ARG]) if len(args.export_flag) > 1 else None
         
         if config_provided:
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
@@ -458,8 +468,8 @@ def main():
             print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
 
     elif args.import_flag:
-        FCStd_dir_path:str = os.path.relpath(args.import_flag[0])
-        FCStd_file_path:str = os.path.relpath(args.import_flag[1]) if len(args.import_flag) > 1 else None
+        FCStd_dir_path:str = os.path.relpath(args.import_flag[INPUT_ARG])
+        FCStd_file_path:str = os.path.relpath(args.import_flag[OUTPUT_ARG]) if len(args.import_flag) > 1 else None
         
         if config_provided:
             FCStd_file_path:str = FCStd_dir_path
