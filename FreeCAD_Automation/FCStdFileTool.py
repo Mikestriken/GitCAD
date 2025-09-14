@@ -261,6 +261,27 @@ def write_zip_to_disk(FCStd_dir_path:str, zip_file_prefix:str, zip_index:int, cu
     zip_index += 1
     return zip_index
 
+def repackFCStd(FCStd_file_path:str):
+    """
+    Recreates a provided .FCStd file by copying the contents and the order of the contents.
+    Then recreating the .FCStd file from the copied contents.
+    
+    The this mainly serves to fix this issue: https://github.com/FreeCAD/FreeCAD/issues/23914
+
+    Args:
+        FCStd_file_path (str): Path to .FCStd file that needs to be repacked.
+    """
+    print_debug("Repacking Triggered!!")
+    with zipfile.ZipFile(FCStd_file_path, 'r') as zf:
+        namelist = zf.namelist()
+        file_data = {}
+        for name in namelist:
+            with zf.open(name) as f:
+                file_data[name] = f.read()
+    with zipfile.ZipFile(FCStd_file_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for name in namelist:
+            zf.writestr(name, file_data[name])
+
 def move_files_without_extension_to_subdir(FCStd_dir_path: str):
     """
     Moves files without extensions from FCStd_dir_path to a subdirectory named NO_EXTENSION_SUBDIR_NAME.
@@ -441,6 +462,11 @@ def main():
 
             if INCLUDE_THUMBNAIL:
                 add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
+        
+        # Fix for this issue: https://github.com/FreeCAD/FreeCAD/issues/23914
+        with zipfile.ZipFile(FCStd_file_path, 'r') as zf:
+            if any('./' in file_name for file_name in zf.namelist()):
+                repackFCStd(FCStd_file_path)
 
         if config_provided:
             if config['require_lock']:
