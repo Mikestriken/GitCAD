@@ -44,8 +44,8 @@ CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
 NO_EXTENSION_SUBDIR_NAME:str = 'no_extension'
 
 DEBUG:bool = True
-def print_debug(message:str):
-    if DEBUG: print(message)
+def print_debug(message:str, endswith:str='\n'):
+    if DEBUG: print(message, end=endswith)
 
 def load_config_file(config_path:str) -> dict:
     """
@@ -271,16 +271,22 @@ def repackFCStd(FCStd_file_path:str):
     Args:
         FCStd_file_path (str): Path to .FCStd file that needs to be repacked.
     """
-    print_debug("Repacking Triggered!!")
+    
+    namelist:list = None
+    file_data:dict = {}
     with zipfile.ZipFile(FCStd_file_path, 'r') as zf:
         namelist = zf.namelist()
-        file_data = {}
-        for name in namelist:
-            with zf.open(name) as f:
-                file_data[name] = f.read()
+        for file_name in namelist:
+            if file_name == "./": continue
+            
+            with zf.open(file_name) as f:
+                file_data[file_name] = f.read()
+    
     with zipfile.ZipFile(FCStd_file_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for name in namelist:
-            zf.writestr(name, file_data[name])
+        for file_name in namelist:
+            if file_name == "./": continue
+            
+            zf.writestr(file_name, file_data[file_name])
 
 def move_files_without_extension_to_subdir(FCStd_dir_path: str):
     """
