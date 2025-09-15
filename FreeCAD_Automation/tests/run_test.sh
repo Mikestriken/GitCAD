@@ -37,6 +37,12 @@ if ! "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import
 fi
 
 # ==============================================================================================
+#                                          Get Binaries
+# ==============================================================================================
+git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
+git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
+
+# ==============================================================================================
 #                                           Run Tests
 # ==============================================================================================
 "$PYTHON_PATH" -m FreeCAD_Automation.tests.test_FCStdFileTool
