@@ -11,20 +11,65 @@ from freecad import project_utility as PU
 
 FILE_NAME:str = "FCStdFileTool.py"
 
+class Config:
+    def __init__(self, config_dir:str):
+        # Path
+        self.config_path = os.path.join(config_dir, 'config.json')
+        
+        self.enable_locking = True
+        self.enable_thumbnail = True
+
+        # Uncompressed directory structure
+        self.dir_suffix = "_FCStd"
+        self.dir_prefix = "FCStd_"
+        self.subdir_enabled = True
+        self.subdir_name = "uncompressed"
+        
+        # Compressing
+        self.enable_compressing = True
+        self.files_to_compress = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
+        self.max_size_gb = 2.0
+        self.compression_level = 9
+        self.zip_prefix = "compressed_binaries_"
+        
+    @property
+    def json_config(self) -> dict:
+        return {
+            "require-lock-to-modify-FreeCAD-files": self.enable_locking,
+            "include-thumbnails": self.enable_thumbnail,
+            "uncompressed-directory-structure": {
+                "uncompressed-directory-suffix": self.dir_suffix,
+                "uncompressed-directory-prefix": self.dir_prefix,
+                "subdirectory": {
+                    "put-uncompressed-directory-in-subdirectory": self.subdir_enabled,
+                    "subdirectory-name": self.subdir_name
+                }
+            },
+            "compress-non-human-readable-FreeCAD-files": {
+                "enabled": self.enable_compressing,
+                "files-to-compress": self.files_to_compress,
+                "max-compressed-file-size-gigabyte": self.max_size_gb,
+                "compression-level": self.compression_level,
+                "zip-file-prefix": self.zip_prefix
+            }
+        }
+
+    def createTestConfig(self, config_data:dict = None) -> dict:
+        if config_data is None:
+            config_data:dict = self.json_config
+        
+        with open(self.config_path, 'w') as f:
+            json.dump(config_data, f)
+        return load_config_file(self.config_path)
+
 class TestFCStdFileTool(unittest.TestCase):
     def setUp(self):
         self.temp_dir:str = tempfile.mkdtemp()
+        self.config_file:Config = Config(self.temp_dir)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
         
-    def createTestConfig(self, config_data:dict) -> dict:
-        self.config_path:str = os.path.join(self.temp_dir, 'config.json')
-        with open(self.config_path, 'w') as f:
-            json.dump(config_data, f)
-        
-        return load_config_file(self.config_path)
-    
     # @patch('sys.argv', [FILE_NAME, '--export', 'input.FCStd', 'output_dir'])
     # def test_parse_args_export(self):
     #     args:argparse.Namespace = parseArgs()
@@ -33,72 +78,18 @@ class TestFCStdFileTool(unittest.TestCase):
     #     self.assertIsNone(args.config_file_path)
     #     self.assertFalse(args.silent_flag)
     #     self.assertFalse(args.help_flag)
-    
-    def full_config_example(self):
-        """
-        Demo function that has a full config loading template.
         
-        For easy copy & paste use.
-        """
-        enable_locking:bool = True
-        enable_thumbnail:bool = True
-        
-        suffix:str = "_FCStd"
-        prefix:str = "FCStd_"
-        subdir_enabled:bool = True
-        subdir_name:str = "uncompressed"
-        
-        enable_compressing:bool = True
-        files_to_compress:list = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
-        max_size_gb:float = 2
-        compression_level:int = 9
-        zip_prefix:str = "compressed_binaries_"
-        
-        local_config:dict = {
-            "require-lock-to-modify-FreeCAD-files": enable_locking,
-            "include-thumbnails": enable_thumbnail,
-
-            "uncompressed-directory-structure": {
-                "uncompressed-directory-suffix": suffix,
-                "uncompressed-directory-prefix": prefix,
-                "subdirectory": {
-                    "put-uncompressed-directory-in-subdirectory": subdir_enabled,
-                    "subdirectory-name": subdir_name
-                }
-            },
-
-            "compress-non-human-readable-FreeCAD-files": {
-                "enabled": enable_compressing,
-                "files-to-compress": files_to_compress,
-                "max-compressed-file-size-gigabyte": max_size_gb,
-                "compression-level": compression_level,
-                "zip-file-prefix": zip_prefix
-            }
-        }
-        
-        config:dict = self.createTestConfig(local_config)
-        
-
     def test_get_FCStd_dir_path(self):
-        suffix:str = "_FCStd"
-        prefix:str = "FCStd_"
-        subdir_enabled:bool = True
-        subdir_name:str = "uncompressed"
         
-        local_config:dict = {
-            "uncompressed-directory-structure": {
-                "uncompressed-directory-suffix": suffix,
-                "uncompressed-directory-prefix": prefix,
-                "subdirectory": {
-                    "put-uncompressed-directory-in-subdirectory": subdir_enabled,
-                    "subdirectory-name": subdir_name
-                }
-            }
-        }
-        config:dict = self.createTestConfig(local_config)
+        self.config_file.dir_suffix = "_FCStd"
+        self.config_file.dir_prefix = "FCStd_"
+        self.config_file.subdir_enabled = True
+        self.config_file.subdir_name = "uncompressed"
         
-        path:str = get_FCStd_dir_path('/path/to/file.FCStd', config)
-        expected:str = os.path.relpath(os.path.join('/path/to/', subdir_name, f"{prefix}{subdir_name}{suffix}"))
+        FCStdFileTool_Config:dict = self.config_file.createTestConfig()
+        
+        path:str = get_FCStd_dir_path('/path/to/file.FCStd', FCStdFileTool_Config)
+        expected:str = os.path.relpath(os.path.join('/path/to/', self.config_file.subdir_name, f"{self.config_file.dir_prefix}{self.config_file.subdir_name}{self.config_file.dir_suffix}"))
         self.assertEqual(path, expected)
 
     def test_get_FCStd_dir_path_without_subdir(self):
