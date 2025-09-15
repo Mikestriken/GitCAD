@@ -16,9 +16,9 @@ class TestFCStdFileTool(unittest.TestCase):
         self.temp_dir:str = tempfile.mkdtemp()
         self.config_path:str = os.path.join(self.temp_dir, 'config.json')
         config_data:dict = {
-            "freecad-python-instance-path": "dummy",
             "require-lock-to-modify-FreeCAD-files": True,
             "include-thumbnails": True,
+
             "uncompressed-directory-structure": {
                 "uncompressed-directory-suffix": "_FCStd",
                 "uncompressed-directory-prefix": "FCStd_",
@@ -27,9 +27,10 @@ class TestFCStdFileTool(unittest.TestCase):
                     "subdirectory-name": "uncompressed"
                 }
             },
+
             "compress-non-human-readable-FreeCAD-files": {
                 "enabled": True,
-                "files-to-compress": ["**/no_extension/*", "*.brp"],
+                "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"],
                 "max-compressed-file-size-gigabyte": 2,
                 "compression-level": 9,
                 "zip-file-prefix": "compressed_binaries_"
