@@ -1,1 +1,2 @@
 *.FCStd filter=FCStd
+**/temp
