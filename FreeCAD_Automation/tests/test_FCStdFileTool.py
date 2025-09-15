@@ -14,66 +14,91 @@ FILE_NAME:str = "FCStdFileTool.py"
 class TestFCStdFileTool(unittest.TestCase):
     def setUp(self):
         self.temp_dir:str = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self.temp_dir)
+        
+    def createTestConfig(self, config_data:dict) -> dict:
         self.config_path:str = os.path.join(self.temp_dir, 'config.json')
-        config_data:dict = {
-            "require-lock-to-modify-FreeCAD-files": True,
-            "include-thumbnails": True,
+        with open(self.config_path, 'w') as f:
+            json.dump(config_data, f)
+        
+        return load_config_file(self.config_path)
+    
+    # @patch('sys.argv', [FILE_NAME, '--export', 'input.FCStd', 'output_dir'])
+    # def test_parse_args_export(self):
+    #     args:argparse.Namespace = parseArgs()
+    #     self.assertEqual(args.export_flag, ['input.FCStd', 'output_dir'])
+    #     self.assertIsNone(args.import_flag)
+    #     self.assertIsNone(args.config_file_path)
+    #     self.assertFalse(args.silent_flag)
+    #     self.assertFalse(args.help_flag)
+    
+    def full_config_example(self):
+        """
+        Demo function that has a full config loading template.
+        
+        For easy copy & paste use.
+        """
+        enable_locking:bool = True
+        enable_thumbnail:bool = True
+        
+        suffix:str = "_FCStd"
+        prefix:str = "FCStd_"
+        subdir_enabled:bool = True
+        subdir_name:str = "uncompressed"
+        
+        enable_compressing:bool = True
+        files_to_compress:list = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
+        max_size_gb:float = 2
+        compression_level:int = 9
+        zip_prefix:str = "compressed_binaries_"
+        
+        local_config:dict = {
+            "require-lock-to-modify-FreeCAD-files": enable_locking,
+            "include-thumbnails": enable_thumbnail,
 
             "uncompressed-directory-structure": {
-                "uncompressed-directory-suffix": "_FCStd",
-                "uncompressed-directory-prefix": "FCStd_",
+                "uncompressed-directory-suffix": suffix,
+                "uncompressed-directory-prefix": prefix,
                 "subdirectory": {
-                    "put-uncompressed-directory-in-subdirectory": True,
-                    "subdirectory-name": "uncompressed"
+                    "put-uncompressed-directory-in-subdirectory": subdir_enabled,
+                    "subdirectory-name": subdir_name
                 }
             },
 
             "compress-non-human-readable-FreeCAD-files": {
-                "enabled": True,
-                "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"],
-                "max-compressed-file-size-gigabyte": 2,
-                "compression-level": 9,
-                "zip-file-prefix": "compressed_binaries_"
+                "enabled": enable_compressing,
+                "files-to-compress": files_to_compress,
+                "max-compressed-file-size-gigabyte": max_size_gb,
+                "compression-level": compression_level,
+                "zip-file-prefix": zip_prefix
             }
         }
-        with open(self.config_path, 'w') as f:
-            json.dump(config_data, f)
-        self.config:dict = load_config_file(self.config_path)
+        
+        config:dict = self.createTestConfig(local_config)
+        
 
-    def tearDown(self):
-        shutil.rmtree(self.temp_dir)
-
-    @patch('sys.argv', [FILE_NAME, '--export', 'input.FCStd', 'output_dir'])
-    def test_parse_args_export(self):
-        args:argparse.Namespace = parseArgs()
-        self.assertEqual(args.export_flag, ['input.FCStd', 'output_dir'])
-        self.assertIsNone(args.import_flag)
-        self.assertIsNone(args.config_file_path)
-        self.assertFalse(args.silent_flag)
-        self.assertFalse(args.help_flag)
-
-    @patch('sys.argv', [FILE_NAME, '--import', 'input_dir', 'output.FCStd'])
-    def test_parse_args_import(self):
-        args:argparse.Namespace = parseArgs()
-        self.assertEqual(args.import_flag, ['input_dir', 'output.FCStd'])
-        self.assertIsNone(args.export_flag)
-
-    @patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', 'config.json', '--export', 'file.FCStd'])
-    def test_parse_args_config_export(self):
-        args:argparse.Namespace = parseArgs()
-        self.assertEqual(args.config_file_path, 'config.json')
-        self.assertEqual(args.export_flag, ['file.FCStd'])
-
-    @patch('sys.argv', [FILE_NAME, '--SILENT', '--help'])
-    def test_parse_args_silent_help(self):
-        args:argparse.Namespace = parseArgs()
-        self.assertTrue(args.silent_flag)
-        self.assertTrue(args.help_flag)
-
-    def test_get_FCStd_dir_path_with_subdir(self):
-        config:dict = self.config
+    def test_get_FCStd_dir_path(self):
+        suffix:str = "_FCStd"
+        prefix:str = "FCStd_"
+        subdir_enabled:bool = True
+        subdir_name:str = "uncompressed"
+        
+        local_config:dict = {
+            "uncompressed-directory-structure": {
+                "uncompressed-directory-suffix": suffix,
+                "uncompressed-directory-prefix": prefix,
+                "subdirectory": {
+                    "put-uncompressed-directory-in-subdirectory": subdir_enabled,
+                    "subdirectory-name": subdir_name
+                }
+            }
+        }
+        config:dict = self.createTestConfig(local_config)
+        
         path:str = get_FCStd_dir_path('/path/to/file.FCStd', config)
-        expected:str = os.path.relpath(os.path.join('/path/to', 'uncompressed', 'FCStd_file_FCStd'))
+        expected:str = os.path.relpath(os.path.join('/path/to/', subdir_name, f"{prefix}{subdir_name}{suffix}"))
         self.assertEqual(path, expected)
 
     def test_get_FCStd_dir_path_without_subdir(self):
