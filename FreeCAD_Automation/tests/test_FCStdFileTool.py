@@ -127,7 +127,7 @@ class TestFCStdFileTool(unittest.TestCase):
         # Check for lockfile
         self.assertTrue(os.path.exists(os.path.join(expected_dir, '.lockfile')))
 
-    def test_no_config_import(self):
+    def test_no_config_export_import(self):
         # First, export to create a directory
         with patch('sys.argv', [FILE_NAME, '--export', self.temp_AssemblyExample_path, os.path.join(self.temp_dir, 'temp_export_dir')]):
             main()
@@ -139,7 +139,7 @@ class TestFCStdFileTool(unittest.TestCase):
 
         self.assertTrue(os.path.exists(output_file))
 
-    def test_config_import(self):
+    def test_config_export_import(self):
         # Create config
         self.config_file.createTestConfig()
         
