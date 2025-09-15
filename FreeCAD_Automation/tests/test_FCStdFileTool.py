@@ -63,9 +63,18 @@ class Config:
 
 class TestFCStdFileTool(unittest.TestCase):
     def setUp(self):
+        self.test_dir:str = os.path.dirname(__file__)
+        
+        # Create temp dir
         self.temp_dir:str = os.path.join(os.path.dirname(__file__), '/temp/')
         os.makedirs(self.temp_dir, exist_ok=True)
+        
+        # Create config file
         self.config_file:Config = Config(self.temp_dir)
+        
+        # Copy CAD files
+        shutil.copy(os.path.join(self.test_dir, 'BIMExample.FCStd'), self.temp_dir)
+        shutil.copy(os.path.join(self.test_dir, 'AssemblyExample.FCStd'), self.temp_dir)
 
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
