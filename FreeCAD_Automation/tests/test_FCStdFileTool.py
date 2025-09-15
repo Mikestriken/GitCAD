@@ -80,23 +80,25 @@ class TestFCStdFileTool(unittest.TestCase):
     #     self.assertFalse(args.help_flag)
         
     def test_get_FCStd_dir_path(self):
-        
-        self.config_file.dir_suffix = "_FCStd"
-        self.config_file.dir_prefix = "FCStd_"
+
+        # Test with subdir enabled
+        self.config_file.dir_suffix = " f u n n y"
+        self.config_file.dir_prefix = "no cap "
         self.config_file.subdir_enabled = True
-        self.config_file.subdir_name = "uncompressed"
-        
+        self.config_file.subdir_name = "frfr"
+
+        FCStdFileTool_Config:dict = self.config_file.createTestConfig()
+
+        path:str = get_FCStd_dir_path('/path/to/file.FCStd', FCStdFileTool_Config)
+        expected:str = os.path.relpath(os.path.join('/path/to/', self.config_file.subdir_name, f"{self.config_file.dir_prefix}file{self.config_file.dir_suffix}"))
+        self.assertEqual(path, expected)
+
+        # Test without subdir
+        self.config_file.subdir_enabled = False
         FCStdFileTool_Config:dict = self.config_file.createTestConfig()
         
         path:str = get_FCStd_dir_path('/path/to/file.FCStd', FCStdFileTool_Config)
-        expected:str = os.path.relpath(os.path.join('/path/to/', self.config_file.subdir_name, f"{self.config_file.dir_prefix}{self.config_file.subdir_name}{self.config_file.dir_suffix}"))
-        self.assertEqual(path, expected)
-
-    def test_get_FCStd_dir_path_without_subdir(self):
-        config:dict = self.config.copy()
-        config['uncompressed_directory_structure']['subdirectory']['put_uncompressed_directory_in_subdirectory'] = False
-        path:str = get_FCStd_dir_path('/path/to/file.FCStd', config)
-        expected:str = os.path.relpath(os.path.join('/path/to', 'FCStd_file_FCStd'))
+        expected:str = os.path.relpath(os.path.join('/path/to', f"{self.config_file.dir_prefix}file{self.config_file.dir_suffix}"))
         self.assertEqual(path, expected)
 
     def test_remove_exported_thumbnail(self):
