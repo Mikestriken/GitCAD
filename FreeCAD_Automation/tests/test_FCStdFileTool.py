@@ -142,6 +142,7 @@ class TestFCStdFileTool(unittest.TestCase):
     def test_config_export_import__default_config(self):
         # Create config
         config_data:dict = self.config_file.createTestConfig()
+        original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         # First, export with config to create directory
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', self.temp_AssemblyExample_path]):
@@ -149,13 +150,23 @@ class TestFCStdFileTool(unittest.TestCase):
 
         # Check correct export
         expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
-        self.assertTrue(os.path.exists(os.path.join(expected_dir, 'Document.xml')))
+        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
+        lockfile_path:str = os.path.join(expected_dir, '.lockfile')
+        
+        self.assertTrue(os.path.exists(docXML_path), f"ERR: '{docXML_path}', does not exist.")
+        zip_files:list = [f for f in os.listdir(expected_dir) if f.startswith(self.config_file.zip_prefix) and f.endswith('.zip')]
+        self.assertTrue(len(zip_files) > 0, f"ERR: Num zip files '{len(zip_files)}' is <= 0")
+        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' does not exist.")
         
         # Now import with config
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', self.temp_AssemblyExample_path]):
             main()
 
-        self.assertTrue(os.path.exists(self.temp_AssemblyExample_path)) # Low-key useless test, just checks for thrown errors in main code
+        # Check correct Import
+        new_size:int = os.path.getsize(self.temp_AssemblyExample_path)
+        
+        self.assertTrue(os.path.exists(self.temp_AssemblyExample_path), f"ERR: '{os.path.exists(self.temp_AssemblyExample_path)}' does not exist.")
+        self.assertAlmostEqual(new_size, original_size, delta=int(original_size*0.05), msg=f"ERR: Original file size={original_size}, New file size={new_size}, Acceptable Delta={int(original_size*0.05)}")
 
     def test_config_export_import__new_name(self):
         # Create config
