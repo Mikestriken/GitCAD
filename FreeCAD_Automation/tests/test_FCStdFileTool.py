@@ -10,11 +10,11 @@ from freecad import project_utility as PU
 
 FILE_NAME:str = "FCStdFileTool.py"
 
-TEST_DIR:str = os.path.abspath(os.path.dirname(__file__))
-TEMP_DIR:str = os.path.abspath(os.path.join(TEST_DIR, '/temp/'))
+TEST_DIR:str = os.path.relpath(os.path.dirname(__file__))
+TEMP_DIR:str = os.path.relpath(os.path.join(TEST_DIR, '/temp/'))
 
-TEMP_BIM_EXAMPLE_PATH:str = os.path.abspath(os.path.join(TEMP_DIR, 'BIMExample.FCStd'))
-TEMP_ASSEMBLY_EXAMPLE_PATH:str = os.path.abspath(os.path.join(TEMP_DIR, 'AssemblyExample.FCStd'))
+TEMP_BIM_EXAMPLE_PATH:str = os.path.relpath(os.path.join(TEMP_DIR, 'BIMExample.FCStd'))
+TEMP_ASSEMBLY_EXAMPLE_PATH:str = os.path.relpath(os.path.join(TEMP_DIR, 'AssemblyExample.FCStd'))
 
 class Config:
     def __init__(self, config_dir:str):
@@ -106,8 +106,8 @@ class TestFCStdFileTool(unittest.TestCase):
     @patch('sys.argv', [FILE_NAME, '--export', TEMP_ASSEMBLY_EXAMPLE_PATH, os.path.join(TEMP_DIR, 'output_dir')])
     def test_no_config_export(self):
         main()
-        self.assertTrue(os.path.exists(os.path.join(TEST_DIR, 'output_dir', 'Document.xml')))
-        self.assertTrue(os.path.exists(os.path.join(TEST_DIR, 'output_dir', 'thumbnails', 'Thumbnail.png')))
+        self.assertTrue(os.path.exists(os.path.join(TEMP_DIR, 'output_dir', 'Document.xml')))
+        self.assertTrue(os.path.exists(os.path.join(TEMP_DIR, 'output_dir', 'thumbnails', 'Thumbnail.png')))
 
 if __name__ == "__main__":
     unittest.main()
