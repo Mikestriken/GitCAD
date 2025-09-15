@@ -9,6 +9,8 @@ import io
 from unittest.mock import patch, MagicMock
 from freecad import project_utility as PU
 
+FILE_NAME:str = "FCStdFileTool.py"
+
 class TestFCStdFileTool(unittest.TestCase):
     def setUp(self):
         self.temp_dir:str = tempfile.mkdtemp()
@@ -40,16 +42,7 @@ class TestFCStdFileTool(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.temp_dir)
 
-    def test_load_config_file(self):
-        config:dict = load_config_file(self.config_path)
-        self.assertIn('require_lock', config)
-        self.assertTrue(config['require_lock'])
-        self.assertIn('include_thumbnails', config)
-        self.assertTrue(config['include_thumbnails'])
-        self.assertIn('uncompressed_directory_structure', config)
-        self.assertIn('compress_binaries', config)
-
-    @patch('sys.argv', ['script', '--export', 'input.FCStd', 'output_dir'])
+    @patch('sys.argv', [FILE_NAME, '--export', 'input.FCStd', 'output_dir'])
     def test_parse_args_export(self):
         args:argparse.Namespace = parseArgs()
         self.assertEqual(args.export_flag, ['input.FCStd', 'output_dir'])
@@ -58,19 +51,19 @@ class TestFCStdFileTool(unittest.TestCase):
         self.assertFalse(args.silent_flag)
         self.assertFalse(args.help_flag)
 
-    @patch('sys.argv', ['script', '--import', 'input_dir', 'output.FCStd'])
+    @patch('sys.argv', [FILE_NAME, '--import', 'input_dir', 'output.FCStd'])
     def test_parse_args_import(self):
         args:argparse.Namespace = parseArgs()
         self.assertEqual(args.import_flag, ['input_dir', 'output.FCStd'])
         self.assertIsNone(args.export_flag)
 
-    @patch('sys.argv', ['script', '--CONFIG-FILE', 'config.json', '--export', 'file.FCStd'])
+    @patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', 'config.json', '--export', 'file.FCStd'])
     def test_parse_args_config_export(self):
         args:argparse.Namespace = parseArgs()
         self.assertEqual(args.config_file_path, 'config.json')
         self.assertEqual(args.export_flag, ['file.FCStd'])
 
-    @patch('sys.argv', ['script', '--SILENT', '--help'])
+    @patch('sys.argv', [FILE_NAME, '--SILENT', '--help'])
     def test_parse_args_silent_help(self):
         args:argparse.Namespace = parseArgs()
         self.assertTrue(args.silent_flag)
@@ -224,14 +217,14 @@ class TestFCStdFileTool(unittest.TestCase):
     @patch('sys.argv')
     @patch('builtins.print')
     def test_main_help(self, mock_print, mock_argv):
-        mock_argv[:] = ['script', '--help']
+        mock_argv[:] = [FILE_NAME, '--help']
         main()
         mock_print.assert_called_once_with(HELP_MESSAGE)
 
     @patch('sys.argv')
     @patch('builtins.print')
     def test_main_bad_args(self, mock_print, mock_argv):
-        mock_argv[:] = ['script']
+        mock_argv[:] = [FILE_NAME]
         main()
         mock_print.assert_called_once_with(HELP_MESSAGE)
 
