@@ -45,4 +45,4 @@ git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/
 # ==============================================================================================
 #                                           Run Tests
 # ==============================================================================================
-"$PYTHON_PATH" -m FreeCAD_Automation.tests.test_FCStdFileTool
+"$PYTHON_PATH" -m unittest --failfast FreeCAD_Automation.tests.test_FCStdFileTool
