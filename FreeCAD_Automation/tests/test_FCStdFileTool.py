@@ -92,7 +92,7 @@ class TestFCStdFileTool(unittest.TestCase):
 
         path:str = get_FCStd_dir_path('/path/to/file.FCStd', FCStdFileTool_Config)
         expected:str = os.path.relpath(os.path.join('/path/to/', self.config_file.subdir_name, f"{self.config_file.dir_prefix}file{self.config_file.dir_suffix}"))
-        self.assertEqual(path, expected)
+        self.assertEqual(path, expected, msg=f"ERR: Expected path '{expected}', got '{path}'")
 
         # Test without subdir
         self.config_file.subdir_enabled = False
@@ -100,14 +100,17 @@ class TestFCStdFileTool(unittest.TestCase):
         
         path:str = get_FCStd_dir_path('/path/to/file.FCStd', FCStdFileTool_Config)
         expected:str = os.path.relpath(os.path.join('/path/to', f"{self.config_file.dir_prefix}file{self.config_file.dir_suffix}"))
-        self.assertEqual(path, expected)
+        self.assertEqual(path, expected, msg=f"ERR: Expected path '{expected}', got '{path}'")
 
     def test_no_config_export(self):
         with patch('sys.argv', [FILE_NAME, '--export', self.temp_AssemblyExample_path, os.path.join(self.temp_dir, 'output_dir')]):
             main()
         
-        self.assertTrue(os.path.exists(os.path.join(self.temp_dir, 'output_dir', 'Document.xml')))
-        self.assertTrue(os.path.exists(os.path.join(self.temp_dir, 'output_dir', 'thumbnails', 'Thumbnail.png')))
+        docXML_path:str = os.path.join(self.temp_dir, 'output_dir', 'Document.xml')
+        thumbnail_path:str = os.path.join(self.temp_dir, 'output_dir', 'thumbnails', 'Thumbnail.png')
+        
+        self.assertTrue(os.path.exists(docXML_path), msg=f"ERR: '{docXML_path}' does not exist.")
+        self.assertTrue(os.path.exists(thumbnail_path), msg=f"ERR: '{thumbnail_path}' does not exist.")
 
     def test_config_export(self):
         # Create config file
@@ -118,14 +121,17 @@ class TestFCStdFileTool(unittest.TestCase):
 
         # Get expected output dir
         expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
-        self.assertTrue(os.path.exists(os.path.join(expected_dir, 'Document.xml')))
-        
+        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
+        lockfile_path:str = os.path.join(expected_dir, '.lockfile')
+
+        self.assertTrue(os.path.exists(docXML_path), msg=f"ERR: '{docXML_path}' does not exist.")
+
         # Check for compressed binaries zip
         zip_files:list = [f for f in os.listdir(expected_dir) if f.startswith(self.config_file.zip_prefix) and f.endswith('.zip')]
-        self.assertTrue(len(zip_files) > 0)
-        
+        self.assertTrue(len(zip_files) > 0, msg=f"ERR: Num zip files '{len(zip_files)}' is <= 0")
+
         # Check for lockfile
-        self.assertTrue(os.path.exists(os.path.join(expected_dir, '.lockfile')))
+        self.assertTrue(os.path.exists(lockfile_path), msg=f"ERR: '{lockfile_path}' does not exist.")
 
     def test_no_config_export_import(self):
         # First, export to create a directory
@@ -137,7 +143,7 @@ class TestFCStdFileTool(unittest.TestCase):
         with patch('sys.argv', [FILE_NAME, '--import', os.path.join(self.temp_dir, 'temp_export_dir'), output_file]):
             main()
 
-        self.assertTrue(os.path.exists(output_file))
+        self.assertTrue(os.path.exists(output_file), msg=f"ERR: '{output_file}' does not exist.")
 
     def test_config_export_import__default_config(self):
         # Create config
@@ -182,13 +188,14 @@ class TestFCStdFileTool(unittest.TestCase):
 
         # Check correct export
         expected_dir:str = get_FCStd_dir_path(CAD_file_path, config_data)
-        self.assertTrue(os.path.exists(os.path.join(expected_dir, 'Document.xml')))
+        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
+        self.assertTrue(os.path.exists(docXML_path), msg=f"ERR: '{docXML_path}' does not exist.")
 
         # Now import with config
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', CAD_file_path]):
             main()
 
-        self.assertTrue(os.path.exists(CAD_file_path)) # Low-key useless test, just checks for thrown errors in main code
+        self.assertTrue(os.path.exists(CAD_file_path), msg=f"ERR: '{CAD_file_path}' does not exist.") # Low-key useless test, just checks for thrown errors in main code
 
     @patch('sys.argv', [FILE_NAME, '--help'])
     def test_help_flag(self):
@@ -197,7 +204,7 @@ class TestFCStdFileTool(unittest.TestCase):
 
     @patch('sys.argv', [FILE_NAME, '--SILENT', '--export', 'dummy.FCStd', 'dummy_dir'])
     def test_silent_flag(self):
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(FileNotFoundError, msg=f"ERR: Expected FileNotFoundError to be raised."):
             main()
 
     @patch('sys.argv', [FILE_NAME])  # No flags
