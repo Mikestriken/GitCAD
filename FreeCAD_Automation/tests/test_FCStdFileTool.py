@@ -139,9 +139,27 @@ class TestFCStdFileTool(unittest.TestCase):
 
         self.assertTrue(os.path.exists(output_file))
 
-    def test_config_export_import(self):
+    def test_config_export_import__default_config(self):
         # Create config
-        self.config_file.createTestConfig()
+        config_data:dict = self.config_file.createTestConfig()
+        
+        # First, export with config to create directory
+        with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', self.temp_AssemblyExample_path]):
+            main()
+
+        # Check correct export
+        expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
+        self.assertTrue(os.path.exists(os.path.join(expected_dir, 'Document.xml')))
+        
+        # Now import with config
+        with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', self.temp_AssemblyExample_path]):
+            main()
+
+        self.assertTrue(os.path.exists(self.temp_AssemblyExample_path)) # Low-key useless test, just checks for thrown errors in main code
+
+    def test_config_export_import__new_name(self):
+        # Create config
+        config_data:dict = self.config_file.createTestConfig()
         
         CAD_file_path:str = os.path.join(self.temp_dir, "output_config.FCStd")
         
@@ -150,6 +168,10 @@ class TestFCStdFileTool(unittest.TestCase):
         # First, export with config to create directory
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', CAD_file_path]):
             main()
+
+        # Check correct export
+        expected_dir:str = get_FCStd_dir_path(CAD_file_path, config_data)
+        self.assertTrue(os.path.exists(os.path.join(expected_dir, 'Document.xml')))
 
         # Now import with config
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', CAD_file_path]):
