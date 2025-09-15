@@ -182,7 +182,7 @@ class TestFCStdFileTool(unittest.TestCase):
         # Check Dirs
         self.assertTrue(os.path.exists(expected_dir), f"ERR: '{expected_dir}', does not exist.")
         self.assertTrue(os.path.exists(no_extension_dir), f"ERR: '{no_extension_dir}' does not exist.")
-        self.assertTrue(os.path.exists(os.path.basename(thumbnail_path)), f"ERR: '{os.path.basename(thumbnail_path)}' does not exist.")
+        self.assertTrue(os.path.exists(os.path.dirname(thumbnail_path)), f"ERR: '{os.path.dirname(thumbnail_path)}' does not exist.")
         
         # Check files
         self.assertFalse(len(os.listdir(no_extension_dir)) > 0, f"ERR: '{no_extension_dir}' is not empty (files should be compressed).")
