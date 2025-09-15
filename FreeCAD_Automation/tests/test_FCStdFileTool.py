@@ -10,6 +10,12 @@ from freecad import project_utility as PU
 
 FILE_NAME:str = "FCStdFileTool.py"
 
+TEST_DIR:str = os.path.abspath(os.path.dirname(__file__))
+TEMP_DIR:str = os.path.abspath(os.path.join(TEST_DIR, '/temp/'))
+
+TEMP_BIM_EXAMPLE_PATH:str = os.path.abspath(os.path.join(TEMP_DIR, 'BIMExample.FCStd'))
+TEMP_ASSEMBLY_EXAMPLE_PATH:str = os.path.abspath(os.path.join(TEMP_DIR, 'AssemblyExample.FCStd'))
+
 class Config:
     def __init__(self, config_dir:str):
         # Path
@@ -63,24 +69,20 @@ class Config:
 
 class TestFCStdFileTool(unittest.TestCase):
     def setUp(self):
-        self.test_dir:str = os.path.dirname(__file__)
-        
         # Create temp dir
-        self.temp_dir:str = os.path.join(os.path.dirname(__file__), '/temp/')
-        os.makedirs(self.temp_dir, exist_ok=True)
+        os.makedirs(TEMP_DIR, exist_ok=True)
         
         # Create config file
-        self.config_file:Config = Config(self.temp_dir)
+        self.config_file:Config = Config(TEMP_DIR)
         
-        # Copy CAD files
-        shutil.copy(os.path.join(self.test_dir, 'BIMExample.FCStd'), self.temp_dir)
-        shutil.copy(os.path.join(self.test_dir, 'AssemblyExample.FCStd'), self.temp_dir)
+        # Copy CAD files to temp dir
+        shutil.copy(os.path.join(TEST_DIR, 'BIMExample.FCStd'), TEMP_DIR)
+        shutil.copy(os.path.join(TEST_DIR, 'AssemblyExample.FCStd'), TEMP_DIR)
 
     def tearDown(self):
-        shutil.rmtree(self.temp_dir)
+        shutil.rmtree(TEMP_DIR)
         
     def test_get_FCStd_dir_path(self):
-
         # Test with subdir enabled
         self.config_file.dir_suffix = " f u n n y"
         self.config_file.dir_prefix = "no cap "
@@ -101,14 +103,11 @@ class TestFCStdFileTool(unittest.TestCase):
         expected:str = os.path.relpath(os.path.join('/path/to', f"{self.config_file.dir_prefix}file{self.config_file.dir_suffix}"))
         self.assertEqual(path, expected)
 
-    @patch('sys.argv', [FILE_NAME, '--export', 'input.FCStd', 'output_dir'])
-    def test_parse_args_export(self):
-        args:argparse.Namespace = parseArgs()
-        self.assertEqual(args.export_flag, ['input.FCStd', 'output_dir'])
-        self.assertIsNone(args.import_flag)
-        self.assertIsNone(args.config_file_path)
-        self.assertFalse(args.silent_flag)
-        self.assertFalse(args.help_flag)
+    @patch('sys.argv', [FILE_NAME, '--export', TEMP_ASSEMBLY_EXAMPLE_PATH, os.path.join(TEMP_DIR, 'output_dir')])
+    def test_no_config_export(self):
+        main()
+        self.assertTrue(os.path.exists(os.path.join(TEST_DIR, 'output_dir', 'Document.xml')))
+        self.assertTrue(os.path.exists(os.path.join(TEST_DIR, 'output_dir', 'thumbnails', 'Thumbnail.png')))
 
 if __name__ == "__main__":
     unittest.main()
