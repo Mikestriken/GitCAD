@@ -150,13 +150,11 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.enable_locking = True
         self.config_file.enable_thumbnail = True
 
-        # Uncompressed directory structure
         self.config_file.dir_suffix = "_FCStd"
         self.config_file.dir_prefix = "FCStd_"
         self.config_file.subdir_enabled = True
         self.config_file.subdir_name = "uncompressed"
         
-        # Compressing
         self.config_file.enable_compressing = True
         self.config_file.files_to_compress = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
         self.config_file.max_size_gb = 2.0
@@ -166,11 +164,11 @@ class TestFCStdFileTool(unittest.TestCase):
         config_data:dict = self.config_file.createTestConfig()
         original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
-        # First, export with config to create directory
+        # EXPORT
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', self.temp_AssemblyExample_path]):
             main()
 
-        # Check correct export
+        # CHECK EXPORT
         expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
         lockfile_path:str = os.path.join(expected_dir, '.lockfile')
         thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
@@ -179,44 +177,98 @@ class TestFCStdFileTool(unittest.TestCase):
         zip_files:list = [f for f in os.listdir(expected_dir) if f.startswith(self.config_file.zip_prefix) and f.endswith('.zip')]
         brp_files:list = [f for f in os.listdir(expected_dir) if f.endswith('.brp')]
         
-        # Check Dirs
         self.assertTrue(os.path.exists(expected_dir), f"ERR: '{expected_dir}', does not exist.")
         self.assertTrue(os.path.exists(no_extension_dir), f"ERR: '{no_extension_dir}' does not exist.")
         self.assertTrue(os.path.exists(os.path.dirname(thumbnail_path)), f"ERR: '{os.path.dirname(thumbnail_path)}' does not exist.")
         
-        # Check files
-        self.assertFalse(len(os.listdir(no_extension_dir)) > 0, f"ERR: '{no_extension_dir}' is not empty (files should be compressed).")
-        self.assertFalse(os.path.exists(thumbnail_path), f"ERR: '{thumbnail_path}' exists (thumbnail should be compressed).")
         self.assertTrue(os.path.exists(docXML_path), f"ERR: '{docXML_path}', does not exist.")
-        self.assertFalse(len(brp_files) > 0, f"ERR: Num brp files '{len(brp_files)}' is > 0 (files should be compressed).")
+        self.assertTrue(len(os.listdir(no_extension_dir)) == 0, f"ERR: '{no_extension_dir}' is not empty (files should be compressed).")
+        self.assertTrue(not os.path.exists(thumbnail_path), f"ERR: '{thumbnail_path}' exists (thumbnail should be compressed).")
+        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' does not exist.")
+        self.assertTrue(len(brp_files) == 0, f"ERR: Num brp files '{len(brp_files)}' is != 0 (files should be compressed).")
         self.assertTrue(len(zip_files) > 0, f"ERR: Num zip files '{len(zip_files)}' is <= 0.")
+        
         for zip_file in zip_files:
             zip_file_size_gb:float = os.path.getsize(os.path.join(expected_dir, zip_file))/(1024 ** 3)
             self.assertLessEqual(zip_file_size_gb, self.config_file.max_size_gb, f"ERR: Zip file '{zip_file} size'={zip_file_size_gb} GB is greater than 'max allowed'={self.config_file.max_size_gb} GB.")
-        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' does not exist.")
         
-        # Now import with config
+        # IMPORT
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', self.temp_AssemblyExample_path]):
             main()
 
-        # Check correct Import
+        # CHECK IMPORT
         new_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         self.assertTrue(os.path.exists(self.temp_AssemblyExample_path), f"ERR: '{os.path.exists(self.temp_AssemblyExample_path)}' does not exist.")
         self.assertAlmostEqual(new_size, original_size, delta=int(original_size*0.05), msg=f"ERR: Original file size={original_size}, New file size={new_size}, Acceptable Delta={int(original_size*0.05)}")
 
-    def test_config_export_import__no_lock_thumb(self):
+    def test_config_export_import__different_file(self):
         # SET CONFIGS:
-        self.config_file.enable_locking = False
-        self.config_file.enable_thumbnail = False
+        self.config_file.enable_locking = True
+        self.config_file.enable_thumbnail = True
 
-        # Uncompressed directory structure
         self.config_file.dir_suffix = "_FCStd"
         self.config_file.dir_prefix = "FCStd_"
         self.config_file.subdir_enabled = True
         self.config_file.subdir_name = "uncompressed"
         
-        # Compressing
+        self.config_file.enable_compressing = True
+        self.config_file.files_to_compress = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
+        self.config_file.max_size_gb = 2.0
+        self.config_file.compression_level = 9
+        self.config_file.zip_prefix = "compressed_binaries_"
+
+        config_data:dict = self.config_file.createTestConfig()
+        original_size:int = os.path.getsize(self.temp_BIMExample_path)
+        
+        # EXPORT
+        with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', self.temp_BIMExample_path]):
+            main()
+
+        # CHECK EXPORT
+        expected_dir:str = get_FCStd_dir_path(self.temp_BIMExample_path, config_data)
+        lockfile_path:str = os.path.join(expected_dir, '.lockfile')
+        thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
+        no_extension_dir:str = os.path.join(expected_dir, NO_EXTENSION_SUBDIR_NAME)
+        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
+        zip_files:list = [f for f in os.listdir(expected_dir) if f.startswith(self.config_file.zip_prefix) and f.endswith('.zip')]
+        brp_files:list = [f for f in os.listdir(expected_dir) if f.endswith('.brp')]
+        
+        self.assertTrue(os.path.exists(expected_dir), f"ERR: '{expected_dir}', does not exist.")
+        self.assertTrue(os.path.exists(no_extension_dir), f"ERR: '{no_extension_dir}' does not exist.")
+        self.assertTrue(os.path.exists(os.path.dirname(thumbnail_path)), f"ERR: '{os.path.dirname(thumbnail_path)}' does not exist.")
+        
+        self.assertTrue(os.path.exists(docXML_path), f"ERR: '{docXML_path}', does not exist.")
+        self.assertTrue(len(os.listdir(no_extension_dir)) == 0, f"ERR: '{no_extension_dir}' is not empty (files should be compressed).")
+        self.assertTrue(not os.path.exists(thumbnail_path), f"ERR: '{thumbnail_path}' exists (thumbnail should be compressed).")
+        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' does not exist.")
+        self.assertTrue(len(brp_files) == 0, f"ERR: Num brp files '{len(brp_files)}' is != 0 (files should be compressed).")
+        self.assertTrue(len(zip_files) > 0, f"ERR: Num zip files '{len(zip_files)}' is <= 0.")
+        
+        for zip_file in zip_files:
+            zip_file_size_gb:float = os.path.getsize(os.path.join(expected_dir, zip_file))/(1024 ** 3)
+            self.assertLessEqual(zip_file_size_gb, self.config_file.max_size_gb, f"ERR: Zip file '{zip_file} size'={zip_file_size_gb} GB is greater than 'max allowed'={self.config_file.max_size_gb} GB.")
+        
+        # IMPORT
+        with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', self.temp_BIMExample_path]):
+            main()
+
+        # CHECK IMPORT
+        new_size:int = os.path.getsize(self.temp_BIMExample_path)
+        
+        self.assertTrue(os.path.exists(self.temp_BIMExample_path), f"ERR: '{os.path.exists(self.temp_BIMExample_path)}' does not exist.")
+        self.assertAlmostEqual(new_size, original_size, delta=int(original_size*0.05), msg=f"ERR: Original file size={original_size}, New file size={new_size}, Acceptable Delta={int(original_size*0.05)}")
+        
+    def test_config_export_import__no_lockfile_thumbnail(self):
+        # SET CONFIGS:
+        self.config_file.enable_locking = False
+        self.config_file.enable_thumbnail = False
+
+        self.config_file.dir_suffix = "_FCStd"
+        self.config_file.dir_prefix = "FCStd_"
+        self.config_file.subdir_enabled = True
+        self.config_file.subdir_name = "uncompressed"
+        
         self.config_file.enable_compressing = True
         self.config_file.files_to_compress = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
         self.config_file.max_size_gb = 2.0
@@ -226,29 +278,38 @@ class TestFCStdFileTool(unittest.TestCase):
         config_data:dict = self.config_file.createTestConfig()
         original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
-        # First, export with config to create directory
+        # EXPORT
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', self.temp_AssemblyExample_path]):
             main()
 
-        # Check correct export
+        # CHECK EXPORT
         expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
-        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
-        thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
         lockfile_path:str = os.path.join(expected_dir, '.lockfile')
+        thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
+        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
+        no_extension_dir:str = os.path.join(expected_dir, NO_EXTENSION_SUBDIR_NAME)
+        zip_files:list = [f for f in os.listdir(expected_dir) if f.startswith(self.config_file.zip_prefix) and f.endswith('.zip')]
+        brp_files:list = [f for f in os.listdir(expected_dir) if f.endswith('.brp')]
         
         self.assertTrue(os.path.exists(expected_dir), f"ERR: '{expected_dir}', does not exist.")
+        self.assertTrue(os.path.exists(no_extension_dir), f"ERR: '{no_extension_dir}' does not exist.")
+        
         self.assertTrue(os.path.exists(docXML_path), f"ERR: '{docXML_path}', does not exist.")
-        zip_files:list = [f for f in os.listdir(expected_dir) if f.startswith(self.config_file.zip_prefix) and f.endswith('.zip')]
+        self.assertTrue(len(os.listdir(no_extension_dir)) == 0, f"ERR: '{no_extension_dir}' is not empty (files should be compressed).")
+        self.assertTrue(not os.path.exists(thumbnail_path), f"ERR: '{thumbnail_path}' should NOT exist.")
+        self.assertTrue(not os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' should NOT exist.")
+        self.assertTrue(len(brp_files) == 0, f"ERR: Num brp files '{len(brp_files)}' is != 0 (files should be compressed).")
         self.assertTrue(len(zip_files) > 0, f"ERR: Num zip files '{len(zip_files)}' is <= 0")
         
-        self.assertFalse(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' should NOT exist.")
-        self.assertFalse(os.path.exists(thumbnail_path), f"ERR: '{thumbnail_path}' should NOT exist.")
+        for zip_file in zip_files:
+            zip_file_size_gb:float = os.path.getsize(os.path.join(expected_dir, zip_file))/(1024 ** 3)
+            self.assertLessEqual(zip_file_size_gb, self.config_file.max_size_gb, f"ERR: Zip file '{zip_file} size'={zip_file_size_gb} GB is greater than 'max allowed'={self.config_file.max_size_gb} GB.")
         
-        # Now import with config
+        # IMPORT
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', self.temp_AssemblyExample_path]):
             main()
 
-        # Check correct Import
+        # CHECK IMPORT
         new_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         self.assertTrue(os.path.exists(self.temp_AssemblyExample_path), f"ERR: '{os.path.exists(self.temp_AssemblyExample_path)}' does not exist.")
@@ -259,13 +320,11 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.enable_locking = True
         self.config_file.enable_thumbnail = True
 
-        # Uncompressed directory structure
         self.config_file.dir_suffix = "_FCStd"
         self.config_file.dir_prefix = "FCStd_"
         self.config_file.subdir_enabled = True
         self.config_file.subdir_name = "uncompressed"
         
-        # Compressing
         self.config_file.enable_compressing = False
         self.config_file.files_to_compress = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
         self.config_file.max_size_gb = 2.0
@@ -275,25 +334,34 @@ class TestFCStdFileTool(unittest.TestCase):
         config_data:dict = self.config_file.createTestConfig()
         original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
-        # First, export with config to create directory
+        # EXPORT
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', self.temp_AssemblyExample_path]):
             main()
 
-        # Check correct export
+        # CHECK EXPORT
         expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
-        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
         lockfile_path:str = os.path.join(expected_dir, '.lockfile')
+        thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
+        no_extension_dir:str = os.path.join(expected_dir, NO_EXTENSION_SUBDIR_NAME)
+        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
+        zip_files:list = [f for f in os.listdir(expected_dir) if f.startswith(self.config_file.zip_prefix) and f.endswith('.zip')]
+        brp_files:list = [f for f in os.listdir(expected_dir) if f.endswith('.brp')]
         
         self.assertTrue(os.path.exists(expected_dir), f"ERR: '{expected_dir}', does not exist.")
-        self.assertTrue(os.path.exists(docXML_path), f"ERR: '{docXML_path}', does not exist.")
-        # No zip check since compressing disabled
-        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' does not exist.")
+        self.assertTrue(os.path.exists(no_extension_dir), f"ERR: '{no_extension_dir}' does not exist.")
         
-        # Now import with config
+        self.assertTrue(os.path.exists(docXML_path), f"ERR: '{docXML_path}', does not exist.")
+        self.assertTrue(len(os.listdir(no_extension_dir)) > 0, f"ERR: '{no_extension_dir}' is empty (files should not be compressed).")
+        self.assertTrue(os.path.exists(thumbnail_path), f"ERR: '{thumbnail_path}' does not exist (compressing is disabled).")
+        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' does not exist.")
+        self.assertTrue(len(brp_files) > 0, f"ERR: Num brp files '{len(brp_files)}' is <= 0 (files should not be compressed).")
+        self.assertTrue(len(zip_files) == 0, f"ERR: Num zip files '{len(zip_files)}' is != 0 (compressing is disabled).")
+        
+        # IMPORT
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', self.temp_AssemblyExample_path]):
             main()
 
-        # Check correct Import
+        # CHECK EXPORT
         new_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         self.assertTrue(os.path.exists(self.temp_AssemblyExample_path), f"ERR: '{os.path.exists(self.temp_AssemblyExample_path)}' does not exist.")
@@ -304,13 +372,11 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.enable_locking = True
         self.config_file.enable_thumbnail = True
 
-        # Uncompressed directory structure
         self.config_file.dir_suffix = "_test"
         self.config_file.dir_prefix = "test_"
         self.config_file.subdir_enabled = False
         self.config_file.subdir_name = "uncompressed"
         
-        # Compressing
         self.config_file.enable_compressing = True
         self.config_file.files_to_compress = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
         self.config_file.max_size_gb = 2.0
@@ -320,55 +386,43 @@ class TestFCStdFileTool(unittest.TestCase):
         config_data:dict = self.config_file.createTestConfig()
         original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
-        # First, export with config to create directory
+        # EXPORT
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', self.temp_AssemblyExample_path]):
             main()
 
-        # Check correct export
+        # CHECK EXPORT
         expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
-        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
         lockfile_path:str = os.path.join(expected_dir, '.lockfile')
+        thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
+        no_extension_dir:str = os.path.join(expected_dir, NO_EXTENSION_SUBDIR_NAME)
+        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
+        zip_files:list = [f for f in os.listdir(expected_dir) if f.startswith(self.config_file.zip_prefix) and f.endswith('.zip')]
+        brp_files:list = [f for f in os.listdir(expected_dir) if f.endswith('.brp')]
         
         self.assertTrue(os.path.exists(expected_dir), f"ERR: '{expected_dir}', does not exist.")
-        self.assertTrue(os.path.exists(docXML_path), f"ERR: '{docXML_path}', does not exist.")
-        zip_files:list = [f for f in os.listdir(expected_dir) if f.startswith(self.config_file.zip_prefix) and f.endswith('.zip')]
-        self.assertTrue(len(zip_files) > 0, f"ERR: Num zip files '{len(zip_files)}' is <= 0")
-        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' does not exist.")
+        self.assertTrue(os.path.exists(no_extension_dir), f"ERR: '{no_extension_dir}' does not exist.")
+        self.assertTrue(os.path.exists(os.path.dirname(thumbnail_path)), f"ERR: '{os.path.dirname(thumbnail_path)}' does not exist.")
         
-        # Now import with config
+        self.assertTrue(os.path.exists(docXML_path), f"ERR: '{docXML_path}', does not exist.")
+        self.assertTrue(len(os.listdir(no_extension_dir)) == 0, f"ERR: '{no_extension_dir}' is not empty (files should be compressed).")
+        self.assertTrue(not os.path.exists(thumbnail_path), f"ERR: '{thumbnail_path}' exists (thumbnail should be compressed).")
+        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' does not exist.")
+        self.assertTrue(len(brp_files) == 0, f"ERR: Num brp files '{len(brp_files)}' is != 0 (files should be compressed).")
+        self.assertTrue(len(zip_files) > 0, f"ERR: Num zip files '{len(zip_files)}' is <= 0")
+        
+        for zip_file in zip_files:
+            zip_file_size_gb:float = os.path.getsize(os.path.join(expected_dir, zip_file))/(1024 ** 3)
+            self.assertLessEqual(zip_file_size_gb, self.config_file.max_size_gb, f"ERR: Zip file '{zip_file} size'={zip_file_size_gb} GB is greater than 'max allowed'={self.config_file.max_size_gb} GB.")
+        
+        # IMPORT
         with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', self.temp_AssemblyExample_path]):
             main()
 
-        # Check correct Import
+        # CHECK IMPORT
         new_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         self.assertTrue(os.path.exists(self.temp_AssemblyExample_path), f"ERR: '{os.path.exists(self.temp_AssemblyExample_path)}' does not exist.")
         self.assertAlmostEqual(new_size, original_size, delta=int(original_size*0.05), msg=f"ERR: Original file size={original_size}, New file size={new_size}, Acceptable Delta={int(original_size*0.05)}")
-
-    def test_config_export_import__new_name(self):
-        # Create config
-        config_data:dict = self.config_file.createTestConfig()
-        
-        CAD_file_path:str = os.path.join(self.temp_dir, "output_config.FCStd")
-        
-        shutil.move(self.temp_AssemblyExample_path, CAD_file_path)
-
-        # First, export with config to create directory
-        with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', CAD_file_path]):
-            main()
-
-        # Check correct export
-        expected_dir:str = get_FCStd_dir_path(CAD_file_path, config_data)
-        docXML_path:str = os.path.join(expected_dir, 'Document.xml')
-        
-        self.assertTrue(os.path.exists(expected_dir), f"ERR: '{expected_dir}', does not exist.")
-        self.assertTrue(os.path.exists(docXML_path), msg=f"ERR: '{docXML_path}' does not exist.")
-
-        # Now import with config
-        with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--import', CAD_file_path]):
-            main()
-
-        self.assertTrue(os.path.exists(CAD_file_path), msg=f"ERR: '{CAD_file_path}' does not exist.") # Low-key useless test, just checks for thrown errors in main code
 
     @patch('sys.argv', [FILE_NAME, '--help'])
     def test_help_flag(self):
