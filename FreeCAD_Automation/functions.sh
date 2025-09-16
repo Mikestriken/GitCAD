@@ -21,3 +21,21 @@ get_json_value() {
     fi
     echo "$value"
 }
+# Function to make a file readonly on both Linux and Windows (via MSYS/Git Bash)
+make_readonly() {
+    local file="$1"
+
+    if [ ! -f "$file" ]; then
+        echo "Error: File '$file' does not exist"
+        return 1
+    fi
+
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        chmod 444 "$file"
+    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        attrib +r "$file"
+    else
+        echo "Error: Unsupported operating system: $OSTYPE"
+        return 1
+    fi
+}
