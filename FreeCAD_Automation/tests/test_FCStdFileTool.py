@@ -202,6 +202,9 @@ class TestFCStdFileTool(unittest.TestCase):
         
         self.assertTrue(os.path.exists(self.temp_AssemblyExample_path), f"ERR: '{os.path.exists(self.temp_AssemblyExample_path)}' does not exist.")
         self.assertAlmostEqual(new_size, original_size, delta=int(original_size*0.05), msg=f"ERR: Original file size={original_size}, New file size={new_size}, Acceptable Delta={int(original_size*0.05)}")
+        
+        with zipfile.ZipFile(self.temp_AssemblyExample_path, 'r') as zf:
+            self.assertTrue(not any('./' in file_name for file_name in zf.namelist()), f"ERR: Phantom './' files found in created .FCStd file.")
 
     def test_config_export_import__different_file(self):
         # SET CONFIGS:
@@ -261,6 +264,9 @@ class TestFCStdFileTool(unittest.TestCase):
         self.assertTrue(os.path.exists(self.temp_BIMExample_path), f"ERR: '{os.path.exists(self.temp_BIMExample_path)}' does not exist.")
         self.assertAlmostEqual(new_size, original_size, delta=int(original_size*0.05), msg=f"ERR: Original file size={original_size}, New file size={new_size}, Acceptable Delta={int(original_size*0.05)}")
         
+        with zipfile.ZipFile(self.temp_BIMExample_path, 'r') as zf:
+            self.assertTrue(not any('./' in file_name for file_name in zf.namelist()), f"ERR: Phantom './' files found in created .FCStd file.")
+        
     def test_config_export_import__no_lockfile_thumbnail(self):
         # SET CONFIGS:
         self.config_file.enable_locking = False
@@ -317,6 +323,9 @@ class TestFCStdFileTool(unittest.TestCase):
         
         self.assertTrue(os.path.exists(self.temp_AssemblyExample_path), f"ERR: '{os.path.exists(self.temp_AssemblyExample_path)}' does not exist.")
         self.assertAlmostEqual(new_size, original_size, delta=int(original_size*0.05), msg=f"ERR: Original file size={original_size}, New file size={new_size}, Acceptable Delta={int(original_size*0.05)}")
+        
+        with zipfile.ZipFile(self.temp_AssemblyExample_path, 'r') as zf:
+            self.assertTrue(not any('./' in file_name for file_name in zf.namelist()), f"ERR: Phantom './' files found in created .FCStd file.")
 
     def test_config_export_import__no_compress(self):
         # SET CONFIGS:
@@ -370,6 +379,9 @@ class TestFCStdFileTool(unittest.TestCase):
         
         self.assertTrue(os.path.exists(self.temp_AssemblyExample_path), f"ERR: '{os.path.exists(self.temp_AssemblyExample_path)}' does not exist.")
         self.assertAlmostEqual(new_size, original_size, delta=int(original_size*0.05), msg=f"ERR: Original file size={original_size}, New file size={new_size}, Acceptable Delta={int(original_size*0.05)}")
+        
+        with zipfile.ZipFile(self.temp_AssemblyExample_path, 'r') as zf:
+            self.assertTrue(not any('./' in file_name for file_name in zf.namelist()), f"ERR: Phantom './' files found in created .FCStd file.")
 
     def test_config_export_import__no_subdir(self):
         # SET CONFIGS:
@@ -428,6 +440,9 @@ class TestFCStdFileTool(unittest.TestCase):
         
         self.assertTrue(os.path.exists(self.temp_AssemblyExample_path), f"ERR: '{os.path.exists(self.temp_AssemblyExample_path)}' does not exist.")
         self.assertAlmostEqual(new_size, original_size, delta=int(original_size*0.05), msg=f"ERR: Original file size={original_size}, New file size={new_size}, Acceptable Delta={int(original_size*0.05)}")
+        
+        with zipfile.ZipFile(self.temp_AssemblyExample_path, 'r') as zf:
+            self.assertTrue(not any('./' in file_name for file_name in zf.namelist()), f"ERR: Phantom './' files found in created .FCStd file.")
 
     @patch('sys.argv', [FILE_NAME, '--help'])
     def test_help_flag(self):
