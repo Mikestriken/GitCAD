@@ -461,7 +461,6 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.zip_prefix = "compressed_binaries_"
 
         self.config_file.createTestConfig()
-        original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         # EXPORT
         with self.assertRaises(ValueError, msg=f"ERR: Expected ValueError to be raised for setting compression level and max_size_gb to too small values."):
