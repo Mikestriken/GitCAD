@@ -403,6 +403,10 @@ def bad_args(args:argparse.Namespace) -> bool:
     no_mode_specified:bool = True if not args.export_flag and not args.import_flag else False
 
     if no_mode_specified: return True
+    
+    both_modes_specified:bool = True if args.export_flag and args.import_flag else False
+
+    if both_modes_specified: return True
 
     bad_arg_count:bool = True if args.export_flag and len(args.export_flag) > 2 or args.import_flag and len(args.import_flag) > 2 else False
 
