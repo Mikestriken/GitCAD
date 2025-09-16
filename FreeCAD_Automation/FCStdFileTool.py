@@ -223,8 +223,14 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
     zip_index:int = 1
     current_zip:io.BytesIO = io.BytesIO()
     i:int = 0
+    isRecompressingFile:bool = False
+    wasRecompressingFile:bool = False
     while (i < len(to_compress)):
         item:str = to_compress[i]
+        
+        if isRecompressingFile and wasRecompressingFile:
+            raise ValueError(f"ERR: Config Max Zip Size='{max_size_gb}' GB and Compression Level='{compression_level}' is too small for '{os.path.basename(item)}' with size='{os.path.getsize(item)/(1024 ** 3)}' GB.")
+        
         # Backup before adding
         backup:io.BytesIO = io.BytesIO(current_zip.getvalue())
         path_to_item_in_zip:str = os.path.relpath(path=item, start=FCStd_dir_path)
@@ -247,11 +253,15 @@ def compress_binaries(FCStd_dir_path: str, config: dict):
                 current_zip:io.BytesIO = io.BytesIO()
                 
                 # Retry this file with new archive
+                wasRecompressingFile:bool = isRecompressingFile
+                isRecompressingFile:bool = True
                 continue
             
             # Remove file
             os.remove(item)
             
+        isRecompressingFile:bool = False
+        wasRecompressingFile:bool = False
         i += 1
         # End of while loop
 
