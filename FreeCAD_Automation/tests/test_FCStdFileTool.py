@@ -161,7 +161,7 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.compression_level = 9
         self.config_file.zip_prefix = "compressed_binaries_"
 
-        config_data:dict = self.config_file.createTestConfig()
+        self.config_file.createTestConfig()
         original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         # EXPORT
@@ -169,7 +169,8 @@ class TestFCStdFileTool(unittest.TestCase):
             main()
 
         # CHECK EXPORT
-        expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
+        FCStd_dir_name:str = os.path.splitext(os.path.basename(self.temp_AssemblyExample_path))[0]
+        expected_dir:str = os.path.join(self.temp_dir, "uncompressed", f"FCStd_{FCStd_dir_name}_FCStd")
         lockfile_path:str = os.path.join(expected_dir, '.lockfile')
         thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
         no_extension_dir:str = os.path.join(expected_dir, NO_EXTENSION_SUBDIR_NAME)
@@ -218,7 +219,7 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.compression_level = 9
         self.config_file.zip_prefix = "compressed_binaries_"
 
-        config_data:dict = self.config_file.createTestConfig()
+        self.config_file.createTestConfig()
         original_size:int = os.path.getsize(self.temp_BIMExample_path)
         
         # EXPORT
@@ -226,7 +227,8 @@ class TestFCStdFileTool(unittest.TestCase):
             main()
 
         # CHECK EXPORT
-        expected_dir:str = get_FCStd_dir_path(self.temp_BIMExample_path, config_data)
+        FCStd_dir_name:str = os.path.splitext(os.path.basename(self.temp_BIMExample_path))[0]
+        expected_dir:str = os.path.join(self.temp_dir, "uncompressed", f"FCStd_{FCStd_dir_name}_FCStd")
         lockfile_path:str = os.path.join(expected_dir, '.lockfile')
         thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
         no_extension_dir:str = os.path.join(expected_dir, NO_EXTENSION_SUBDIR_NAME)
@@ -275,7 +277,7 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.compression_level = 9
         self.config_file.zip_prefix = "compressed_binaries_"
 
-        config_data:dict = self.config_file.createTestConfig()
+        self.config_file.createTestConfig()
         original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         # EXPORT
@@ -283,7 +285,8 @@ class TestFCStdFileTool(unittest.TestCase):
             main()
 
         # CHECK EXPORT
-        expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
+        FCStd_dir_name:str = os.path.splitext(os.path.basename(self.temp_AssemblyExample_path))[0]
+        expected_dir:str = os.path.join(self.temp_dir, "uncompressed", f"FCStd_{FCStd_dir_name}_FCStd")
         lockfile_path:str = os.path.join(expected_dir, '.lockfile')
         thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
         docXML_path:str = os.path.join(expected_dir, 'Document.xml')
@@ -331,7 +334,7 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.compression_level = 9
         self.config_file.zip_prefix = "compressed_binaries_"
 
-        config_data:dict = self.config_file.createTestConfig()
+        self.config_file.createTestConfig()
         original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         # EXPORT
@@ -339,7 +342,8 @@ class TestFCStdFileTool(unittest.TestCase):
             main()
 
         # CHECK EXPORT
-        expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
+        FCStd_dir_name:str = os.path.splitext(os.path.basename(self.temp_AssemblyExample_path))[0]
+        expected_dir:str = os.path.join(self.temp_dir, "uncompressed", f"FCStd_{FCStd_dir_name}_FCStd")
         lockfile_path:str = os.path.join(expected_dir, '.lockfile')
         thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
         no_extension_dir:str = os.path.join(expected_dir, NO_EXTENSION_SUBDIR_NAME)
@@ -383,7 +387,7 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.compression_level = 9
         self.config_file.zip_prefix = "compressed_binaries_"
 
-        config_data:dict = self.config_file.createTestConfig()
+        self.config_file.createTestConfig()
         original_size:int = os.path.getsize(self.temp_AssemblyExample_path)
         
         # EXPORT
@@ -391,7 +395,8 @@ class TestFCStdFileTool(unittest.TestCase):
             main()
 
         # CHECK EXPORT
-        expected_dir:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, config_data)
+        FCStd_dir_name:str = os.path.splitext(os.path.basename(self.temp_AssemblyExample_path))[0]
+        expected_dir:str = os.path.join(self.temp_dir, f"test_{FCStd_dir_name}_test")
         lockfile_path:str = os.path.join(expected_dir, '.lockfile')
         thumbnail_path:str = os.path.join(expected_dir, 'thumbnails', 'Thumbnail.png')
         no_extension_dir:str = os.path.join(expected_dir, NO_EXTENSION_SUBDIR_NAME)
