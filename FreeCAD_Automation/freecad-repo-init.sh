@@ -13,6 +13,13 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
     exit 1
 fi
 
+# Check if git-lfs is installed
+if ! command -v git-lfs >/dev/null 2>&1; then
+    echo "Error: git-lfs is not installed" >&2
+    exit 1
+fi
+echo "git-lfs is installed"
+
 GIT_ROOT=$(git rev-parse --show-toplevel)
 cd "$GIT_ROOT"
 
@@ -69,7 +76,7 @@ if [ ! -d "FreeCAD_Automation/hooks" ]; then
     exit 1
 fi
 
-HOOKS=("post-checkout" "pre-commit" "pre-push")
+HOOKS=("post-checkout" "post-commit" "post-merge" "pre-commit" "pre-push")
 for hook in "${HOOKS[@]}"; do
     if [ -f "$HOOKS_DIR/$hook" ]; then
         echo "Hook $hook already exists in $HOOKS_DIR"
@@ -95,6 +102,15 @@ echo "==========================================================================
 echo "                                   Initializing Git-LFS"
 echo "=============================================================================================="
 
+# Configure locksverify for .lockfile
+git lfs track "*.lockfile" --lockable
+git config lfs.locksverify true
+
+# Get files to compress
+FILES_TO_COMPRESS=$("$PYTHON_PATH" -c "import json; data=json.load(open('$CONFIG_FILE')); print('\n'.join(data['compress-non-human-readable-FreeCAD-files']['files-to-compress']))")
+for pattern in $FILES_TO_COMPRESS; do
+    git lfs track "$pattern"
+done
 
 echo "=============================================================================================="
 echo "                                     Adding Filters"
