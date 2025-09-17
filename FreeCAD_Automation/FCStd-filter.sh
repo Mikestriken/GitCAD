@@ -37,6 +37,22 @@ if ! "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import
     exit 1
 fi
 
+# Check if file is tracked and user has lock on the .lockfile
+if git ls-files --error-unmatch "$1" > /dev/null 2>&1; then
+    # File is tracked, get the .lockfile path
+    lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$1")
+
+    # Check if .lockfile is tracked and user has the lock
+    if git ls-files --error-unmatch "$lockfile_path" > /dev/null 2>&1; then
+        LOCK_INFO=$(git lfs locks --path="$lockfile_path" 2>/dev/null)
+        CURRENT_USER=$(git config user.name)
+        if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
+            echo "Error: User doesn't have lock for $1" >&2
+            exit 1
+        fi
+    fi
+fi
+
 # Export the .FCStd file
 if ! "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null 2>&1; then
     echo "Error: Failed to export $1" >&2

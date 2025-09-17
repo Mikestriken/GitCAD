@@ -74,7 +74,9 @@ This repository contains tools and scripts to automate the git workflow for comm
 1. `git add` your file.  
    *`*.FCStd` file filter will extract the contents*
 
-2. 
+2. `git add` the uncompressed directory.
+
+3. `git commit` the uncompressed directory and empty (from git's POV) `.FCStd` file.
 
 ### Cloning and Initializing Your Git Repository
 1. Clone your repository.
