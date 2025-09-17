@@ -2,12 +2,14 @@ EXPORT_FLAG:str = '--export'
 IMPORT_FLAG:str = '--import'
 SILENT_FLAG:str = '--SILENT'
 CONFIG_FILE_FLAG:str = '--CONFIG-FILE' # Uses config file to determine configurations. Optionally provide path to config file. Args interpreted differently from what's listed in help()
-
+LOCKFILE_FLAG:str = '--lockfile'
 HELP_MESSAGE:str =f"""
-usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {IMPORT_FLAG} FCSTD_FILE]
+usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {IMPORT_FLAG} FCSTD_FILE] [{LOCKFILE_FLAG} FCStd_file_path]
 
 FreeCAD .FCStd file tool. Used to automate the process of importing and exporting .FCStd files.
+
 Importing => Compressing a .FCStd file from an uncompressed directory.
+
 Exporting => Decompressing a .FCStd file to an uncompressed directory.
 
 options:
@@ -26,10 +28,12 @@ options:
                             {EXPORT_FLAG} INPUT_FCSTD_FILE, OUTPUT_FCSTD_DIR -> {EXPORT_FLAG} FCSTD_FILE
                             {IMPORT_FLAG} INPUT_FCSTD_DIR, OUTPUT_FCSTD_FILE -> {IMPORT_FLAG} FCSTD_FILE
 
+    {LOCKFILE_FLAG} FCStd_file_path
+                        Print path to .lockfile for the given FCStd file. Requires {CONFIG_FILE_FLAG}. Does not guarantee .lockfile exists.
+
     {SILENT_FLAG}
                         Suppress all print statements. Nothing will be printed to console
 """
-
 from freecad import project_utility as PU
 import os
 import argparse
@@ -59,7 +63,6 @@ def load_config_file(config_path:str) -> dict:
 
     Args:
         config_path (str): Path to config file.
-
 
     Returns:
         dict: Config file contents using redefined keys.
@@ -102,6 +105,7 @@ def parseArgs() -> argparse.Namespace:
     parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+')
     parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+')
     parser.add_argument(CONFIG_FILE_FLAG, dest="config_file_path", nargs='?', const=CONFIG_PATH, default=None)
+    parser.add_argument(LOCKFILE_FLAG, dest='lockfile_flag', nargs=1)
     parser.add_argument(SILENT_FLAG, dest="silent_flag", action='store_true')
     parser.add_argument("-h", "--help", dest="help_flag", action="store_true")
     
@@ -400,22 +404,23 @@ def bad_args(args:argparse.Namespace) -> bool:
     Returns:
         bool: True if invalid, else False.
     """
-    no_mode_specified:bool = True if not args.export_flag and not args.import_flag else False
-
+    no_mode_specified:bool = True if not args.export_flag and not args.import_flag and not args.lockfile_flag else False
     if no_mode_specified: return True
     
-    both_modes_specified:bool = True if args.export_flag and args.import_flag else False
-
-    if both_modes_specified: return True
+    multiple_modes_specified:bool = True if (args.export_flag and args.import_flag) or (args.export_flag and args.lockfile_flag) or (args.import_flag and args.lockfile_flag) else False
+    if multiple_modes_specified: return True
 
     bad_arg_count:bool = True if args.export_flag and len(args.export_flag) > 2 or args.import_flag and len(args.import_flag) > 2 else False
-
     if bad_arg_count: return True
 
     missing_output_arg:bool = True if args.export_flag and len(args.export_flag) != 2 or args.import_flag and len(args.import_flag) != 2 else False
     no_config:bool = args.config_file_path is None
-
     if missing_output_arg and no_config: return True
+
+    lockfile_flag_without_config_or_with_silent_flag:bool = args.lockfile_flag and (no_config or args.silent_flag)
+    if lockfile_flag_without_config_or_with_silent_flag: return True
+    
+    return False
 
 def ensure_lockfile_exists(FCStd_dir_path:str):
     """
@@ -450,7 +455,17 @@ def main():
     INCLUDE_THUMBNAIL:bool = not config_provided or config['include_thumbnails'] # Thumbnails should be included (by default) if config isn't provided.
     
     # Main Logic
-    if args.export_flag:
+    if args.lockfile_flag:
+        FCStd_file_path:str = os.path.relpath(args.lockfile_flag[0])
+        
+        FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
+        
+        lockfile_path:str = os.path.abspath(os.path.join(FCStd_dir_path, '.lockfile'))
+            
+        if not args.silent_flag:
+            print(lockfile_path)
+        
+    elif args.export_flag:
         FCStd_file_path:str = os.path.relpath(args.export_flag[INPUT_ARG])
         FCStd_dir_path:str = os.path.relpath(args.export_flag[OUTPUT_ARG]) if len(args.export_flag) > 1 else None
         
@@ -458,7 +473,7 @@ def main():
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
         os.makedirs(FCStd_dir_path, exist_ok=True)
-        
+
         # Remove previously exported thumbnail directory (PU.extractDocument() throws error if still there)
         with zipfile.ZipFile(FCStd_file_path, 'r') as zf:
             if any("thumbnails" in PurePosixPath(file_name).parts for file_name in zf.namelist()):

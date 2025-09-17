@@ -5,6 +5,7 @@ import os
 import json
 import tempfile
 from unittest.mock import patch
+from io import StringIO
 from freecad import project_utility as PU
 
 FILE_NAME:str = "FCStdFileTool.py"
@@ -612,6 +613,45 @@ class TestFCStdFileTool(unittest.TestCase):
     @patch('sys.argv', [FILE_NAME, '--export', 'dummy.FCStd', 'dummy_dir', '--import', 'dummy_dir', 'dummy.FCStd'])
     def test_both_flags(self):
         # Should print help due to bad args
+        main()
+
+    def test_lockfile_flag(self):
+        # SET CONFIGS:
+        self.config_file.enable_locking = True
+        self.config_file.enable_thumbnail = False
+
+        self.config_file.dir_suffix = "_FCStd"
+        self.config_file.dir_prefix = "FCStd_"
+        self.config_file.subdir_enabled = True
+        self.config_file.subdir_name = "uncompressed"
+        
+        self.config_file.enable_compressing = False
+        self.config_file.files_to_compress = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
+        self.config_file.max_size_gb = 2.0
+        self.config_file.compression_level = 9
+        self.config_file.zip_prefix = "compressed_binaries_"
+
+        self.config_file.createTestConfig()
+
+        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+            with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--lockfile', self.temp_AssemblyExample_path]):
+                main()
+
+        FCStd_dir_name:str = os.path.splitext(os.path.basename(self.temp_AssemblyExample_path))[0]
+        expected_dir:str = os.path.join(self.temp_dir, "uncompressed", f"FCStd_{FCStd_dir_name}_FCStd")
+        lockfile_path:str = os.path.join(expected_dir, '.lockfile')
+
+        output:str = mock_stdout.getvalue().strip()
+        self.assertEqual(output, lockfile_path, f"ERR: output doesn't match expected lockfile path\noutput={output}, lockfile_path={lockfile_path}")
+
+    @patch('sys.argv', [FILE_NAME, '--lockfile', 'dummy.FCStd'])
+    def test_lockfile_without_config(self):
+        # Should print help due to bad args
+        main()
+
+    @patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', 'dummy.json', '--lockfile', 'dummy.FCStd', '--export', 'dummy.FCStd'])
+    def test_lockfile_with_export(self):
+        # Should print help due to multiple modes
         main()
 
 
