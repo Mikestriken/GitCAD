@@ -36,6 +36,7 @@ options:
 """
 from freecad import project_utility as PU
 import os
+import sys
 import argparse
 import json
 import zipfile
@@ -472,14 +473,16 @@ def main():
         if config_provided:
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
+        # Clear previously exported files
+        if os.path.exists(FCStd_dir_path): shutil.rmtree(FCStd_dir_path)
+        
         os.makedirs(FCStd_dir_path, exist_ok=True)
 
-        # Remove previously exported thumbnail directory (PU.extractDocument() throws error if still there)
-        with zipfile.ZipFile(FCStd_file_path, 'r') as zf:
-            if any("thumbnails" in PurePosixPath(file_name).parts for file_name in zf.namelist()):
-                remove_exported_thumbnail(FCStd_dir_path)
-
-        PU.extractDocument(FCStd_file_path, FCStd_dir_path)
+        try:
+            PU.extractDocument(FCStd_file_path, FCStd_dir_path)
+        except Exception as e:
+            print(f"Error extracting {FCStd_file_path} to {FCStd_dir_path}: {e}", file=sys.stderr)
+            raise
 
         if not INCLUDE_THUMBNAIL:
             remove_exported_thumbnail(FCStd_dir_path)
@@ -510,7 +513,11 @@ def main():
             with warnings.catch_warnings(record=True) as caught:
                 warnings.simplefilter("always")
                 
-                PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
+                try:
+                    PU.createDocument(os.path.join(FCStd_dir_path, 'Document.xml'), FCStd_file_path)
+                except Exception as e:
+                    print(f"Error extracting {FCStd_file_path} to {FCStd_dir_path}: {e}", file=sys.stderr)
+                    raise
                 
                 duplicate_warning:bool = any(
                 isinstance(warning.message, UserWarning) and "Duplicate name: './'" in str(warning.message)
