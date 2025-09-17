@@ -125,7 +125,7 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
 If you change this value, you will need to re-run the `freecad-repo-init.sh` script.
 
 ## Configuration Options
-```json
+```jsonc
 {
     // Location of the python interpreter bundled with your FreeCAD installation.
     // Linux users may need to unpack their app image of FreeCAD to get access to this.
