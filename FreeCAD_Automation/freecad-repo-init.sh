@@ -1,9 +1,5 @@
 #!/bin/bash
 
-
-# ==============================================================================================
-#                                     Verify Dependencies
-# ==============================================================================================
 echo "=============================================================================================="
 echo "                                     Verifying Dependencies"
 echo "=============================================================================================="
@@ -56,10 +52,6 @@ fi
 
 echo "All checks passed"
 
-# ==============================================================================================
-#                                     Initialize Repository
-# ==============================================================================================
-
 echo "=============================================================================================="
 echo "                                     Setup Git Hooks"
 echo "=============================================================================================="
@@ -109,34 +101,46 @@ echo "Enabled git lfs locksverify for lockable files."
 echo "=============================================================================================="
 echo "                                     Adding Filters"
 echo "=============================================================================================="
+setup_git_filter() {
+    local filter_type="$1"
+    local desired_value="$2"
+    local purpose="$3"
 
-# Check if filter.FCStd.clean exists
-CURRENT_CLEAN=$(git config --get filter.FCStd.clean 2>/dev/null)
-desired_clean_filter="./FreeCAD_Automation/FCStd-filter.sh %f"
+    CURRENT_VALUE=$(git config --get "filter.FCStd.$filter_type" 2>/dev/null)
 
-if [ -n "$CURRENT_CLEAN" ]; then
-    if [ "$CURRENT_CLEAN" = "$desired_clean_filter" ]; then
-        echo "filter.FCStd.clean is already set to the desired value"
-        echo
-    else
-        echo "filter.FCStd.clean already exists:"
-        echo "  - Permission to change \`$CURRENT_CLEAN\` --> \`$desired_clean_filter\`?"
-        read -p "    (( This makes git see .FCStd files as being empty and exports the contents of the file ))  (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            git config filter.FCStd.clean "$desired_clean_filter"
-            echo "    Updated filter.FCStd.clean"
+    if [ -n "$CURRENT_VALUE" ]; then
+        if [ "$CURRENT_VALUE" = "$desired_value" ]; then
+            echo "filter.FCStd.$filter_type is already set to the desired value"
             echo
         else
-            echo "    Skipping update of filter.FCStd.clean"
+            echo "filter.FCStd.$filter_type already exists:"
+            if [ "$filter_type" = "clean" ]; then
+                echo "  - Permission to change \`$CURRENT_VALUE\` --> \`$desired_value\`?"
+                read -p "    (( $purpose ))  (y/n): " -n 1 -r
+            else
+                echo "  - Permission to change \`$CURRENT_VALUE\` --> \`$desired_value\`? (y/n): "
+                read -p "" -n 1 -r
+            fi
             echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                git config "filter.FCStd.$filter_type" "$desired_value"
+                echo "    Updated filter.FCStd.$filter_type"
+                echo
+            else
+                echo "    Skipping update of filter.FCStd.$filter_type"
+                echo
+            fi
         fi
+    else
+        git config "filter.FCStd.$filter_type" "$desired_value"
+        echo "Set filter.FCStd.$filter_type"
+        echo
     fi
-else
-    git config filter.FCStd.clean "$desired_clean_filter"
-    echo "Set filter.FCStd.clean"
-    echo
-fi
+}
+
+setup_git_filter "clean" "./FreeCAD_Automation/FCStd-filter.sh %f" "This makes git see .FCStd files as being empty and decompresses added .FCStd files"
+setup_git_filter "smudge" "cat" "Prevents checking out .FCStd files from throwing errors"
+setup_git_filter "required" "true" "If clean/smudge filter fails, error the script out"
 
 # Check .gitattributes for *.FCStd filter
 GITATTRIBUTES=".gitattributes"

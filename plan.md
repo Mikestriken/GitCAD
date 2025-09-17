@@ -1,19 +1,20 @@
 ### ToDo:
 - [ ] Make sure `./FreeCAD_Automation/freecad-repo-init.sh` triggers Post-Checkout hook after execution (for sake of initializing a newly cloned repo)
+	- [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` set .FCStd files to readonly if config requires it and remove readonly if config doesn't require it.
 
-- [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` setup git-lfs.  
+
+- [x] Make `./FreeCAD_Automation/freecad-repo-init.sh` setup git-lfs.  
   Make sure rerunning after config changes is OK.
 
-- [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` set .FCStd files to readonly if config requires it and remove readonly if config doesn't require it.
+- [x] Make `./FreeCAD_Automation/freecad-repo-init.sh` set `git config filter.FCStd.required true`
 
-- [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` set `git config filter.FCStd.required true`
-
-- [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` set `git config filter.FCStd.smudge cat`
+- [x] Make `./FreeCAD_Automation/freecad-repo-init.sh` set `git config filter.FCStd.smudge cat`
 
 ### Workflow Idea:
 - [x] Git clean filter
     - [x] Makes .FCStd files look empty (from git's pov)
     - [ ] Calls script to extract the added file.
+		- [ ] If user doesn't have lock, ask user to confirm extraction
 
 - [ ] On Post-Checkout Hook
     - [ ] Pull LFS files
