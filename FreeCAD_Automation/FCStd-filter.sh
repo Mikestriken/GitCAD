@@ -16,23 +16,30 @@ FUNCTIONS_FILE="FreeCAD_Automation/functions.sh"
 source "$FUNCTIONS_FILE"
 
 CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
+FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 
 # Extract Python path
 PYTHON_PATH=$(get_json_value "$CONFIG_FILE" "freecad-python-instance-path")
 if [ $? -ne 0 ] || [ -z "$PYTHON_PATH" ]; then
-    echo "Error: Could not extract Python path"
+    echo "Error: Could not extract Python path" >&2
     exit 1
 fi
 
 # Check if Python runs correctly
 if ! "$PYTHON_PATH" --version > /dev/null 2>&1; then
-    echo "Error: Python does not run or path is invalid"
+    echo "Error: Python does not run or path is invalid" >&2
     exit 1
 fi
 
 # Check if the import works
 if ! "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import successful')" > /dev/null 2>&1; then
-    echo "Error: Import 'from freecad import project_utility as PU' failed"
+    echo "Error: Import 'from freecad import project_utility as PU' failed" >&2
+    exit 1
+fi
+
+# Export the .FCStd file
+if ! "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null 2>&1; then
+    echo "Error: Failed to export $1" >&2
     exit 1
 fi
 

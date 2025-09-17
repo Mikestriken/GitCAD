@@ -12,7 +12,7 @@
 ### Workflow Idea:
 - [x] Git clean filter
     - [x] Makes .FCStd files look empty (from git's pov)
-    - [ ] Calls script to extract the added file.
+    - [x] Calls script to extract the added file.
 		- [ ] If user doesn't have lock, ask user to confirm extraction
 
 - [ ] On Post-Checkout Hook
