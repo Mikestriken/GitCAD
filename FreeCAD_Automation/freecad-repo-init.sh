@@ -98,6 +98,8 @@ echo "==========================================================================
 git config lfs.locksverify true
 echo "Enabled git lfs locksverify for lockable files."
 
+git lfs track ".lockfile" --lockable
+
 echo "=============================================================================================="
 echo "                                     Adding Filters"
 echo "=============================================================================================="
