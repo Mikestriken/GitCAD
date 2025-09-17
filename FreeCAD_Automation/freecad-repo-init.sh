@@ -109,6 +109,7 @@ git config lfs.locksverify true
 # Get files to compress
 FILES_TO_COMPRESS=$("$PYTHON_PATH" -c "import json; data=json.load(open('$CONFIG_FILE')); print('\n'.join(data['compress-non-human-readable-FreeCAD-files']['files-to-compress']))")
 for pattern in $FILES_TO_COMPRESS; do
+    pattern=$(echo "$pattern" | tr -d '\r')
     git lfs track "$pattern"
 done
 
