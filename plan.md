@@ -14,16 +14,20 @@
     - [x] Makes .FCStd files look empty (from git's pov)
     - [x] Calls script to extract the added file.
 		- [ ] If user doesn't have lock, ask user to confirm extraction
+		- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
 
 - [ ] On Post-Checkout Hook
     - [ ] Pull LFS files
+	- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
 	- [ ] Update .FCStd files with uncompressed files
 		- [ ] if the .lockfile is not locked by the user, the .FCStd file is set to readonly.
 
 - [ ] On Pre-Commit Hook:
+	- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
 	- [ ] Cancel commit if user doesn't have lock despite lock requirement being configured
 
 - [ ] On Pre-Push Hook:
+	- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
 	- [ ] If locked dir changed, cancel push
 
 - [ ] To lock, use lock.sh path/to/file.FCStd | path/to/.lockfile:
