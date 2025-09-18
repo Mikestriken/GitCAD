@@ -6,6 +6,74 @@ command -v git-lfs >/dev/null 2>&1 || { echo >&2 "\nThis repository is configure
 
 git lfs post-checkout "$@"
 # ==============================================================================================
-#                                             WIP
+#                                 Verify and Retrieve Dependencies
 # ==============================================================================================
-echo "Post-checkout hook executed"
+# ! Only proceed for branch checkouts (not file checkouts)
+# Args: $1=old-head-sha $2=new-head-sha $3=checkout-type (1=branch)
+# ToDo: Learn about different types. Different logic for different types.
+if [ "$3" != "1" ]; then
+    exit 0
+fi
+
+# Check if inside a Git repository and ensure working dir is the root of the repo
+if ! git rev-parse --git-dir > /dev/null; then
+    echo "Error: Not inside a Git repository" >&2
+    exit 1
+fi
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+cd "$GIT_ROOT"
+
+# Import code used in this script
+FUNCTIONS_FILE="FreeCAD_Automation/functions.sh"
+source "$FUNCTIONS_FILE"
+
+CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
+FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
+
+# Extract Python path
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
+
+# ==============================================================================================
+#                                     Pull LFS files
+# ==============================================================================================
+git lfs pull
+
+# ==============================================================================================
+#                         Update .FCStd files with uncompressed files
+# ==============================================================================================
+# Get all tracked .FCStd files (case insensitive)
+TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
+for FCStd_file in $TRACKED_FCSTD_FILES; do
+    # Check if .FCStd file exists
+    # ToDo: Change to check if dir exists
+    if [ ! -f "$FCStd_file" ]; then
+        echo "Error: Could not find $FCStd_file, skipping..." >&2
+        continue
+    fi
+
+    # ToDo: file size check, if size 0 it's a definite import else... maybe skip?
+
+    # ToDo: if file or file dir is considered modified, skip!
+
+    # Import data to FCStd file
+    "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file" || {
+        echo "Error: Failed to import $FCStd_file, skipping..." >&2
+        continue
+    }
+
+    # Check if require-lock-to-modify-FreeCAD-files is true
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || continue
+
+    if [ "$REQUIRE_LOCKS" == "1" ]; then
+        # Check if user has valid lock
+        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || continue
+
+        if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
+            # User doesn't have lock, set .FCStd file to readonly
+            make_readonly "$FCStd_file"
+        else
+            make_writable "$FCStd_file"
+        fi
+    fi
+done

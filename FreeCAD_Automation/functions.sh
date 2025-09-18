@@ -67,7 +67,7 @@ make_readonly() {
     local file="$1"
 
     if [ ! -f "$file" ]; then
-        echo "Error: File '$file' does not exist"
+        echo "Error: File '$file' does not exist"  >&2
         return 1
     fi
 
@@ -76,7 +76,27 @@ make_readonly() {
     elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
         attrib +r "$file"
     else
-        echo "Error: Unsupported operating system: $OSTYPE"
+        echo "Error: Unsupported operating system: $OSTYPE"  >&2
+        return 1
+    fi
+}
+
+# DESCRIPTION: Function to make a file writable on both Linux and Windows (via MSYS/Git Bash)
+# USAGE: `make_writable "path/to/file.ext"`
+make_writable() {
+    local file="$1"
+
+    if [ ! -f "$file" ]; then
+        echo "Error: File '$file' does not exist"  >&2
+        return 1
+    fi
+
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        chmod 644 "$file"
+    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        attrib -r "$file"
+    else
+        echo "Error: Unsupported operating system: $OSTYPE"  >&2
         return 1
     fi
 }
@@ -109,7 +129,7 @@ FCStd_file_has_valid_lock() {
 
     # File is tracked, get the .lockfile path
     local lockfile_path
-    lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE "$CONFIG_FILE" --lockfile "$FCStd_file_path") || {
+    lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
         echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
         return 1
     }

@@ -20,6 +20,7 @@
 		- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
 
 - [ ] On Post-Checkout Hook
+	- [ ] Ponder on when to import all `.FCStd` files...
     - [ ] Pull LFS files
 	- [ ] Update .FCStd files with uncompressed files
 		- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
@@ -33,14 +34,15 @@
 	- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
 		- [x] Cancel push if in any commits being pushed, user doesn't have lock on .lockfile for dir with modifications.
 
-- [ ] To lock, use lock.sh path/to/file.FCStd | path/to/.lockfile:
-	- [ ] Set git lfs lock appropriate _FCStd directory .lockfile
-	- [ ] mark .FCStd file as writable
-
-- [ ] To unlock, use unlock.sh path/to/file.FCStd | path/to/.lockfile:
-	- [ ] Set git lfs unlock appropriate _FCStd directory .lockfile
-	- [ ] mark .FCStd file as readonly
-	- [ ] Warn user if unlocking before changes have been pushed changes
+- [ ] Git Aliases:
+	- [ ] To lock, use lock.sh path/to/file.FCStd | path/to/.lockfile:
+		- [ ] Set git lfs lock appropriate _FCStd directory .lockfile
+		- [ ] mark .FCStd file as writable
+	- [ ] To unlock, use unlock.sh path/to/file.FCStd | path/to/.lockfile:
+		- [ ] Set git lfs unlock appropriate _FCStd directory .lockfile
+		- [ ] mark .FCStd file as readonly
+		- [ ] Warn user if unlocking before changes have been pushed changes
+	- [ ] To use `FCStdFileTool.py`
 
 - [ ] Verify `Readme.md` is correct
 

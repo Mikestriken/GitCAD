@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================================
-#                                     Verify Dependencies
+#                               Verify and Retrieve Dependencies
 # ==============================================================================================
 # Check if inside a Git repository and ensure working dir is the root of the repo
 if ! git rev-parse --git-dir > /dev/null; then

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "=============================================================================================="
-echo "                                     Verifying Dependencies"
+echo "                             Verify and Retrieve Dependencies"
 echo "=============================================================================================="
 # Check git user.name and user.email set
 if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then

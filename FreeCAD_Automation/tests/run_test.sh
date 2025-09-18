@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==============================================================================================
-#                                     Verify Dependencies
+#                                  Verify and Retrieve Dependencies
 # ==============================================================================================
 # Check if inside a Git repository and ensure working dir is the root of the repo
 if ! git rev-parse --git-dir > /dev/null; then
@@ -19,18 +19,6 @@ CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 
 # Extract Python path
 PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
-
-# Check if Python runs correctly
-if ! "$PYTHON_PATH" --version > /dev/null; then
-    echo "Error: Python does not run or path is invalid" >&2
-    exit 1
-fi
-
-# Check if the import works
-if ! "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import successful')" > /dev/null; then
-    echo "Error: Import 'from freecad import project_utility as PU' failed" >&2
-    exit 1
-fi
 
 # ==============================================================================================
 #                                          Get Binaries
