@@ -43,8 +43,9 @@ fi
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
-# Check if file is tracked and user has lock on the .lockfile
-if git ls-files --error-unmatch "$1" > /dev/null; then
+# Check if .FCStd file is tracked
+# Note: Suppressing --error-unmatch error prints because if they error it doesn't mean something is wrong.
+if git ls-files --error-unmatch "$1" > /dev/null 2>&1; then
     # File is tracked, get the .lockfile path
     lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$1") || {
         echo "lockfile path not returned for '$1'" >&2
@@ -52,7 +53,7 @@ if git ls-files --error-unmatch "$1" > /dev/null; then
     }
 
     # Check if .lockfile is tracked
-    if git ls-files --error-unmatch "$lockfile_path" > /dev/null; then
+    if git ls-files --error-unmatch "$lockfile_path" > /dev/null 2>&1; then
         # .lockfile is tracked, check if user has lock
         LOCK_INFO=$(git lfs locks --path="$lockfile_path")
         
@@ -62,7 +63,7 @@ if git ls-files --error-unmatch "$1" > /dev/null; then
         }
 
         if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
-            echo "Error: User doesn't have lock for $1" >&2
+            echo "Error: User '$CURRENT_USER' doesn't have lock for '$1'" >&2
             exit 1
         fi
     fi
