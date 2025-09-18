@@ -13,8 +13,8 @@
 - [x] Git clean filter
     - [x] Makes .FCStd files look empty (from git's pov)
     - [x] Calls script to extract the added file.
-		- [ ] If user doesn't have lock, ask user to confirm extraction
-		- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
+		- [x] If user doesn't have lock, error out specifying that the user doesn't have the lock
+		- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
 
 - [ ] On Post-Checkout Hook
     - [ ] Pull LFS files

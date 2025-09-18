@@ -21,6 +21,9 @@ FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 # Extract Python path
 PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 
+# Extract require locks setting
+REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit 1
+
 # Check if Python runs correctly
 if ! "$PYTHON_PATH" --version > /dev/null; then
     echo "Error: Python does not run or path is invalid" >&2
@@ -35,9 +38,9 @@ fi
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
-# Check if .FCStd file is tracked
+# Check if .FCStd file is tracked and config.json requires locks for file modification
 # Note: Suppressing --error-unmatch error prints because if they error it doesn't mean something is wrong.
-if git ls-files --error-unmatch "$1" > /dev/null 2>&1; then
+if [ $REQUIRE_LOCKS == 1 ] && git ls-files --error-unmatch "$1" > /dev/null 2>&1; then
     # File is tracked, get the .lockfile path
     lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$1") || {
         echo "lockfile path not returned for '$1'" >&2
