@@ -46,8 +46,8 @@ fi
 git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 
-# git add executes the clean FCStd filter on the added .FCStd files. This cleans up the unintentional use of the clean filter.
-rm -rf FreeCAD_Automation/tests/uncompressed/
+# ! git add executes the clean FCStd filter on the added .FCStd files.
+# ! Make sure to remove them after running the tests (don't commit them)
 
 # ==============================================================================================
 #                                           Run Tests
