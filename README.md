@@ -18,6 +18,7 @@ This repository contains tools and scripts to automate the git workflow for comm
 
 ## Installation
 1. Dependencies
+   - [Git](https://git-scm.com)
    - [Git-LFS](https://git-lfs.com)
   
 2. Ensure `FreeCAD > Tools > Edit Parameters > Preferences > Document` has a boolean key `BackupPolicy` set to `false`.  
@@ -31,7 +32,7 @@ This repository contains tools and scripts to automate the git workflow for comm
 4. Configure the settings in `FreeCAD_Automation/git-freecad-config.json` as needed.  
     Make sure to configure:
     - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
-        Example: `C:/Path/To/FreeCAD 1.0/bin/python.exe`
+      *IE: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*
     
 5. ****Test your configurations on python script:
 
@@ -39,7 +40,7 @@ This repository contains tools and scripts to automate the git workflow for comm
    ```bash
    ./FreeCAD_Automation/freecad-repo-init.sh
    ```
-   *The Script can be ran multiple times without error.*  
+   *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
 7. Update your `.gitattributes` with LFS files you want to track.  
@@ -66,7 +67,7 @@ This repository contains tools and scripts to automate the git workflow for comm
    ```bash
    ./FreeCAD_Automation/freecad-repo-init.sh
    ```
-   *The Script can be ran multiple times without error.*  
+   *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
 ## Quick Guide
@@ -113,6 +114,8 @@ If not mentioned here, you can just assume that changing the configuration value
 
 ### Changing `uncompressed-directory-structure`
 If you change any value inside the `uncompressed-directory-structure` JSON key, you will need to follow this checklist to properly propagate that configuration change to your repository.
+- [ ] `git lock *.FCStd` to get edit permissions.
+
 - [ ] `git mv path/to/old/dir path/to/new/dir` all uncompressed FCStd file folders.
   
 - [ ] Ensure `git status` shows directories as `renamed`, **NOT** `deleted` and `added`.
