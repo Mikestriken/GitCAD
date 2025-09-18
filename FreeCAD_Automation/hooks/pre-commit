@@ -1,5 +1,59 @@
 #!/bin/bash
 # ==============================================================================================
-#                                             WIP
+#                                 Verify and Retrieve Dependencies
 # ==============================================================================================
-echo "Pre-commit hook executed"
+# Check if inside a Git repository and ensure working dir is the root of the repo
+if ! git rev-parse --git-dir > /dev/null; then
+    echo "Error: Not inside a Git repository" >&2
+    exit 1
+fi
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
+cd "$GIT_ROOT"
+
+# Import code used in this script
+FUNCTIONS_FILE="FreeCAD_Automation/functions.sh"
+source "$FUNCTIONS_FILE"
+
+CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
+FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
+
+# Extract Python path
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
+
+# Extract require locks setting
+REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit 1
+
+# ==============================================================================================
+#                         Check if user allowed to modify .FCStd files
+# ==============================================================================================
+if [ $REQUIRE_LOCKS == 1 ]; then
+    # Get staged .FCStd files
+    STAGED_FCSTD_FILES=$(git diff --cached --name-only | grep '\.FCStd$')
+    for file in $STAGED_FCSTD_FILES; do
+        # Check if .FCStd file is tracked
+        if git ls-files --error-unmatch "$file" > /dev/null 2>&1; then
+            # File is tracked, get the .lockfile path
+            lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$file") || {
+                echo "Error: Failed to get lockfile path for '$file'" >&2
+                exit 1
+            }
+
+            # Check if .lockfile is tracked
+            if git ls-files --error-unmatch "$lockfile_path" > /dev/null 2>&1; then
+                # .lockfile is tracked, check if user has lock
+                LOCK_INFO=$(git lfs locks --path="$lockfile_path")
+
+                CURRENT_USER=$(git config --get user.name) || {
+                    echo "Error: git config user.name not set!" >&2
+                    exit 1
+                }
+
+                if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
+                    echo "Error: User '$CURRENT_USER' doesn't have lock for '$file'" >&2
+                    exit 1
+                fi
+            fi
+        fi
+    done
+fi
