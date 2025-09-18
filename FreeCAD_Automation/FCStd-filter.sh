@@ -40,7 +40,9 @@ if ! "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import
     echo "Error: Import 'from freecad import project_utility as PU' failed" >&2
     exit 1
 fi
-
+# ==============================================================================================
+#                         Check if user allowed to modify .FCStd file
+# ==============================================================================================
 # Check if file is tracked and user has lock on the .lockfile
 if git ls-files --error-unmatch "$1" > /dev/null; then
     # File is tracked, get the .lockfile path
@@ -66,10 +68,16 @@ if git ls-files --error-unmatch "$1" > /dev/null; then
     fi
 fi
 
+# ==============================================================================================
+#                                       Export the .FCStd file
+# ==============================================================================================
 # Export the .FCStd file
 if ! "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
     echo "Error: Failed to export $1" >&2
     exit 1
 fi
 
+# ==============================================================================================
+#                                     Show file as empty to git
+# ==============================================================================================
 cat /dev/null

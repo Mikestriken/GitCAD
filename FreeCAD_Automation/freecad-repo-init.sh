@@ -3,14 +3,20 @@
 echo "=============================================================================================="
 echo "                                     Verifying Dependencies"
 echo "=============================================================================================="
+# Check git user.name and user.email set
+if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
+    echo "git config user.name or user.email not set!" >&2
+    exit 1
+fi
+
 # Check if inside a Git repository and ensure working dir is the root of the repo
-if ! git rev-parse --git-dir > /dev/null 2>&1; then
+if ! git rev-parse --git-dir > /dev/null; then
     echo "Error: Not inside a Git repository" >&2
     exit 1
 fi
 
 # Check if git-lfs is installed
-if ! command -v git-lfs >/dev/null 2>&1; then
+if ! command -v git-lfs >/dev/null; then
     echo "Error: git-lfs is not installed" >&2
     exit 1
 fi
@@ -26,27 +32,31 @@ source "$FUNCTIONS_FILE"
 CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 
 # Extract Python path
-PYTHON_PATH=$(get_json_value "$CONFIG_FILE" "freecad-python-instance-path")
-if [ $? -ne 0 ] || [ -z "$PYTHON_PATH" ]; then
-    echo "Error: Could not extract Python path"
+PYTHON_PATH=$(get_json_value "$CONFIG_FILE" "freecad-python-instance-path") || {
+    echo "Error: get_json_value failed" >&2
+    exit 1
+}
+
+if [ -z "$PYTHON_PATH" ]; then
+    echo "Error: Python path is empty" >&2
     exit 1
 fi
 
 echo "Extracted Python path: $PYTHON_PATH"
 
 # Check if Python runs correctly
-if "$PYTHON_PATH" --version > /dev/null 2>&1; then
+if "$PYTHON_PATH" --version > /dev/null; then
     echo "Python runs correctly"
 else
-    echo "Error: Python does not run or path is invalid"
+    echo "Error: Python does not run or path is invalid" >&2
     exit 1
 fi
 
 # Check if the import works
-if "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import successful')" > /dev/null 2>&1; then
+if "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import successful')" > /dev/null; then
     echo "FreeCAD Python library import successful"
 else
-    echo "Error: Import 'from freecad import project_utility as PU' failed"
+    echo "Error: Import 'from freecad import project_utility as PU' failed" >&2
     exit 1
 fi
 
@@ -59,12 +69,12 @@ echo "==========================================================================
 # Setup Git hooks
 HOOKS_DIR=".git/hooks"
 if [ ! -d "$HOOKS_DIR" ]; then
-    echo "Error: .git/hooks directory not found"
+    echo "Error: .git/hooks directory not found" >&2
     exit 1
 fi
 
 if [ ! -d "FreeCAD_Automation/hooks" ]; then
-    echo "Error: FreeCAD_Automation/hooks directory not found"
+    echo "Error: FreeCAD_Automation/hooks directory not found" >&2
     exit 1
 fi
 
@@ -103,7 +113,7 @@ git lfs track ".lockfile" --lockable
 echo "=============================================================================================="
 echo "                                     Adding Filters"
 echo "=============================================================================================="
-setup_git_filter() {
+setup_git_FCStd_filter() {
     local filter_type="$1"
     local desired_value="$2"
     local purpose="$3"
@@ -116,14 +126,11 @@ setup_git_filter() {
             echo
         else
             echo "filter.FCStd.$filter_type already exists:"
-            if [ "$filter_type" = "clean" ]; then
-                echo "  - Permission to change \`$CURRENT_VALUE\` --> \`$desired_value\`?"
-                read -p "    (( $purpose ))  (y/n): " -n 1 -r
-            else
-                echo "  - Permission to change \`$CURRENT_VALUE\` --> \`$desired_value\`? (y/n): "
-                read -p "" -n 1 -r
-            fi
+            echo "  - Permission to change \`$CURRENT_VALUE\` --> \`$desired_value\`?"
+            read -p "    (( $purpose ))  (y/n): " -n 1 -r
+            
             echo
+            
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 git config "filter.FCStd.$filter_type" "$desired_value"
                 echo "    Updated filter.FCStd.$filter_type"
@@ -140,9 +147,10 @@ setup_git_filter() {
     fi
 }
 
-setup_git_filter "clean" "./FreeCAD_Automation/FCStd-filter.sh %f" "This makes git see .FCStd files as being empty and decompresses added .FCStd files"
-setup_git_filter "smudge" "cat" "Prevents checking out .FCStd files from throwing errors"
-setup_git_filter "required" "true" "If clean/smudge filter fails, error the script out"
+# Add FCStd filters
+setup_git_FCStd_filter "clean" "./FreeCAD_Automation/FCStd-filter.sh %f" "This makes git see .FCStd files as being empty and decompresses added .FCStd files"
+setup_git_FCStd_filter "smudge" "cat" "Prevents checking out .FCStd files from throwing errors"
+setup_git_FCStd_filter "required" "true" "If clean/smudge filter fails, error the script out"
 
 # Check .gitattributes for *.FCStd filter
 GITATTRIBUTES=".gitattributes"
