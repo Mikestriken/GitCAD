@@ -18,17 +18,17 @@
 
 - [ ] On Post-Checkout Hook
     - [ ] Pull LFS files
-	- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
 	- [ ] Update .FCStd files with uncompressed files
-		- [ ] if the .lockfile is not locked by the user, the .FCStd file is set to readonly.
+		- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
+			- [ ] if the .lockfile is not locked by the user, the .FCStd file is set to readonly.
 
 - [ ] On Pre-Commit Hook:
 	- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
-	- [ ] Cancel commit if user doesn't have lock on .lockfile in dir being modified
+		- [ ] Cancel commit if user doesn't have lock on .lockfile in dir being modified
 
 - [ ] On Pre-Push Hook:
 	- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
-	- [ ] Cancel push if in any commits being pushed, user doesn't have lock on .lockfile for dir with modifications.
+		- [ ] Cancel push if in any commits being pushed, user doesn't have lock on .lockfile for dir with modifications.
 
 - [ ] To lock, use lock.sh path/to/file.FCStd | path/to/.lockfile:
 	- [ ] Set git lfs lock appropriate _FCStd directory .lockfile
