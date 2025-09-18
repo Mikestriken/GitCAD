@@ -21,47 +21,13 @@ FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 # Extract Python path
 PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 
-# Extract require locks setting
-REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit 1
-
-# Check if Python runs correctly
-if ! "$PYTHON_PATH" --version > /dev/null; then
-    echo "Error: Python does not run or path is invalid" >&2
-    exit 1
-fi
-
-# Check if the import works
-if ! "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import successful')" > /dev/null; then
-    echo "Error: Import 'from freecad import project_utility as PU' failed" >&2
-    exit 1
-fi
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
-# Check if .FCStd file is tracked and config.json requires locks for file modification
-# Note: Suppressing --error-unmatch error prints because if they error it doesn't mean something is wrong.
-if [ $REQUIRE_LOCKS == 1 ] && git ls-files --error-unmatch "$1" > /dev/null 2>&1; then
-    # File is tracked, get the .lockfile path
-    lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$1") || {
-        echo "lockfile path not returned for '$1'" >&2
-        exit 1
-    }
+FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit 1
 
-    # Check if .lockfile is tracked
-    if git ls-files --error-unmatch "$lockfile_path" > /dev/null 2>&1; then
-        # .lockfile is tracked, check if user has lock
-        LOCK_INFO=$(git lfs locks --path="$lockfile_path")
-        
-        CURRENT_USER=$(git config --get user.name) || {
-            echo "git config user.name not set!" >&2
-            exit 1
-        }
-
-        if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
-            echo "Error: User '$CURRENT_USER' doesn't have lock for '$1'" >&2
-            exit 1
-        fi
-    fi
+if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
+    exit 1
 fi
 
 # ==============================================================================================
