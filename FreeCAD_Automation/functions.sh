@@ -3,10 +3,10 @@
 #                                           Functions
 # ==============================================================================================
 
-# Function to extract JSON value by key (handles strings, numbers, booleans, null; basic arrays/objects as strings)
-get_json_value() {
+# Function to extract FreeCAD Python path from config file
+get_freecad_python_path() {
     local file=$1
-    local key=$2
+    local key="freecad-python-instance-path"
     # Find the line containing the key
     local line=$(grep "\"$key\"" "$file")
     if [ -z "$line" ]; then
@@ -18,6 +18,10 @@ get_json_value() {
     # Strip surrounding quotes if it's a string
     if [[ $value =~ ^\".*\"$ ]]; then
         value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+    fi
+    if [ -z "$value" ]; then
+        echo "Error: Python path is empty" >&2
+        return 1
     fi
     echo "$value"
 }

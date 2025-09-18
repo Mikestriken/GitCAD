@@ -18,15 +18,7 @@ source "$FUNCTIONS_FILE"
 CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 
 # Extract Python path
-PYTHON_PATH=$(get_json_value "$CONFIG_FILE" "freecad-python-instance-path") || {
-    echo "Error: get_json_value failed" >&2
-    exit 1
-}
-
-if [ -z "$PYTHON_PATH" ]; then
-    echo "Error: Python path is empty" >&2
-    exit 1
-fi
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 
 # Check if Python runs correctly
 if ! "$PYTHON_PATH" --version > /dev/null; then
