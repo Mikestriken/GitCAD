@@ -1,15 +1,18 @@
-### ToDo:
-- [ ] Make sure `./FreeCAD_Automation/freecad-repo-init.sh` triggers Post-Checkout hook after execution (for sake of initializing a newly cloned repo)
-	- [ ] Make `./FreeCAD_Automation/freecad-repo-init.sh` set .FCStd files to readonly if config requires it and remove readonly if config doesn't require it.
+### Workflow / ToDo List:
+- [ ] `freecad-repo-init.sh`
+    - [x] Verify and retrieve dependency objects
+    - [x] setup git-lfs.
+    - [ ] Setup `*.[Ff][Cc][Ss][Tt][Dd]` filter
+		- [x] `git config filter.FCStd.required true`
+		- [x] `git config filter.FCStd.smudge cat`
+		- [ ] Check for any case of *.FCStd
+			- [ ] Research what happens when 2 filters for *.FCStd
+	- [ ] Newly Clone Repo Support
+		- [ ] Trigger post-checkout after initialization.
+		- [ ] .FCStd files to readonly if config requires it and remove readonly if config doesn't require it.
+		- [ ] Pull latest LFS files
+		- [ ] Ensure all .FCStd files have been imported with local data
 
-- [x] Make `./FreeCAD_Automation/freecad-repo-init.sh` setup git-lfs.  
-  Make sure rerunning after config changes is OK.
-
-- [x] Make `./FreeCAD_Automation/freecad-repo-init.sh` set `git config filter.FCStd.required true`
-
-- [x] Make `./FreeCAD_Automation/freecad-repo-init.sh` set `git config filter.FCStd.smudge cat`
-
-### Workflow Idea:
 - [x] Git clean filter
     - [x] Makes .FCStd files look empty (from git's pov)
     - [x] Calls script to extract the added file.
@@ -39,6 +42,7 @@
 	- [ ] mark .FCStd file as readonly
 	- [ ] Warn user if unlocking before changes have been pushed changes
 
+- [ ] Verify `Readme.md` is correct
 
 Locks:
  - Set file to readonly
