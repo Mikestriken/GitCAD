@@ -470,6 +470,9 @@ def main():
         FCStd_file_path:str = os.path.relpath(args.export_flag[INPUT_ARG])
         FCStd_dir_path:str = os.path.relpath(args.export_flag[OUTPUT_ARG]) if len(args.export_flag) > 1 else None
         
+        if not os.path.exists(FCStd_file_path):
+            raise FileNotFoundError(f"ERR: FCStd file '{FCStd_file_path}' does not exist.")
+        
         if config_provided:
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
         
@@ -506,6 +509,9 @@ def main():
         if config_provided:
             FCStd_file_path:str = FCStd_dir_path
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
+            
+        if not os.path.exists(FCStd_dir_path):
+            raise FileNotFoundError(f"ERR: FCStd directory '{FCStd_dir_path}' does not exist.")
         
         with ImportingContext(FCStd_dir_path, config):
             
