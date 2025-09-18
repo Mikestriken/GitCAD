@@ -24,11 +24,11 @@
 
 - [ ] On Pre-Commit Hook:
 	- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
-	- [ ] Cancel commit if user doesn't have lock despite lock requirement being configured
+	- [ ] Cancel commit if user doesn't have lock on .lockfile in dir being modified
 
 - [ ] On Pre-Push Hook:
 	- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
-	- [ ] If locked dir changed, cancel push
+	- [ ] Cancel push if in any commits being pushed, user doesn't have lock on .lockfile for dir with modifications.
 
 - [ ] To lock, use lock.sh path/to/file.FCStd | path/to/.lockfile:
 	- [ ] Set git lfs lock appropriate _FCStd directory .lockfile
