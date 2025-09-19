@@ -13,6 +13,11 @@ This repository contains tools and scripts to automate the git workflow for comm
 - **Pre-Push Hook**: Cancels push if commits being pushed contains modifications to directories the user don't have the lock for.
   
 - **Locking Mechanism**: Users use the git aliases `git lock path/to/file.FCStd` and `git unlock path/to/file.FCStd` lock a `.lockfile` inside the uncompressed directory instead of the `.FCStd` file itself.
+   - Why lock `.lockfile` instead of `.FCStd` directly? 
+      - *`.FCStd` files are filtered to appear empty to git to save space.  
+      If the `.FCStd` files were directly locked you would be storing the entire `.FCStd` file in git-lfs,  
+      which would somewhat defeat one of the secondary purpose of extracting the `.FCStd` files in the first place...  
+      To efficiently store the diffable contents separate from the binary contents.*
   
 - ~~**Lock/Unlock Scripts**: `lock.sh` and `unlock.sh` for managing file locks and permissions.~~
 

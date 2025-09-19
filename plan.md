@@ -56,10 +56,10 @@
 		- [x] Cancel push if in any commits being pushed, user doesn't have lock on .lockfile for dir with modifications.
 
 - [ ] Git Aliases:
-	- [ ] To lock, use lock.sh path/to/file.FCStd | path/to/.lockfile:
+	- [ ] lock.sh | USAGE: lock.sh path/to/file.FCStd:
 		- [ ] Set git lfs lock appropriate _FCStd directory .lockfile
 		- [ ] mark .FCStd file as writable
-	- [ ] To unlock, use unlock.sh path/to/file.FCStd | path/to/.lockfile:
+	- [ ] unlock.sh | USAGE: unlock.sh path/to/file.FCStd:
 		- [ ] Set git lfs unlock appropriate _FCStd directory .lockfile
 		- [ ] mark .FCStd file as readonly
 		- [ ] Warn user if unlocking before changes have been pushed changes
