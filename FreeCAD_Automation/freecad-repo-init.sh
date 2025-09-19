@@ -151,33 +151,60 @@ if [ ! -f "$GITATTRIBUTES" ]; then
     echo "Created .gitattributes"
 fi
 
-LINE=$(grep "^\*\.FCStd" "$GITATTRIBUTES" 2>/dev/null)
-if [ -n "$LINE" ]; then
-    FILTER_VALUE=$(echo "$LINE" | sed 's/.*filter=\([^ ]*\).*/\1/')
-    if [ "$FILTER_VALUE" = "FCStd" ]; then
-        echo "*.FCStd already has filter=FCStd in .gitattributes"
-    else
-        if echo "$LINE" | grep -q "filter="; then
-            ORIGINAL_FILTER="$FILTER_VALUE"
-            echo "*.FCStd has different filter in .gitattributes:"
-            read -p "  - Permission to change \`filter=$ORIGINAL_FILTER\` --> \`filter=FCStd\`? (y/n): " -n 1 -r
-            echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                sed -i "s/filter=[^ ]*/filter=FCStd/" "$GITATTRIBUTES"
-                echo "    Updated .gitattributes for *.FCStd"
-                echo
+# Process .gitattributes for *.FCStd filter
+if [ -f "$GITATTRIBUTES" ]; then
+    # Read the file into an array
+    mapfile -t lines < "$GITATTRIBUTES"
+    updated=false
+    found=false
+    for i in "${!lines[@]}"; do
+        line="${lines[$i]}"
+        # Check if line starts with *.FCStd (case insensitive)
+        if [[ "${line,,}" =~ ^\*\.fcstd ]]; then
+            found=true
+            # Check for filter=
+            if [[ "$line" =~ filter=([^ ]*) ]]; then
+                filter_value="${BASH_REMATCH[1]}"
+                if [ -z "$filter_value" ]; then
+                    # Set to FCStd
+                    lines[$i]="${line} filter=FCStd"
+                    updated=true
+                elif [ "$filter_value" != "FCStd" ]; then
+                    echo "*.FCStd has different filter in .gitattributes:"
+                    read -p "  - Permission to change \`filter=$filter_value\` --> \`filter=FCStd\`? (y/n): " -n 1 -r
+                    echo
+                    if [[ $REPLY =~ ^[Yy]$ ]]; then
+                        # Replace the filter value
+                        lines[$i]=$(echo "$line" | sed "s/filter=[^ ]*/filter=FCStd/")
+                        updated=true
+                        echo "    Updated .gitattributes for *.FCStd"
+                        echo
+                    else
+                        echo "    Skipping update of .gitattributes for *.FCStd"
+                        echo
+                    fi
+                fi
             else
-                echo "    Skipping update of .gitattributes for *.FCStd"
-                echo
+                # No filter=, add it
+                lines[$i]="$line filter=FCStd"
+                updated=true
             fi
-        else
-            sed -i "s/$/ filter=FCStd/" "$GITATTRIBUTES"
-            echo "Added filter=FCStd to existing *.FCStd line"
-            echo
         fi
+    done
+    if [ "$found" = false ]; then
+        # Add the line if not found
+        lines+=("*.FCStd filter=FCStd")
+        updated=true
+        echo "Added *.FCStd filter=FCStd to .gitattributes"
+        echo
+    fi
+    if [ "$updated" = true ]; then
+        # Write back to file
+        printf '%s\n' "${lines[@]}" > "$GITATTRIBUTES"
     fi
 else
-    echo "*.FCStd filter=FCStd" >> "$GITATTRIBUTES"
+    # If no .gitattributes, create it with the line
+    echo "*.FCStd filter=FCStd" > "$GITATTRIBUTES"
     echo "Added *.FCStd filter=FCStd to .gitattributes"
     echo
 fi
