@@ -7,6 +7,7 @@
 		- [x] `git config filter.FCStd.smudge cat`
 		- [ ] Check for any case of *.FCStd
 			- [ ] Research what happens when 2 filters for *.FCStd
+	- [ ] Add git aliases
 	- [ ] Newly Clone Repo Support
 		- [ ] Trigger post-checkout after initialization.
 		- [ ] .FCStd files to readonly if config requires it and remove readonly if config doesn't require it.
