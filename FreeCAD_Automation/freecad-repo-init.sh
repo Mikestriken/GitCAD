@@ -54,44 +54,44 @@ fi
 
 echo "All checks passed"
 
-echo "=============================================================================================="
-echo "                                     Setup Git Hooks"
-echo "=============================================================================================="
+# echo "=============================================================================================="
+# echo "                                     Setup Git Hooks"
+# echo "=============================================================================================="
 
-# Setup Git hooks
-HOOKS_DIR=".git/hooks"
-if [ ! -d "$HOOKS_DIR" ]; then
-    echo "Error: .git/hooks directory not found" >&2
-    exit 1
-fi
+# # Setup Git hooks
+# HOOKS_DIR=".git/hooks"
+# if [ ! -d "$HOOKS_DIR" ]; then
+#     echo "Error: .git/hooks directory not found" >&2
+#     exit 1
+# fi
 
-if [ ! -d "FreeCAD_Automation/hooks" ]; then
-    echo "Error: FreeCAD_Automation/hooks directory not found" >&2
-    exit 1
-fi
+# if [ ! -d "FreeCAD_Automation/hooks" ]; then
+#     echo "Error: FreeCAD_Automation/hooks directory not found" >&2
+#     exit 1
+# fi
 
-HOOKS=("post-checkout" "post-commit" "post-merge" "pre-commit" "pre-push")
-for hook in "${HOOKS[@]}"; do
-    if [ -f "$HOOKS_DIR/$hook" ]; then
-        echo "Hook $hook already exists in $HOOKS_DIR"
-        read -p "  - Do you want to overwrite it? (y/n): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            cp "FreeCAD_Automation/hooks/$hook" "$HOOKS_DIR/$hook"
-            chmod +x "$HOOKS_DIR/$hook"
-            echo "    Installed $hook hook"
-            echo
-        else
-            echo "    Skipping $hook"
-            echo
-        fi
-    else
-        cp "FreeCAD_Automation/hooks/$hook" "$HOOKS_DIR/$hook"
-        chmod +x "$HOOKS_DIR/$hook"
-        echo "Installed $hook hook"
-        echo
-    fi
-done
+# HOOKS=("post-checkout" "post-commit" "post-merge" "pre-commit" "pre-push")
+# for hook in "${HOOKS[@]}"; do
+#     if [ -f "$HOOKS_DIR/$hook" ]; then
+#         echo "Hook $hook already exists in $HOOKS_DIR"
+#         read -p "  - Do you want to overwrite it? (y/n): " -n 1 -r
+#         echo
+#         if [[ $REPLY =~ ^[Yy]$ ]]; then
+#             cp "FreeCAD_Automation/hooks/$hook" "$HOOKS_DIR/$hook"
+#             chmod +x "$HOOKS_DIR/$hook"
+#             echo "    Installed $hook hook"
+#             echo
+#         else
+#             echo "    Skipping $hook"
+#             echo
+#         fi
+#     else
+#         cp "FreeCAD_Automation/hooks/$hook" "$HOOKS_DIR/$hook"
+#         chmod +x "$HOOKS_DIR/$hook"
+#         echo "Installed $hook hook"
+#         echo
+#     fi
+# done
 echo "=============================================================================================="
 echo "                                   Initializing Git-LFS"
 echo "=============================================================================================="
