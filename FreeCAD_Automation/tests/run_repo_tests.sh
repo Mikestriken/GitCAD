@@ -33,9 +33,11 @@ PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
     # return test dir path
 
 # ToDo: tearDown function
+    # Note: this should be called in the event any of the tests fail as well and then the script will exit early (this test will fail-fast)
     # remove any locks in test dir
-    # Reset back to main
-    # Delete active_test branch (local and remote)
+    # git reset --hard
+    # git checkout main
+    # Delete active_test* branches (local and remote)
 
 # ToDo: Any custom assert functions
 
