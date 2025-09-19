@@ -8,13 +8,6 @@ git lfs post-checkout "$@"
 # ==============================================================================================
 #                                 Verify and Retrieve Dependencies
 # ==============================================================================================
-# ! Only proceed for branch checkouts (not file checkouts)
-# Args: $1=old-head-sha $2=new-head-sha $3=checkout-type (1=branch)
-# ToDo: Learn about different types. Different logic for different types.
-if [ "$3" != "1" ]; then
-    exit 0
-fi
-
 # Check if inside a Git repository and ensure working dir is the root of the repo
 if ! git rev-parse --git-dir > /dev/null; then
     echo "Error: Not inside a Git repository" >&2
@@ -34,6 +27,9 @@ FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 # Extract Python path
 PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 
+# Check if require-lock-to-modify-FreeCAD-files is true
+REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit 1
+
 # ==============================================================================================
 #                                     Pull LFS files
 # ==============================================================================================
@@ -42,38 +38,101 @@ git lfs pull
 # ==============================================================================================
 #                         Update .FCStd files with uncompressed files
 # ==============================================================================================
-# Get all tracked .FCStd files (case insensitive)
-TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
-for FCStd_file in $TRACKED_FCSTD_FILES; do
-    # Check if .FCStd file exists
-    # ToDo: Change to check if dir exists
-    if [ ! -f "$FCStd_file" ]; then
-        echo "Error: Could not find $FCStd_file, skipping..." >&2
-        continue
-    fi
-
-    # ToDo: file size check, if size 0 it's a definite import else... maybe skip?
-
-    # ToDo: if file or file dir is considered modified, skip!
-
-    # Import data to FCStd file
-    "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file" || {
-        echo "Error: Failed to import $FCStd_file, skipping..." >&2
-        continue
-    }
-
-    # Check if require-lock-to-modify-FreeCAD-files is true
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || continue
-
-    if [ "$REQUIRE_LOCKS" == "1" ]; then
-        # Check if user has valid lock
-        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || continue
-
-        if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
-            # User doesn't have lock, set .FCStd file to readonly
-            make_readonly "$FCStd_file"
-        else
-            make_writable "$FCStd_file"
+# Args: $1=old-head-sha $2=new-head-sha $3=checkout-type (1=branch, 0=file)
+if [ "$3" == "1" ]; then
+    # Branch checkout - process all tracked .FCStd files with change detection
+    TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
+    for FCStd_file in $TRACKED_FCSTD_FILES; do
+        # Check if .FCStd file exists
+        if [ ! -f "$FCStd_file" ]; then
+            echo "Error: Could not find '$FCStd_file', skipping..." >&2
+            continue
         fi
-    fi
-done
+
+        # Get the uncompressed directory path for this .FCStd file
+        FCStd_lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file") || {
+            echo "Error: Failed to get lockfile path for '$FCStd_file', skipping..." >&2
+            continue
+        }
+        FCStd_dir_path=$(dirname "$FCStd_lockfile_path")
+
+        # Check if directory has changes in the checkout
+        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$1" "$2") || {
+            echo "Error: Failed to get dir changes for '$FCStd_dir_path', skipping..." >&2
+            continue
+        }
+
+        if [ "$DIR_HAS_CHANGES" == "1" ]; then
+            # Pull LFS data for the directory
+            git lfs pull --include="$FCStd_dir_path/**"
+
+            # Import data to FCStd file
+            "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file" || {
+                echo "Error: Failed to import $FCStd_file, skipping..." >&2
+                continue
+            }
+        fi
+
+        if [ "$REQUIRE_LOCKS" == "1" ]; then
+            # Check if user has valid lock
+            FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || continue
+
+            if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
+                # User doesn't have lock, set .FCStd file to readonly
+                make_readonly "$FCStd_file"
+            else
+                # User has lock, set .FCStd file to writable
+                make_writable "$FCStd_file"
+            fi
+        fi
+    done
+
+elif [ "$3" == "0" ]; then
+    # File checkout - check if it's a .FCStd file and handle accordingly
+    # For file checkouts, we need to determine which file was checked out
+    # This is more complex as git doesn't directly tell us which file was checked out
+    # For now, we'll process all .FCStd files but this could be optimized
+    echo "File checkout detected - processing .FCStd files..." >&2
+
+    TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
+    for FCStd_file in $TRACKED_FCSTD_FILES; do
+        # Check if .FCStd file exists and was recently modified (indicating checkout)
+        if [ ! -f "$FCStd_file" ]; then
+            continue
+        fi
+
+        # Get the uncompressed directory path for this .FCStd file
+        FCStd_lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file") || {
+            continue
+        }
+        FCStd_dir_path=$(dirname "$FCStd_lockfile_path")
+
+        # For file checkouts, we assume the directory was updated if the file exists
+        # Pull LFS data for the directory
+        git lfs pull --include="$FCStd_dir_path/**"
+
+        # Import data to FCStd file
+        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file" || {
+            echo "Error: Failed to import $FCStd_file, skipping..." >&2
+            continue
+        }
+
+        if [ "$REQUIRE_LOCKS" == "1" ]; then
+            # Check if user has valid lock
+            FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || continue
+
+            if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
+                # User doesn't have lock, set .FCStd file to readonly
+                make_readonly "$FCStd_file"
+            else
+                # User has lock, set .FCStd file to writable
+                make_writable "$FCStd_file"
+            fi
+        fi
+    done
+
+else
+    # Unknown checkout type
+    echo "Unknown checkout type: $3, skipping .FCStd processing..." >&2
+    exit 0
+fi

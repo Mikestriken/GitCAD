@@ -20,11 +20,31 @@
 		- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
 
 - [ ] On Post-Checkout Hook
-	- [ ] Ponder on when to import all `.FCStd` files...
     - [ ] Pull LFS files
-	- [ ] Update .FCStd files with uncompressed files
-		- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
-			- [ ] if the .lockfile is not locked by the user, the .FCStd file is set to readonly.
+		- [ ] Make sure `FCStdFileTool.py` doesn't import pointer files
+	- [ ] Update (import) .FCStd files with uncompressed files:
+		- [ ] When?:
+			- [ ] When checking out a branch / commit
+				- [ ] If file dir contents changed -> Update file
+			- [ ] After cloning the repository
+				- [ ] Update all files
+			- [ ] When pulling/merging/rebasing changes
+				- [ ] If file dir contents changed -> Update file
+				- [ ] Locking should enforce fast forward only
+			- [ ] Creating a stash
+				- [ ] If file dir contents changed -> Update file
+			- [ ] Applying a stash
+				- [ ] If file dir contents changed -> Update file
+			- [ ] Checking out an individual file
+				- [ ] Redirect checkout to file dir instead of file itself
+				- [ ] If file dir contents changed -> Update file
+			- [ ] git reset --hard
+				- [ ] If file dir contents changed -> Update file
+			- [ ] git lfs pulls changes
+				- [ ] If file dir contents changed -> Update file
+		- [ ] After importing data to the .FCStd File:
+			- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
+				- [ ] if the .lockfile is not locked by the user, the .FCStd file is set to readonly, else writable
 
 - [x] On Pre-Commit Hook:
 	- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
@@ -42,7 +62,7 @@
 		- [ ] Set git lfs unlock appropriate _FCStd directory .lockfile
 		- [ ] mark .FCStd file as readonly
 		- [ ] Warn user if unlocking before changes have been pushed changes
-	- [ ] To use `FCStdFileTool.py`
+	- [ ] To use `FCStdFileTool.py` manually
 
 - [ ] Verify `Readme.md` is correct
 

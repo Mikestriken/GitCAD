@@ -155,3 +155,19 @@ FCStd_file_has_valid_lock() {
         echo 1
     fi
 }
+
+# DESCRIPTION: Function to check if a directory has changes between two commits
+# USAGE: 
+    # `DIR_HAS_CHANGES=$(dir_has_changes "path/to/dir") || exit 1`
+    # `if [ $DIR_HAS_CHANGES == 1 ]; then echo "dir has changed files"; elif [ $DIR_HAS_CHANGES == 0 ]; then echo "No changed files in dir"; fi`
+dir_has_changes() {
+    local dir_path="$1"
+    local old_sha="$2"
+    local new_sha="$3"
+
+    if git diff --name-only "$old_sha..$new_sha" | grep -q "^$dir_path/"; then
+        echo 1
+    else
+        echo 0
+    fi
+}
