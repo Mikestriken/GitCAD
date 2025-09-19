@@ -156,8 +156,30 @@ FCStd_file_has_valid_lock() {
     fi
 }
 
+# DESCRIPTION: Function to get the uncompressed directory path for a .FCStd file
+# USAGE: `FCSTD_DIR=$(get_FCStd_dir "path/to/file.FCStd") || exit 1`
+get_FCStd_dir() {
+    local FCStd_file_path="$1"
+    local CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
+    local FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
+
+    # Get Python path
+    local PYTHON_PATH
+    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || return 1
+
+    # Get the lockfile path (which gives us the directory structure)
+    local lockfile_path
+    lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
+        echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
+        return 1
+    }
+
+    # Return the directory path (parent of lockfile)
+    dirname "$lockfile_path"
+}
+
 # DESCRIPTION: Function to check if a directory has changes between two commits
-# USAGE: 
+# USAGE:
     # `DIR_HAS_CHANGES=$(dir_has_changes "path/to/dir") || exit 1`
     # `if [ $DIR_HAS_CHANGES == 1 ]; then echo "dir has changed files"; elif [ $DIR_HAS_CHANGES == 0 ]; then echo "No changed files in dir"; fi`
 dir_has_changes() {

@@ -21,6 +21,21 @@ CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 
 # ==============================================================================================
+#                                          Test Functions
+# ==============================================================================================
+# ToDo: setup function
+    # Checkout -b active_test
+        # Err if returns 1 (branch already exists)
+    # Copies binaries into active_test dir
+
+# ToDo: tearDown function
+    # Reset back to main
+    # Delete active_test branch (local and remote)
+
+# ToDo: Any custom assert functions
+
+# ToDo: Await user modification of `.FCStd` file (verify file was modified before exiting)
+# ==============================================================================================
 #                                          Get Binaries
 # ==============================================================================================
 git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
@@ -32,3 +47,14 @@ git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/
 # ==============================================================================================
 #                                           Run Tests
 # ==============================================================================================
+# ToDo: Test FCStd-filter.sh
+    # `git add` .FCStd files copied during setup
+    # Assert dir was
+
+# ToDo: Test Pre-Commit Hook
+
+# ToDo: Test Pre-Push Hook
+
+# ToDo: Test Post-Checkout Hook
+
+# ToDo: Test Post-Merge Hook

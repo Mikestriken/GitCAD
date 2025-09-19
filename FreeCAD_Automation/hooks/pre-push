@@ -35,11 +35,10 @@ FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
 for FCStd_file in $TRACKED_FCSTD_FILES; do
     # Get the uncompressed directory path for this .FCStd file
-    FCStd_lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file") || {
+    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {
         echo "Error: Failed to get directory path for '$FCStd_file'" >&2
         exit 1
     }
-    FCStd_dir_path=$(dirname "$FCStd_lockfile_path")
 
     # Check if this directory has changes in the push
         # Note: git pre-push hook args: $1=<local ref> $2=<local sha1> $3=<remote ref> $4=<remote sha1>

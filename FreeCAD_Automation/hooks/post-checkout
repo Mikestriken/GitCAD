@@ -50,11 +50,10 @@ if [ "$3" == "1" ]; then
         fi
 
         # Get the uncompressed directory path for this .FCStd file
-        FCStd_lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file") || {
-            echo "Error: Failed to get lockfile path for '$FCStd_file', skipping..." >&2
+        FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {
+            echo "Error: Failed to get directory path for '$FCStd_file', skipping..." >&2
             continue
         }
-        FCStd_dir_path=$(dirname "$FCStd_lockfile_path")
 
         # Check if directory has changes in the checkout
         DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$1" "$2") || {
@@ -102,10 +101,10 @@ elif [ "$3" == "0" ]; then
         fi
 
         # Get the uncompressed directory path for this .FCStd file
-        FCStd_lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file") || {
+        FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {
+            echo "Error: Failed to get directory path for '$FCStd_file', skipping..." >&2
             continue
         }
-        FCStd_dir_path=$(dirname "$FCStd_lockfile_path")
 
         # For file checkouts, we assume the directory was updated if the file exists
         # Pull LFS data for the directory
