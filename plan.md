@@ -1,4 +1,8 @@
 ### Workflow / ToDo List:
+- [ ] Move hard coded file locations to `functions.sh`
+
+- [ ] Remove useless cds at start of hooks / filter / lock / unlock scripts
+
 - [ ] `freecad-repo-init.sh`
     - [x] Verify and retrieve dependency objects
     - [x] setup git-lfs.
@@ -55,6 +59,7 @@
 		- [x] Cancel push if in any commits being pushed, user doesn't have lock on .lockfile for dir with modifications.
 
 - [ ] Git Aliases:
+	- [ ] Experiment with `${GIT_PREFIX:-.}` see https://stackoverflow.com/questions/26243145/git-aliases-operate-in-the-wrong-directory
 	- [ ] lock.sh | USAGE: lock.sh path/to/file.FCStd:
 		- [ ] Set git lfs lock appropriate _FCStd directory .lockfile
 		- [ ] mark .FCStd file as writable
