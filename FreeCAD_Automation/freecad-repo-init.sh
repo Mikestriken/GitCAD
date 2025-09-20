@@ -4,10 +4,10 @@ echo "==========================================================================
 echo "                             Verify and Retrieve Dependencies"
 echo "=============================================================================================="
 # Check git user.name and user.email set
-if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
-    echo "git config user.name or user.email not set!" >&2
-    exit 1
-fi
+# if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
+#     echo "git config user.name or user.email not set!" >&2
+#     exit 1
+# fi
 
 # Check if inside a Git repository and ensure working dir is the root of the repo
 if ! git rev-parse --git-dir > /dev/null; then
@@ -139,6 +139,115 @@ setup_git_FCStd_filter() {
     fi
 }
 
+# ! WARNING BELOW IS SOME VIBE SHIT THAT WILL DISTURB YOU.
+# I just didn't want to touch regex ;( I'll come back to it later if I care enough but all I know is
+# I have tested it against as many edge cases as I could find and it does what I expect it to.
+# Minimum Viable Product achieved!
+
+# If anyone comes back to refactor this, the objectives are as follows:
+    # 1. Ensure any *.fcstd (case insensitive) in .gitattributes has filter=FCStd
+    # 2. Ensure any *.[Ff][Cc][Ss][Tt][Dd] in .gitattributes has filter=FCStd
+    # 3. If no *.[Ff][Cc][Ss][Tt][Dd] exists, add one with filter=FCStd.
+
+    # Note for testing: test with multiple attributes
+        # IE
+            # Before: *.[Ff][Cc][Ss][Tt][Dd] diff=lfs filter=wrong merge=lfs
+            # After: *.[Ff][Cc][Ss][Tt][Dd] diff=lfs filter=FCStd merge=lfs
+setup_filter_gitattribute() {
+    local file_match="$1"
+    local filter_target="$2"
+    # The first argument is always treated as a regular expression.
+    # Use it directly for matching and derive a literal pattern for insertion.
+    local regex_pattern="$file_match"
+    # Derive a literal pattern by stripping the leading ^ (if present) and unescaping only \* and \.
+    local literal_pattern="${file_match#^}"
+    literal_pattern="$(printf '%s' "$literal_pattern" | sed -e 's/\\\*/\*/g' -e 's/\\\././g')"
+    # Normalize the known FCStd regex to the exact expected literal pattern to avoid any shell/glob side effects
+    if [[ "$file_match" == "^\*\.[Ff][Cc][Ss][Tt][Dd]" ]]; then
+        literal_pattern="*.[Ff][Cc][Ss][Tt][Dd]"
+    fi
+
+    # Process .gitattributes
+    if [ -f "$GITATTRIBUTES" ]; then
+        # Read the file into an array
+        mapfile -t lines < "$GITATTRIBUTES"
+        updated=false
+        found=false
+        shopt -s nocasematch
+        for i in "${!lines[@]}"; do
+            line="${lines[$i]}"
+            # Check if line matches the regex variant OR starts with the canonical literal pattern
+            # This ensures we also update lines like "*.[Ff][Cc][Ss][Tt][Dd] filter=F2CStd1"
+            if [[ "$line" =~ $regex_pattern || "$line" == "$literal_pattern"* ]]; then
+                found=true
+                # Check for filter=
+                if [[ "$line" =~ filter=([^ ]*) ]]; then
+                    filter_value="${BASH_REMATCH[1]}"
+                    if [ -z "$filter_value" ]; then
+                        # Set to filter_target
+                        lines[$i]="${line} filter=$filter_target"
+                        updated=true
+                    elif [ "$filter_value" != "$filter_target" ]; then
+                        echo "$file_match has different filter in .gitattributes:"
+                        read -p "  - Permission to change \`filter=$filter_value\` --> \`filter=$filter_target\`? (y/n): " -n 1 -r
+                        echo
+                        if [[ $REPLY =~ ^[Yy]$ ]]; then
+                            # Replace the filter value
+                            lines[$i]=$(echo "$line" | sed "s/filter=[^ ]*/filter=$filter_target/")
+                            updated=true
+                            echo "    Updated .gitattributes for $file_match"
+                            echo
+                        else
+                            echo "    Skipping update of .gitattributes for $file_match"
+                            echo
+                        fi
+                    fi
+                else
+                    # No filter=, add it
+                    lines[$i]="$line filter=$filter_target"
+                    updated=true
+                fi
+            fi
+        done
+        shopt -u nocasematch
+        # Correct any previously mis-generated wildcard-only line (e.g., "* filter=FCStd")
+        for i in "${!lines[@]}"; do
+            if [[ "${lines[$i]}" == "* filter=$filter_target" ]]; then
+                lines[$i]="$literal_pattern filter=$filter_target"
+                updated=true
+                echo "Corrected misgenerated line: '* filter=$filter_target' -> '$literal_pattern filter=$filter_target'"
+                echo
+            fi
+        done
+
+        # Ensure presence of a canonical entry without creating duplicates:
+        # If any line that starts with the literal pattern already contains filter=$filter_target,
+        # do not add another minimal canonical line.
+        has_canonical=false
+        for i in "${!lines[@]}"; do
+            if [[ "${lines[$i]}" == "$literal_pattern"* ]] && [[ "${lines[$i]}" == *"filter=$filter_target"* ]]; then
+                has_canonical=true
+                break
+            fi
+        done
+        if [ "$has_canonical" = false ]; then
+            lines+=("$literal_pattern filter=$filter_target")
+            updated=true
+            echo "Added canonical pattern: $literal_pattern filter=$filter_target to .gitattributes"
+            echo
+        fi
+        if [ "$updated" = true ]; then
+            # Write back to file
+            printf '%s\n' "${lines[@]}" > "$GITATTRIBUTES"
+        fi
+    else
+        # If no .gitattributes, create it with the literal pattern line
+        echo "$literal_pattern filter=$filter_target" > "$GITATTRIBUTES"
+        echo "Added $literal_pattern filter=$filter_target to .gitattributes"
+        echo
+    fi
+}
+
 # Add FCStd filters
 setup_git_FCStd_filter "clean" "./FreeCAD_Automation/FCStd-filter.sh %f" "This makes git see .FCStd files as being empty and decompresses added .FCStd files"
 setup_git_FCStd_filter "smudge" "cat" "Prevents checking out .FCStd files from throwing errors"
@@ -151,60 +260,5 @@ if [ ! -f "$GITATTRIBUTES" ]; then
     echo "Created .gitattributes"
 fi
 
-# Process .gitattributes for *.FCStd filter
-if [ -f "$GITATTRIBUTES" ]; then
-    # Read the file into an array
-    mapfile -t lines < "$GITATTRIBUTES"
-    updated=false
-    found=false
-    for i in "${!lines[@]}"; do
-        line="${lines[$i]}"
-        # Check if line starts with *.FCStd (case insensitive)
-        if [[ "${line,,}" =~ ^\*\.fcstd ]]; then
-            found=true
-            # Check for filter=
-            if [[ "$line" =~ filter=([^ ]*) ]]; then
-                filter_value="${BASH_REMATCH[1]}"
-                if [ -z "$filter_value" ]; then
-                    # Set to FCStd
-                    lines[$i]="${line} filter=FCStd"
-                    updated=true
-                elif [ "$filter_value" != "FCStd" ]; then
-                    echo "*.FCStd has different filter in .gitattributes:"
-                    read -p "  - Permission to change \`filter=$filter_value\` --> \`filter=FCStd\`? (y/n): " -n 1 -r
-                    echo
-                    if [[ $REPLY =~ ^[Yy]$ ]]; then
-                        # Replace the filter value
-                        lines[$i]=$(echo "$line" | sed "s/filter=[^ ]*/filter=FCStd/")
-                        updated=true
-                        echo "    Updated .gitattributes for *.FCStd"
-                        echo
-                    else
-                        echo "    Skipping update of .gitattributes for *.FCStd"
-                        echo
-                    fi
-                fi
-            else
-                # No filter=, add it
-                lines[$i]="$line filter=FCStd"
-                updated=true
-            fi
-        fi
-    done
-    if [ "$found" = false ]; then
-        # Add the line if not found
-        lines+=("*.FCStd filter=FCStd")
-        updated=true
-        echo "Added *.FCStd filter=FCStd to .gitattributes"
-        echo
-    fi
-    if [ "$updated" = true ]; then
-        # Write back to file
-        printf '%s\n' "${lines[@]}" > "$GITATTRIBUTES"
-    fi
-else
-    # If no .gitattributes, create it with the line
-    echo "*.FCStd filter=FCStd" > "$GITATTRIBUTES"
-    echo "Added *.FCStd filter=FCStd to .gitattributes"
-    echo
-fi
+# Setup filters for .gitattributes
+setup_filter_gitattribute "^\*\.[Ff][Cc][Ss][Tt][Dd]" "FCStd"
