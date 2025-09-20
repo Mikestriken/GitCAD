@@ -25,12 +25,27 @@ PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 #                                          Parse Args
 # ==============================================================================================
 # `$(GIT_PREFIX:-.)`:
-    # If caller is in $GIT_ROOT/subdir, $(GIT_PREFIX:-.) = "subdir/"
-    # If caller is in $GIT_ROOT, $(GIT_PREFIX:-.) = "."
+    # If caller is in $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
+    # If caller is in $GIT_ROOT, $(GIT_PREFIX) = ""
 CALLER_SUBDIR=$1
 shift
-FILE_PATH="$CALLER_SUBDIR$1"
+
+# Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
+parsed_args=()
+if [ "$CALLER_SUBDIR" != "" ]; then
+    for arg in "$@"; do
+        if [[ "$arg" == -* ]]; then
+            parsed_args+=("$arg")
+        else
+            parsed_args+=("$CALLER_SUBDIR$arg")
+        fi
+    done
+else
+    parsed_args=("$@")
+fi
 
 # ==============================================================================================
 #                                    Call FCStdFileTool.py
 # ==============================================================================================
+# Test to see how the args will be passed
+"$PYTHON_PATH" "$FCStdFileTool" "${parsed_args[@]}"
