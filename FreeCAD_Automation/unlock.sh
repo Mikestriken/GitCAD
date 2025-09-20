@@ -32,10 +32,13 @@ shift
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
 parsed_args=()
+FORCE_FLAG=0
 if [ "$CALLER_SUBDIR" != "" ]; then
     for arg in "$@"; do
         if [[ "$arg" == -* ]]; then
-            parsed_args+=("$arg")
+            if [ "$arg" == "--force" ]; then
+                FORCE_FLAG=1
+            fi
         else
             parsed_args+=("$CALLER_SUBDIR$arg")
         fi
@@ -45,7 +48,75 @@ else
 fi
 
 # ==============================================================================================
-#                                              WIP
+#                                          Unlock File
 # ==============================================================================================
-echo "Subdir '$CALLER_SUBDIR'"
-echo "file path '$FILE_PATH'"
+# Ensure valid args
+if [ ${#parsed_args[@]} != 1 ]; then
+    echo "Error: Invalid arguments. Usage: unlock.sh path/to/file.FCStd [--force]" >&2
+    exit 1
+fi
+
+FCStd_file_path="${parsed_args[0]}"
+if [ -z "$FCStd_file_path" ]; then
+    echo "Error: No file path provided" >&2
+    exit 1
+fi
+
+lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
+    echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
+    exit 1
+}
+
+FCStd_dir_path=$(dirname "$lockfile_path")
+
+# Check for unpushed changes if not force
+if [ "$FORCE_FLAG" == 0 ]; then
+    BRANCH=$(git branch --show-current)
+    UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)
+    REFERENCE_BRANCH=""
+
+    if [ -n "$UPSTREAM" ]; then
+        # Use upstream if it exists
+        REFERENCE_BRANCH="$UPSTREAM"
+    else
+        # Find the remote branch with the closest merge-base (fewest commits)
+        smallest_num_commits_to_merge_base=999999
+        REMOTE_BRANCHES=$(git branch -r 2>/dev/null | xargs)
+        for remote_branch in $REMOTE_BRANCHES; do
+            MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
+            if [ -n "$MERGE_BASE" ]; then
+                num_commits_to_merge_base=$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)
+                if [ "$num_commits_to_merge_base" -lt "$smallest_num_commits_to_merge_base" ]; then
+                    smallest_num_commits_to_merge_base="$num_commits_to_merge_base"
+                    REFERENCE_BRANCH="$remote_branch"
+                fi
+            fi
+        done
+    fi
+
+    if [ -n "$REFERENCE_BRANCH" ]; then
+        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit 1
+        if [ "$DIR_HAS_CHANGES" == 1 ]; then
+            echo "Error: Cannot unlock file with unpushed changes. Use --force to override." >&2
+            exit 1
+        fi
+    fi
+
+    # Check for stashed changes
+    STASH_COUNT=$(git stash list | wc -l)
+    for i in $(seq 0 $((STASH_COUNT - 1))); do
+        if git stash show --name-only "stash@{$i}" 2>/dev/null | grep -q "^$FCStd_dir_path/"; then
+            echo "Error: Cannot unlock file with stashed changes. Use --force to override." >&2
+            exit 1
+            break
+        fi
+    done
+fi
+
+
+git lfs unlock "$lockfile_path" || {
+    echo "Error: Failed to unlock $lockfile_path" >&2
+    exit 1
+}
+
+make_readonly "$FCStd_file_path" || exit 1

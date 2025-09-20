@@ -58,16 +58,16 @@
 	- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
 		- [x] Cancel push if in any commits being pushed, user doesn't have lock on .lockfile for dir with modifications.
 
-- [ ] Git Aliases:
+- [x] Git Aliases:
 	- [x] Experiment with `${GIT_PREFIX:-.}` see https://stackoverflow.com/questions/26243145/git-aliases-operate-in-the-wrong-directory
-	- [ ] lock.sh | USAGE: lock.sh path/to/file.FCStd:
-		- [ ] Set git lfs lock appropriate _FCStd directory .lockfile
-		- [ ] mark .FCStd file as writable
-	- [ ] unlock.sh | USAGE: unlock.sh path/to/file.FCStd:
-		- [ ] Set git lfs unlock appropriate _FCStd directory .lockfile
-		- [ ] mark .FCStd file as readonly
-		- [ ] Warn user if unlocking before changes have been pushed changes
-	- [ ] To use `FCStdFileTool.py` manually
+	- [x] lock.sh | USAGE: lock.sh path/to/file.FCStd:
+		- [x] Set git lfs lock appropriate _FCStd directory .lockfile
+		- [x] mark .FCStd file as writable
+	- [x] unlock.sh | USAGE: unlock.sh path/to/file.FCStd:
+		- [x] Set git lfs unlock appropriate _FCStd directory .lockfile
+		- [x] mark .FCStd file as readonly
+		- [x] Warn user if unlocking before changes have been pushed changes
+	- [x] To use `FCStdFileTool.py` manually
 
 - [ ] Verify `Readme.md` is correct
 
