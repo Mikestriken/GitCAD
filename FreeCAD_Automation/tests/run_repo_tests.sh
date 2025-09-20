@@ -67,6 +67,7 @@ git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/
     # Request user modify `AssemblyExample.FCStd`
     # attempt to git add changes (expect error)
     # git lock `AssemblyExample.FCStd` (git alias)
+    # Assert `AssemblyExample.FCStd` is NOT readonly
     # git add `AssemblyExample.FCStd`
     # Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
 
@@ -90,6 +91,7 @@ git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/
     # git commit -m "initial active_test commit"
     # Assert `AssemblyExample.FCStd` and `BIMExample.FCStd` are now readonly
     # git lock `AssemblyExample.FCStd` (git alias)
+    # Assert `AssemblyExample.FCStd` is NOT readonly
     # 2x Request user modify `AssemblyExample.FCStd`
     # 2x git add `AssemblyExample.FCStd`
     # 2x Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
@@ -111,6 +113,7 @@ git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/
     # git push origin active_test
     # assert error about commits with changes to files without locks being pushed
     # git lock `AssemblyExample.FCStd` again (git alias)
+    # Assert `AssemblyExample.FCStd` is NOT readonly
     # git push origin active_test
     # assert success
 
@@ -122,6 +125,7 @@ git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/
     # Assert `AssemblyExample.FCStd` and `BIMExample.FCStd` are now readonly
     # git checkout -b active_test_branch1
     # git lock `AssemblyExample.FCStd` (git alias)
+    # Assert `AssemblyExample.FCStd` is NOT readonly
     # Request user modify `AssemblyExample.FCStd`
     # git add `AssemblyExample.FCStd`
     # Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
@@ -147,6 +151,7 @@ git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/
     # git commit -m "initial active_test commit"
     # Assert `AssemblyExample.FCStd` is now readonly
     # git lock `AssemblyExample.FCStd` (git alias)
+    # Assert `AssemblyExample.FCStd` is NOT readonly
     # Request user modify `AssemblyExample.FCStd`
     # git add `AssemblyExample.FCStd`
     # Assert changes to get_FCStd_dir for `AssemblyExample.FCStd` exists now
@@ -155,9 +160,11 @@ git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/
     # git unlock `AssemblyExample.FCStd` (git alias)
     # Assert error shows up in stderr about unlocking a file that has stashed changes not pushed
     # git unlock --force `AssemblyExample.FCStd` (git alias)
+    # Assert `AssemblyExample.FCStd` is readonly
     # git stash pop
     # Assert error shows up in stderr about failing to merge stashed changes with files user doesn't have lock for
     # git lock `AssemblyExample.FCStd` (git alias)
+    # Assert `AssemblyExample.FCStd` is NOT readonly
     # git stash pop
     # Ask user to confirm `AssemblyExample.FCStd` changes are back
 

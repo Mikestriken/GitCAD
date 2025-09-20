@@ -10,7 +10,7 @@
 		- [x] `git config filter.FCStd.required true`
 		- [x] `git config filter.FCStd.smudge cat`
 		- [x] Check for any case of *.FCStd
-	- [ ] Add git aliases
+	- [x] Add git aliases
 	- [ ] Newly Clone Repo Support
 		- [ ] Trigger post-checkout after initialization.
 		- [ ] .FCStd files to readonly if config requires it and remove readonly if config doesn't require it.
@@ -59,7 +59,7 @@
 		- [x] Cancel push if in any commits being pushed, user doesn't have lock on .lockfile for dir with modifications.
 
 - [ ] Git Aliases:
-	- [ ] Experiment with `${GIT_PREFIX:-.}` see https://stackoverflow.com/questions/26243145/git-aliases-operate-in-the-wrong-directory
+	- [x] Experiment with `${GIT_PREFIX:-.}` see https://stackoverflow.com/questions/26243145/git-aliases-operate-in-the-wrong-directory
 	- [ ] lock.sh | USAGE: lock.sh path/to/file.FCStd:
 		- [ ] Set git lfs lock appropriate _FCStd directory .lockfile
 		- [ ] mark .FCStd file as writable

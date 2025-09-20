@@ -24,13 +24,15 @@ PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 # ==============================================================================================
 #                                          Parse Args
 # ==============================================================================================
-# * Get caller pwd
-# IE if caller is in $GIT_ROOT/subdir, CALLER_PWD = "subdir/"
-CALLER_PWD=$1
+# `$(GIT_PREFIX:-.)`:
+    # If caller is in $GIT_ROOT/subdir, $(GIT_PREFIX:-.) = "subdir/"
+    # If caller is in $GIT_ROOT, $(GIT_PREFIX:-.) = "."
+CALLER_SUBDIR=$1
 shift
+FILE_PATH="$CALLER_SUBDIR$1"
 
 # ==============================================================================================
 #                                          get
 # ==============================================================================================
-echo "PWD '$CALLER_PWD'"
-echo "Next Arg '$1'"
+echo "Subdir '$CALLER_SUBDIR'"
+echo "file path '$FILE_PATH'"

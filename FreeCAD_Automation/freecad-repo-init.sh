@@ -266,5 +266,40 @@ setup_filter_gitattribute "^\*\.[Ff][Cc][Ss][Tt][Dd]" "FCStd"
 echo "=============================================================================================="
 echo "                                     Adding git aliases"
 echo "=============================================================================================="
-git config alias.lock '!sh FreeCAD_Automation/lock.sh "${GIT_PREFIX:-.}"'
-git config alias.unlock '!sh FreeCAD_Automation/unlock.sh "${GIT_PREFIX:-.}"'
+setup_git_alias() {
+    local alias="$1"
+    local desired_value="$2"
+    local purpose="$3"
+
+    CURRENT_VALUE=$(git config --get "alias.$alias" 2>/dev/null)
+
+    if [ -n "$CURRENT_VALUE" ]; then
+        if [ "$CURRENT_VALUE" = "$desired_value" ]; then
+            echo "alias.$alias is already set to the desired value"
+            echo
+        else
+            echo "alias.$alias already exists:"
+            echo "  - Permission to change \`$CURRENT_VALUE\` --> \`$desired_value\`?"
+            read -p "    (( $purpose ))  (y/n): " -n 1 -r
+            
+            echo
+            
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                git config "alias.$alias" "$desired_value"
+                echo "    Updated alias.$alias"
+                echo
+            else
+                echo "    Skipping update of alias.$alias"
+                echo
+            fi
+        fi
+    else
+        git config "alias.$alias" "$desired_value"
+        echo "Set alias.$alias"
+        echo
+    fi
+}
+
+setup_git_alias "lock" "!sh FreeCAD_Automation/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh to local repo."
+setup_git_alias "unlock" "!sh FreeCAD_Automation/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh to local repo."
+setup_git_alias "FCStd" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\"" "Adds \`git FCStd\` as alias to run FCStdFileTool.py to local repo."
