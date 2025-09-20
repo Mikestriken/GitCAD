@@ -4,10 +4,10 @@ echo "==========================================================================
 echo "                             Verify and Retrieve Dependencies"
 echo "=============================================================================================="
 # Check git user.name and user.email set
-# if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
-#     echo "git config user.name or user.email not set!" >&2
-#     exit 1
-# fi
+if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
+    echo "git config user.name or user.email not set!" >&2
+    exit 1
+fi
 
 # Check if inside a Git repository and ensure working dir is the root of the repo
 if ! git rev-parse --git-dir > /dev/null; then
@@ -262,3 +262,9 @@ fi
 
 # Setup filters for .gitattributes
 setup_filter_gitattribute "^\*\.[Ff][Cc][Ss][Tt][Dd]" "FCStd"
+
+echo "=============================================================================================="
+echo "                                     Adding git aliases"
+echo "=============================================================================================="
+git config alias.lock '!sh FreeCAD_Automation/lock.sh "${GIT_PREFIX:-.}"'
+git config alias.unlock '!sh FreeCAD_Automation/unlock.sh "${GIT_PREFIX:-.}"'

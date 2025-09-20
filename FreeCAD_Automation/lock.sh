@@ -22,5 +22,15 @@ FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 
 # ==============================================================================================
-#                                              WIP
+#                                          Parse Args
 # ==============================================================================================
+# * Get caller pwd
+# IE if caller is in $GIT_ROOT/subdir, CALLER_PWD = "subdir/"
+CALLER_PWD=$1
+shift
+
+# ==============================================================================================
+#                                          get
+# ==============================================================================================
+echo "PWD '$CALLER_PWD'"
+echo "Next Arg '$1'"
