@@ -46,6 +46,10 @@ fi
     # EG:
         # git checkout test_binaries -- ./FreeCAD_Automation/tests/*.FCStd
         # Parses empty .FCStd files with this script before importing the full binary file from test_binaries tag
+
+# Note: when running `git status` sometimes this clean filter will be called
+# ToDo: if a git status calls this script don't perform extract operations
+
 # If file is empty exit don't export and early (success)
 if [ ! -s "$1" ]; then
     # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
