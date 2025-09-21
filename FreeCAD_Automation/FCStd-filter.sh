@@ -50,11 +50,7 @@ fi
 # Note: when running `git status` sometimes this clean filter will be called
 # ToDo: if a git status calls this script don't perform extract operations
 
-if [ -n "$STATUS_CALL" ]; then
-  echo "STATUS_CALL is set to: $STATUS_CALL"
-else
-  echo "STATUS_CALL is not set"
-fi
+echo "STATUS_CALL is set to: '$STATUS_CALL'" >&2
 
 # If file is empty exit don't export and early (success)
 if [ ! -s "$1" ]; then
