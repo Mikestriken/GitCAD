@@ -244,7 +244,7 @@ Read more on `git status` running filters [here](https://stackoverflow.com/quest
 Usage: `git stat`
 
 ### `git lock`
-Locks a `.FCStd` file for editing by locking the associated `.lockfile` in the uncompressed directory using Git LFS. This prevents others from modifying the file and makes the `.FCStd` file writable for editing in FreeCAD. Supports `--force` to override existing locks.
+Locks a `.FCStd` file for editing by locking the associated `.lockfile` in the uncompressed directory using Git LFS. This prevents others from modifying the file and makes the `.FCStd` file writable for editing in FreeCAD. Supports `--force` to steal existing locks (if you have permission to do so according to GitHub).
 
 Usage: `git lock path/to/file.FCStd [--force]`
 
