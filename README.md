@@ -253,6 +253,12 @@ Unlocks a previously locked `.FCStd` file by unlocking the associated `.lockfile
 
 Usage: `git unlock path/to/file.FCStd [--force]`
 
+### `git locks`
+A shorthand alias for `git lfs locks`.
+Provides a list of who has locks on files and which file they have a lock for.
+
+Usage: `git locks`
+
 ### `git FCStd`
 Runs the `FCStdFileTool.py` script for manual export or import of `.FCStd` files. Useful for advanced operations, troubleshooting, or direct manipulation of `.FCStd` files outside the normal Git workflow.
 
