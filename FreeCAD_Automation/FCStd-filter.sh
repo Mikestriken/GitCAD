@@ -24,24 +24,6 @@ PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 # print all args to stderr
 # echo "DEBUG: All args: '$@'" >&2
 
-
-# ==============================================================================================
-#                         Check if user allowed to modify .FCStd file
-# ==============================================================================================
-FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit 1
-
-# echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
-
-if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
-    # echo "DEBUG: '$1' has INVALID lock.... EXIT FAIL (Clean Filter)" >&2
-    exit $FAIL
-fi
-
-# ==============================================================================================
-#                                       Export the .FCStd file
-# ==============================================================================================
-# Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
-
 # Note: when running `git status` sometimes this clean filter will be called. Read more here: https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters
     # If the user uses the alias `git stat` the the STATUS_CALL env variable will be set during the git status call.
     # If the environment variable is detected then exit early without exporting FCStd files
@@ -49,6 +31,23 @@ if [ -n "$STATUS_CALL" ]; then
     cat /dev/null
     exit $SUCCESS
 fi
+# ==============================================================================================
+#                         Check if user allowed to modify .FCStd file
+# ==============================================================================================
+FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit 1
+
+# echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
+
+# ToDo: Figure out WTF I'm doing here.. aborting or just not exporting?
+if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
+    echo "ERROR: User doesn't have lock for '$1'... Aborting add operation..." >&2
+    exit $FAIL
+fi
+
+# ==============================================================================================
+#                                       Export the .FCStd file
+# ==============================================================================================
+# Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
 # Note: When checking out a file the clean filter will parse the current file in the working dir (even if git shows no changes)
     # EG:

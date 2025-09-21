@@ -33,20 +33,23 @@ shift
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
 parsed_args=()
 FORCE_FLAG=0
-if [ "$CALLER_SUBDIR" != "" ]; then
-    for arg in "$@"; do
-        if [[ "$arg" == -* ]]; then
-            if [ "$arg" == "--force" ]; then
-                FORCE_FLAG=1
-                echo "DEBUG: FORCE_FLAG set" >&2
-            fi
-        else
-            parsed_args+=("$CALLER_SUBDIR$arg")
+for arg in "$@"; do
+    # echo "DEBUG: paring '$arg'..." >&2
+    if [[ "$arg" == -* ]]; then
+        if [ "$arg" == "--force" ]; then
+            FORCE_FLAG=1
+            echo "DEBUG: FORCE_FLAG set" >&2
         fi
-    done
-else
-    parsed_args=("$@")
-fi
+    else
+        if [ "$CALLER_SUBDIR" != "" ]; then
+            # echo "DEBUG: prepend '$arg'" >&2
+            parsed_args+=("$CALLER_SUBDIR$arg")
+        else
+            # echo "DEBUG: Don't prepend '$arg'" >&2
+            parsed_args+=("$arg")
+        fi
+    fi
+done
 echo "DEBUG: Args='$parsed_args'" >&2
 
 # ==============================================================================================
