@@ -250,8 +250,8 @@ setup_filter_gitattribute() {
 
 # Add FCStd filters
 setup_git_FCStd_filter "clean" "./FreeCAD_Automation/FCStd-filter.sh %f" "This makes git see .FCStd files as being empty and decompresses added .FCStd files"
-setup_git_FCStd_filter "smudge" "cat" "Prevents checking out .FCStd files from throwing errors"
-setup_git_FCStd_filter "required" "true" "If clean/smudge filter fails, error the script out"
+setup_git_FCStd_filter "smudge" "cat" "Disabled smudge filter" # Required requires both clean and smudge be defined else it will always error out.
+setup_git_FCStd_filter "required" "true" "If clean/smudge filter fails, undo add operation."
 
 # Check .gitattributes for *.FCStd filter
 GITATTRIBUTES=".gitattributes"
