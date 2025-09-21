@@ -32,7 +32,7 @@ source "$FUNCTIONS_FILE"
 CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 
 # Extract Python path
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
 
 echo "Extracted Python path: $PYTHON_PATH"
 
@@ -41,7 +41,7 @@ if "$PYTHON_PATH" --version > /dev/null; then
     echo "Python runs correctly"
 else
     echo "Error: Python does not run or path is invalid" >&2
-    exit 1
+    exit $FAIL
 fi
 
 # Check if the import works
@@ -49,7 +49,7 @@ if "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import s
     echo "FreeCAD Python library import successful"
 else
     echo "Error: Import 'from freecad import project_utility as PU' failed" >&2
-    exit 1
+    exit $FAIL
 fi
 
 echo "All checks passed"
@@ -62,12 +62,12 @@ echo "All checks passed"
 # HOOKS_DIR=".git/hooks"
 # if [ ! -d "$HOOKS_DIR" ]; then
 #     echo "Error: .git/hooks directory not found" >&2
-#     exit 1
+#     exit $FAIL
 # fi
 
 # if [ ! -d "FreeCAD_Automation/hooks" ]; then
 #     echo "Error: FreeCAD_Automation/hooks directory not found" >&2
-#     exit 1
+#     exit $FAIL
 # fi
 
 # HOOKS=("post-checkout" "post-commit" "post-merge" "pre-commit" "pre-push")

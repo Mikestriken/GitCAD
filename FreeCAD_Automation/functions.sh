@@ -8,7 +8,7 @@ FALSE=1
 # ==============================================================================================
 
 # DESCRIPTION: Function to extract FreeCAD Python path from config file
-    # USAGE: `PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1`
+    # USAGE: `PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL`
 get_freecad_python_path() {
     local file=$1
     local key="freecad-python-instance-path"
@@ -39,7 +39,7 @@ get_freecad_python_path() {
 
 # DESCRIPTION: Function to extract require-lock-to-modify-FreeCAD-files boolean from config file
 # USAGE: 
-    # `REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit 1`
+    # `REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL`
     # `if [ $REQUIRE_LOCKS == 1 ]; then echo "Locks required"; elif [ $REQUIRE_LOCKS == 0 ]; then echo "Locks not required"; fi`
 get_require_locks_bool() {
     local file=$1
@@ -132,7 +132,7 @@ make_writable() {
 
 # DESCRIPTION: Function to check if FCStd file has valid lock. Returns 1 if valid (no lock required or lock held), 0 if invalid (lock required but not held)
 # USAGE: 
-    # `FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "path/to/file.FCStd") || exit 1`
+    # `FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "path/to/file.FCStd") || exit $FAIL`
     # `if [ $FILE_HAS_VALID_LOCK == 1 ]; then echo "File has valid lock"; elif [ $FILE_HAS_VALID_LOCK == 0 ]; then echo "File has invalid lock"; fi`
 FCStd_file_has_valid_lock() {
     local FCStd_file_path="$1"
@@ -196,7 +196,7 @@ FCStd_file_has_valid_lock() {
 }
 
 # DESCRIPTION: Function to get the uncompressed directory path for a .FCStd file
-# USAGE: `FCSTD_DIR=$(get_FCStd_dir "path/to/file.FCStd") || exit 1`
+# USAGE: `FCSTD_DIR=$(get_FCStd_dir "path/to/file.FCStd") || exit $FAIL`
 get_FCStd_dir() {
     local FCStd_file_path="$1"
     local CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
@@ -219,7 +219,7 @@ get_FCStd_dir() {
 
 # DESCRIPTION: Function to check if a directory has changes between two commits
 # USAGE:
-    # `DIR_HAS_CHANGES=$(dir_has_changes "path/to/dir") || exit 1`
+    # `DIR_HAS_CHANGES=$(dir_has_changes "path/to/dir") || exit $FAIL`
     # `if [ $DIR_HAS_CHANGES == 1 ]; then echo "dir has changed files"; elif [ $DIR_HAS_CHANGES == 0 ]; then echo "No changed files in dir"; fi`
 dir_has_changes() {
     local dir_path="$1"

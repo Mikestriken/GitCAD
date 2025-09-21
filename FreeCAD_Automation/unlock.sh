@@ -19,7 +19,7 @@ CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 
 # Extract Python path
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
 
 # ==============================================================================================
 #                                          Parse Args
@@ -58,18 +58,18 @@ echo "DEBUG: Args='$parsed_args'" >&2
 # Ensure valid args
 if [ ${#parsed_args[@]} != 1 ]; then
     echo "Error: Invalid arguments. Usage: unlock.sh path/to/file.FCStd [--force]" >&2
-    exit 1
+    exit $FAIL
 fi
 
 FCStd_file_path="${parsed_args[0]}"
 if [ -z "$FCStd_file_path" ]; then
     echo "Error: No file path provided" >&2
-    exit 1
+    exit $FAIL
 fi
 
 lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
     echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
-    exit 1
+    exit $FAIL
 }
 
 FCStd_dir_path=$(dirname "$lockfile_path")
@@ -104,10 +104,10 @@ if [ "$FORCE_FLAG" == 0 ]; then
     fi
 
     if [ -n "$REFERENCE_BRANCH" ]; then
-        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit 1
+        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
         if [ "$DIR_HAS_CHANGES" == 1 ]; then
             echo "Error: Cannot unlock file with unpushed changes. Use --force to override." >&2
-            exit 1
+            exit $FAIL
         fi
     fi
 
@@ -117,7 +117,7 @@ if [ "$FORCE_FLAG" == 0 ]; then
         echo "DEBUG: checking stash '$i'...." >&2
         if git stash show --name-only "stash@{$i}" 2>/dev/null | grep -q "^$FCStd_dir_path/"; then
             echo "Error: Cannot unlock file with stashed changes. Use --force to override." >&2
-            exit 1
+            exit $FAIL
             break
         fi
     done
@@ -127,8 +127,8 @@ fi
 
 git lfs unlock "$lockfile_path" || {
     echo "Error: Failed to unlock $lockfile_path" >&2
-    exit 1
+    exit $FAIL
 }
 
-make_readonly "$FCStd_file_path" || exit 1
+make_readonly "$FCStd_file_path" || exit $FAIL
 echo "DEBUG: '$FCStd_file_path' now readonly" >&2

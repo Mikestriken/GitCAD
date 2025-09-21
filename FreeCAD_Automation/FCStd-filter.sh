@@ -19,7 +19,7 @@ CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 
 # Extract Python path
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
 
 # print all args to stderr
 # echo "DEBUG: All args: '$@'" >&2
@@ -34,7 +34,7 @@ fi
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
-FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit 1
+FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
 
 # echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 

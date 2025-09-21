@@ -25,10 +25,10 @@ CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 
 # Extract Python path
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
 
 # Check if require-lock-to-modify-FreeCAD-files is true
-REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit 1
+REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL
 
 # ==============================================================================================
 #                                     Pull LFS files
@@ -133,5 +133,5 @@ elif [ "$3" == "0" ]; then
 else
     # Unknown checkout type
     echo "Unknown checkout type: $3, skipping .FCStd processing..." >&2
-    exit 0
+    exit $SUCCESS
 fi

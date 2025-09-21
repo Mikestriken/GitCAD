@@ -19,7 +19,7 @@ CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 
 # Extract Python path
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
 
 # ==============================================================================================
 #                                          Parse Args
@@ -58,18 +58,18 @@ echo "DEBUG: Args='$parsed_args'" >&2
 # Ensure num args shouldn't exceed 2 and if 2, 1 arg must be --force flag, the other the path, else if just 1 arg it should just be the path.
 if [ ${#parsed_args[@]} != 1 ]; then
     echo "Error: Invalid arguments. Usage: lock.sh path/to/file.FCStd [--force]" >&2
-    exit 1
+    exit $FAIL
 fi
 
 FCStd_file_path="${parsed_args[0]}"
 if [ -z "$FCStd_file_path" ]; then
     echo "Error: No file path provided" >&2
-    exit 1
+    exit $FAIL
 fi
 
 lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
     echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
-    exit 1
+    exit $FAIL
 }
 
 if [ "$FORCE_FLAG" == 1 ]; then
@@ -77,7 +77,7 @@ if [ "$FORCE_FLAG" == 1 ]; then
     LOCK_INFO=$(git lfs locks --path="$lockfile_path")
     CURRENT_USER=$(git config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
-        exit 1
+        exit $FAIL
     }
 
     echo "DEBUG: Stealing..." >&2
@@ -90,16 +90,13 @@ if [ "$FORCE_FLAG" == 1 ]; then
         # Locked by someone else, force_FLAG unlock
         git lfs unlock --force "$lockfile_path" || {
             echo "Error: Failed to force unlock $lockfile_path" >&2
-            exit 1
+            exit $FAIL
         }
         echo "DEBUG: Forcefully unlocked the lock" >&2
     fi
 fi
 
-git lfs lock "$lockfile_path" || {
-    echo "Error: Failed to lock $lockfile_path" >&2
-    exit 1
-}
+git lfs lock "$lockfile_path" || exit $FAIL
 
-make_writable "$FCStd_file_path" || exit 1
+make_writable "$FCStd_file_path" || exit $FAIL
 echo "DEBUG: '$FCStd_file_path' now writable" >&2

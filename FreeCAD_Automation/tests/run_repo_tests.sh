@@ -18,7 +18,7 @@ source "$FUNCTIONS_FILE"
 CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 
 # Extract Python path
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
 
 # ToDo: Check for uncommitted work in working directory, exit early if so with error message
 

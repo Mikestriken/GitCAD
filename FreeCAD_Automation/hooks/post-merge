@@ -26,10 +26,10 @@ CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 
 # Python script
 FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
+PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
 
 # Check if require-lock-to-modify-FreeCAD-files is true
-REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit 1
+REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL
 
 # ==============================================================================================
 #                         Update .FCStd files with uncompressed files
