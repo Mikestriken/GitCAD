@@ -24,20 +24,20 @@ PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
-FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit 1
+# FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit 1
 
-if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
-    exit 1
-fi
+# if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
+#     exit 1
+# fi
 
 # ==============================================================================================
 #                                       Export the .FCStd file
 # ==============================================================================================
-# Export the .FCStd file
-if ! "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
-    echo "Error: Failed to export $1" >&2
-    exit 1
-fi
+# # Export the .FCStd file
+# if ! "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
+#     echo "Error: Failed to export $1" >&2
+#     exit 1
+# fi
 
 # ==============================================================================================
 #                                     Show file as empty to git
