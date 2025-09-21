@@ -121,13 +121,13 @@ FCStd_file_has_valid_lock() {
 
     # If locks not required, return valid
     if [ "$REQUIRE_LOCKS" == 0 ]; then
-        echo "DEBUG: Locks not required, '$FCStd_file_path' is valid." >&2
+        echo "DEBUG: Locks not required, '$FCStd_file_path' lock is valid." >&2
         echo 1
     fi
 
     # File not tracked by git (new file), no lock needed (valid lock)
     if ! git ls-files --error-unmatch "$FCStd_file_path" > /dev/null 2>&1; then
-        echo "DEBUG: New .FCStd file, '$FCStd_file_path' is valid." >&2
+        echo "DEBUG: New .FCStd file, '$FCStd_file_path' lock is valid." >&2
         echo 1
     fi
 
@@ -140,7 +140,7 @@ FCStd_file_has_valid_lock() {
 
     # Lockfile not tracked by git (new export), no lock needed (valid lock)
     if ! git ls-files --error-unmatch "$lockfile_path" > /dev/null 2>&1; then
-        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' is valid." >&2
+        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
         echo 1
     fi
 
@@ -155,10 +155,10 @@ FCStd_file_has_valid_lock() {
     }
 
     if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
-        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' is INVALID." >&2
+        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is INVALID." >&2
         echo 0
     else
-        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' is valid." >&2
+        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
         echo 1
     fi
 }
