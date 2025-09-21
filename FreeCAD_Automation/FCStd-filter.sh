@@ -22,7 +22,7 @@ FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit 1
 
 # print all args to stderr
-echo "DEBUG: All args: '$@'" >&2
+# echo "DEBUG: All args: '$@'" >&2
 
 
 # ==============================================================================================
@@ -30,10 +30,10 @@ echo "DEBUG: All args: '$@'" >&2
 # ==============================================================================================
 FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit 1
 
-echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
+# echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 
 if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
-    echo "DEBUG: '$1' has INVALID lock.... EXIT FAIL (Clean Filter)" >&2
+    # echo "DEBUG: '$1' has INVALID lock.... EXIT FAIL (Clean Filter)" >&2
     exit $FAIL
 fi
 
@@ -42,20 +42,25 @@ fi
 # ==============================================================================================
 # Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
+# Note: When checking out a file the clean filter will parse the current file in the working dir (even if git shows no changes)
+    # EG:
+        # git checkout test_binaries -- ./FreeCAD_Automation/tests/*.FCStd
+        # Parses empty .FCStd files with this script before importing the full binary file from test_binaries tag
 # If file is empty exit don't export and early (success)
 if [ ! -s "$1" ]; then
-    echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
 
 # Export the .FCStd file
+echo -n "EXPORTING: '$1'...." >&2
 if "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
-    echo "DEBUG: Successful export of '$1'.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "SUCCESS" >&2
     cat /dev/null
     exit $SUCCESS
     
 else
-    echo "Error: Failed to export '$1'.... EXIT FAIL (Clean Filter)" >&2
+    echo "FAIL, Rolling back git operation" >&2
     exit $FAIL
 fi

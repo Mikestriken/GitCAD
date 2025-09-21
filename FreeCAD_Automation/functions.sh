@@ -67,12 +67,12 @@ get_require_locks_bool() {
     
     # Check if value matches JSON boolean syntax
     if [ "$value" = "true" ]; then
-        echo "DEBUG: REQUIRE LOCKS = TRUE" >&2
+        # echo "DEBUG: REQUIRE LOCKS = TRUE" >&2
         echo 1
         return $SUCCESS
 
     elif [ "$value" = "false" ]; then
-        echo "DEBUG: REQUIRE LOCKS = FALSE" >&2
+        # echo "DEBUG: REQUIRE LOCKS = FALSE" >&2
         echo 0
         return $SUCCESS
         
@@ -148,14 +148,14 @@ FCStd_file_has_valid_lock() {
 
     # If locks not required, return valid
     if [ "$REQUIRE_LOCKS" == 0 ]; then
-        echo "DEBUG: Locks not required, '$FCStd_file_path' lock is valid." >&2
+        # echo "DEBUG: Locks not required, '$FCStd_file_path' lock is valid." >&2
         echo 1
         return $SUCCESS
     fi
 
     # File not tracked by git (new file), no lock needed (valid lock)
     if ! git ls-files --error-unmatch "$FCStd_file_path" > /dev/null 2>&1; then
-        echo "DEBUG: New .FCStd file, '$FCStd_file_path' lock is valid." >&2
+        # echo "DEBUG: New .FCStd file, '$FCStd_file_path' lock is valid." >&2
         echo 1
         return $SUCCESS
     fi
@@ -169,7 +169,7 @@ FCStd_file_has_valid_lock() {
 
     # Lockfile not tracked by git (new export), no lock needed (valid lock)
     if ! git ls-files --error-unmatch "$lockfile_path" > /dev/null 2>&1; then
-        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
+        # echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
         echo 1
         return $SUCCESS
     fi
@@ -185,11 +185,11 @@ FCStd_file_has_valid_lock() {
     }
 
     if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
-        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is INVALID." >&2
+        # echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is INVALID." >&2
         echo 0
         return $SUCCESS
     else
-        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
+        # echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
         echo 1
         return $SUCCESS
     fi
@@ -227,12 +227,12 @@ dir_has_changes() {
     local new_sha="$3"
 
     if git diff --name-only "$old_sha..$new_sha" | grep -q "^$dir_path/"; then
-        echo "DEBUG: '$$dir_path/' HAS changes" >&2
+        # echo "DEBUG: '$$dir_path/' HAS changes" >&2
         echo 1
         return $SUCCESS
     
     else
-        echo "DEBUG: '$$dir_path/' has NO changes" >&2
+        # echo "DEBUG: '$$dir_path/' has NO changes" >&2
         echo 0
         return $SUCCESS
     fi
