@@ -1,4 +1,8 @@
 #!/bin/bash
+SUCCESS=0
+FAIL=1
+TRUE=0
+FALSE=1
 # ==============================================================================================
 #                                           Functions
 # ==============================================================================================
@@ -8,23 +12,29 @@
 get_freecad_python_path() {
     local file=$1
     local key="freecad-python-instance-path"
+    
     # Find the line containing the key
     local line=$(grep "\"$key\"" "$file")
     if [ -z "$line" ]; then
         echo "Error: Key '$key' not found in $file" >&2
-        return 1
+        return $FAIL
     fi
+
     # Extract value after : (stops at , or } for simple cases)
     local value=$(echo "$line" | sed 's/.*"'"$key"'": \([^,}]*\).*/\1/')
+    
     # Strip surrounding quotes if it's a string
     if [[ $value =~ ^\".*\"$ ]]; then
         value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
     fi
+    
     if [ -z "$value" ]; then
         echo "Error: Python path is empty" >&2
-        return 1
+        return $FAIL
     fi
+    
     echo "$value"
+    return $SUCCESS
 }
 
 # DESCRIPTION: Function to extract require-lock-to-modify-FreeCAD-files boolean from config file
@@ -34,32 +44,41 @@ get_freecad_python_path() {
 get_require_locks_bool() {
     local file=$1
     local key="require-lock-to-modify-FreeCAD-files"
+    
     # Find the line containing the key
     local line=$(grep "\"$key\"" "$file")
     if [ -z "$line" ]; then
         echo "Error: Key '$key' not found in $file" >&2
-        return 1
+        return $FAIL
     fi
+    
     # Extract value after : (stops at , or } for simple cases)
     local value=$(echo "$line" | sed 's/.*"'"$key"'": \([^,}]*\).*/\1/')
+    
     # Strip surrounding quotes if it's a string (though booleans shouldn't have quotes)
     if [[ $value =~ ^\".*\"$ ]]; then
         value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
     fi
+    
     if [ -z "$value" ]; then
         echo "Error: Require locks value is empty" >&2
-        return 1
+        return $FAIL
     fi
+    
     # Check if value matches JSON boolean syntax
     if [ "$value" = "true" ]; then
         echo "DEBUG: REQUIRE LOCKS = TRUE" >&2
         echo 1
+        return $SUCCESS
+
     elif [ "$value" = "false" ]; then
         echo "DEBUG: REQUIRE LOCKS = FALSE" >&2
         echo 0
+        return $SUCCESS
+        
     else
         echo "Error: Value '$value' does not match JSON boolean syntax 'true' or 'false'" >&2
-        return 1
+        return $FAIL
     fi
 }
 
@@ -70,17 +89,21 @@ make_readonly() {
 
     if [ ! -f "$file" ]; then
         echo "Error: File '$file' does not exist"  >&2
-        return 1
+        return $FAIL
     fi
 
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         chmod 444 "$file"
+    
     elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
         attrib +r "$file"
+    
     else
         echo "Error: Unsupported operating system: $OSTYPE"  >&2
-        return 1
+        return $FAIL
     fi
+
+    return $SUCCESS
 }
 
 # DESCRIPTION: Function to make a file writable on both Linux and Windows (via MSYS/Git Bash)
@@ -90,17 +113,21 @@ make_writable() {
 
     if [ ! -f "$file" ]; then
         echo "Error: File '$file' does not exist"  >&2
-        return 1
+        return $FAIL
     fi
 
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         chmod 644 "$file"
+    
     elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
         attrib -r "$file"
+    
     else
         echo "Error: Unsupported operating system: $OSTYPE"  >&2
-        return 1
+        return $FAIL
     fi
+
+    return $SUCCESS
 }
 
 # DESCRIPTION: Function to check if FCStd file has valid lock. Returns 1 if valid (no lock required or lock held), 0 if invalid (lock required but not held)
@@ -114,34 +141,37 @@ FCStd_file_has_valid_lock() {
 
     # Get required variables
     local PYTHON_PATH
-    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || return 1
+    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || return $FAIL
 
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || return 1
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || return $FAIL
 
     # If locks not required, return valid
     if [ "$REQUIRE_LOCKS" == 0 ]; then
         echo "DEBUG: Locks not required, '$FCStd_file_path' lock is valid." >&2
         echo 1
+        return $SUCCESS
     fi
 
     # File not tracked by git (new file), no lock needed (valid lock)
     if ! git ls-files --error-unmatch "$FCStd_file_path" > /dev/null 2>&1; then
         echo "DEBUG: New .FCStd file, '$FCStd_file_path' lock is valid." >&2
         echo 1
+        return $SUCCESS
     fi
 
     # File is tracked, get the .lockfile path
     local lockfile_path
     lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
         echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
-        return 1
+        return $FAIL
     }
 
     # Lockfile not tracked by git (new export), no lock needed (valid lock)
     if ! git ls-files --error-unmatch "$lockfile_path" > /dev/null 2>&1; then
         echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
         echo 1
+        return $SUCCESS
     fi
 
     # Check if user has lock
@@ -151,15 +181,17 @@ FCStd_file_has_valid_lock() {
     local CURRENT_USER
     CURRENT_USER=$(git config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
-        return 1
+        return $FAIL
     }
 
     if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
         echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is INVALID." >&2
         echo 0
+        return $SUCCESS
     else
         echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
         echo 1
+        return $SUCCESS
     fi
 }
 
@@ -172,13 +204,13 @@ get_FCStd_dir() {
 
     # Get Python path
     local PYTHON_PATH
-    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || return 1
+    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || return $FAIL
 
     # Get the lockfile path (which gives us the directory structure)
     local lockfile_path
     lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
         echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
-        return 1
+        return $FAIL
     }
 
     # Return the directory path (parent of lockfile)
@@ -197,8 +229,11 @@ dir_has_changes() {
     if git diff --name-only "$old_sha..$new_sha" | grep -q "^$dir_path/"; then
         echo "DEBUG: '$$dir_path/' HAS changes" >&2
         echo 1
+        return $SUCCESS
+    
     else
         echo "DEBUG: '$$dir_path/' has NO changes" >&2
         echo 0
+        return $SUCCESS
     fi
 }
