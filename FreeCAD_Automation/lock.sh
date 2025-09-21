@@ -38,6 +38,7 @@ if [ "$CALLER_SUBDIR" != "" ]; then
         if [[ "$arg" == -* ]]; then
             if [ "$arg" == "--force" ]; then
                 FORCE_FLAG=1
+                echo "DEBUG: FORCE_FLAG set" >&2
             fi
         else
             parsed_args+=("$CALLER_SUBDIR$arg")
@@ -46,6 +47,7 @@ if [ "$CALLER_SUBDIR" != "" ]; then
 else
     parsed_args=("$@")
 fi
+echo "DEBUG: Args='$parsed_args'" >&2
 
 # ==============================================================================================
 #                                          Lock File
@@ -74,7 +76,11 @@ if [ "$FORCE_FLAG" == 1 ]; then
         echo "Error: git config user.name not set!" >&2
         exit 1
     }
+
+    echo "DEBUG: Stealing..." >&2
+    
     if echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
+        echo "DEBUG: We own lock, no need to steal." >&2
         # Already locked by us, no need to force_FLAG
         :
     elif [ -n "$LOCK_INFO" ]; then
@@ -83,6 +89,7 @@ if [ "$FORCE_FLAG" == 1 ]; then
             echo "Error: Failed to force unlock $lockfile_path" >&2
             exit 1
         }
+        echo "DEBUG: Forcefully unlocked the lock" >&2
     fi
 fi
 
@@ -92,3 +99,4 @@ git lfs lock "$lockfile_path" || {
 }
 
 make_writable "$FCStd_file_path" || exit 1
+echo "DEBUG: '$FCStd_file_path' now writable" >&2
