@@ -47,10 +47,13 @@ fi
         # git checkout test_binaries -- ./FreeCAD_Automation/tests/*.FCStd
         # Parses empty .FCStd files with this script before importing the full binary file from test_binaries tag
 
-# Note: when running `git status` sometimes this clean filter will be called
-# ToDo: if a git status calls this script don't perform extract operations
-
-echo "STATUS_CALL is set to: '$STATUS_CALL'" >&2
+# Note: when running `git status` sometimes this clean filter will be called. Read more here: https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters
+    # If the user uses the alias `git stat` the the STATUS_CALL env variable will be set during the git status call.
+    # If the environment variable is detected then exit early without exporting FCStd files
+if [ -n "$STATUS_CALL" ]; then
+    cat /dev/null
+    exit $SUCCESS
+fi
 
 # If file is empty exit don't export and early (success)
 if [ ! -s "$1" ]; then
