@@ -226,6 +226,37 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
     }
 }
 ```
+## Git Aliases
+
+### `git stat`
+SOMETIMES*** Running `git status` causes git to execute clean filters on any modified files (even if the file isn't `git add`(ed)).
+Using `git stat` adds an environment variable prior to running `git status`, this lets the filter scripts (namely clean) know that a `git status` command called the filter.
+This tells the clean filter to not extract any `.FCStd` files passed to the filter (only show git that the `.FCStd` file is empty).
+
+Post version v1.0 I think this scenario will be very rare and can be ignored.
+
+The only scenario where I have this issue is when I'm using `git checkout` to checkout specific .FCStd files that are not empty for debugging/testing purposes.
+
+Post v1.0 ALL `.FCStd` files should be committed as empty files.
+
+Read more on `git status` running filters [here](https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters).
+
+Usage: `git stat`
+
+### `git lock`
+Locks a `.FCStd` file for editing by locking the associated `.lockfile` in the uncompressed directory using Git LFS. This prevents others from modifying the file and makes the `.FCStd` file writable for editing in FreeCAD. Supports `--force` to override existing locks.
+
+Usage: `git lock path/to/file.FCStd [--force]`
+
+### `git unlock`
+Unlocks a previously locked `.FCStd` file by unlocking the associated `.lockfile` in Git LFS. Checks for unpushed changes in the uncompressed directory and prevents unlocking if changes exist (unless `--force` is used). Makes the `.FCStd` file readonly after unlocking.
+
+Usage: `git unlock path/to/file.FCStd [--force]`
+
+### `git FCStd`
+Runs the `FCStdFileTool.py` script for manual export or import of `.FCStd` files. Useful for advanced operations, troubleshooting, or direct manipulation of `.FCStd` files outside the normal Git workflow.
+
+Run: `git FCStd` (no args) to see usage details.
 
 ## Flowchart
 A Mermaid diagram illustrating the Git workflow process will be added here in a future update.
