@@ -33,28 +33,29 @@ FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit 1
 echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 
 if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
-    echo "DEBUG: '$1' has INVALID lock, undo-ing \`git add\` operation" >&2
+    echo "DEBUG: '$1' has INVALID lock.... EXIT FAIL (Clean Filter)" >&2
     exit $FAIL
 fi
 
 # ==============================================================================================
 #                                       Export the .FCStd file
 # ==============================================================================================
+# Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
+
 # If file is empty exit don't export and early (success)
 if [ ! -s "$1" ]; then
-    echo "DEBUG: '$1' is empty, skipping export." >&2
+    echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
 
 # Export the .FCStd file
-if ! "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
-    echo "Error: Failed to export $1" >&2
+if "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
+    echo "DEBUG: Successful export of '$1'.... EXIT SUCCESS (Clean Filter)" >&2
+    cat /dev/null
+    exit $SUCCESS
+    
+else
+    echo "Error: Failed to export '$1'.... EXIT FAIL (Clean Filter)" >&2
     exit $FAIL
 fi
-
-# ==============================================================================================
-#                                     Show file as empty to git
-# ==============================================================================================
-cat /dev/null
-exit $SUCCESS
