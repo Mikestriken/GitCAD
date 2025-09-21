@@ -47,7 +47,8 @@ for FCStd_file in $TRACKED_FCSTD_FILES; do
         FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || exit 1
 
         if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
-            exit 1
+            echo "ERROR: User doesn't have lock for '$FCStd_file'... Aborting commit operation..." >&2
+            exit $FAIL
         fi
     fi
 done
