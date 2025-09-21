@@ -42,11 +42,6 @@ fi
 # ==============================================================================================
 # Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
-# Note: When checking out a file the clean filter will parse the current file in the working dir (even if git shows no changes)
-    # EG:
-        # git checkout test_binaries -- ./FreeCAD_Automation/tests/*.FCStd
-        # Parses empty .FCStd files with this script before importing the full binary file from test_binaries tag
-
 # Note: when running `git status` sometimes this clean filter will be called. Read more here: https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters
     # If the user uses the alias `git stat` the the STATUS_CALL env variable will be set during the git status call.
     # If the environment variable is detected then exit early without exporting FCStd files
@@ -55,7 +50,12 @@ if [ -n "$STATUS_CALL" ]; then
     exit $SUCCESS
 fi
 
-# If file is empty exit don't export and early (success)
+# Note: When checking out a file the clean filter will parse the current file in the working dir (even if git shows no changes)
+    # EG:
+        # git checkout test_binaries -- ./FreeCAD_Automation/tests/*.FCStd
+        # Parses empty .FCStd files with this script before importing the full binary file from test_binaries tag
+
+    # Solution: If file is empty don't export and exit early with success
 if [ ! -s "$1" ]; then
     # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
