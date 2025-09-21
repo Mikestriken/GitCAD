@@ -300,6 +300,7 @@ setup_git_alias() {
     fi
 }
 
+setup_git_alias "status" "!STATUS_CALL=1 git status" "Stops clean filter from running on \`git status\`"
 setup_git_alias "lock" "!sh FreeCAD_Automation/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh to local repo."
 setup_git_alias "unlock" "!sh FreeCAD_Automation/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh to local repo."
 setup_git_alias "FCStd" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\"" "Adds \`git FCStd\` as alias to run FCStdFileTool.py to local repo."
