@@ -36,10 +36,7 @@ source "$FUNCTIONS_FILE"
 #                                          Get Binaries
 # ==============================================================================================
 git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
-git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
-
-# ! git add executes the clean FCStd filter on the added .FCStd files.
-# ! Make sure to remove them after running the tests (don't commit them)
+git clearFCStdMod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 
 # ==============================================================================================
 #                                           Run Tests
