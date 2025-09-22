@@ -125,10 +125,7 @@ if [ "$FORCE_FLAG" == 0 ]; then
 fi
 
 
-git lfs unlock "$lockfile_path" || {
-    echo "Error: Failed to unlock $lockfile_path" >&2
-    exit $FAIL
-}
+git lfs unlock "$lockfile_path" || exit $FAIL
 
 make_readonly "$FCStd_file_path" || exit $FAIL
 echo "DEBUG: '$FCStd_file_path' now readonly" >&2
