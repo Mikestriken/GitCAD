@@ -28,3 +28,5 @@ for FCStd_file in $STAGED_FCSTD_FILES; do
         exit $FAIL
     fi
 done
+
+exit $SUCCESS

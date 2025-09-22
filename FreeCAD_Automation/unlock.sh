@@ -129,3 +129,5 @@ git lfs unlock "$lockfile_path" || exit $FAIL
 
 make_readonly "$FCStd_file_path" || exit $FAIL
 echo "DEBUG: '$FCStd_file_path' now readonly" >&2
+
+exit $SUCCESS

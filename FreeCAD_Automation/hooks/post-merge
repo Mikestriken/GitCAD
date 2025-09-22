@@ -79,3 +79,5 @@ for FCStd_file in $TRACKED_FCSTD_FILES; do
         fi
     fi
 done
+
+exit $SUCCESS

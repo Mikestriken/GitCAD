@@ -212,3 +212,5 @@ git add FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/
     # Assert `BIMExample.FCStd` is NOT readonly
     # Assert `AssemblyExample.FCStd` is readonly
     # Ask user to confirm `AssemblyExample.FCStd` changes are back
+
+exit $SUCCESS

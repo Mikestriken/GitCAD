@@ -100,3 +100,5 @@ git lfs lock "$lockfile_path" || exit $FAIL
 
 make_writable "$FCStd_file_path" || exit $FAIL
 echo "DEBUG: '$FCStd_file_path' now writable" >&2
+
+exit $SUCCESS

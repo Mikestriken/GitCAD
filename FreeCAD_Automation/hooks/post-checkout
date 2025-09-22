@@ -133,5 +133,6 @@ elif [ "$3" == "0" ]; then
 else
     # Unknown checkout type
     echo "Unknown checkout type: $3, skipping .FCStd processing..." >&2
-    exit $SUCCESS
 fi
+
+exit $SUCCESS
