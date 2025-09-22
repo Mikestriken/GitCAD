@@ -88,9 +88,10 @@ if [ "$FORCE_FLAG" == 0 ]; then
     smallest_num_commits_to_merge_base=$(git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)
     echo "DEBUG: Initial guess: '$REFERENCE_BRANCH' @ '$smallest_num_commits_to_merge_base' commits away" >&2
     
-    for remote_branch in $REMOTE_BRANCHES; do
+    echo "DEBUG: List to try='${REMOTE_BRANCHES[@]}'" >&2
+    for remote_branch in ${REMOTE_BRANCHES[@]}; do
         MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
-        echo "Trying '$remote_branch' @ hash '$MERGE_BASE'" >&2
+        echo "DEBUG: Trying '$remote_branch' @ hash '$MERGE_BASE'" >&2
         
         if [ -n "$MERGE_BASE" ]; then
             num_commits_to_merge_base=$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)
