@@ -78,8 +78,6 @@ FCStd_dir_path=$(dirname "$lockfile_path")
 
 # Check for unpushed changes if not force
 if [ "$FORCE_FLAG" == 0 ]; then
-    # ToDo: Failsafe is user is in detached head mode.
-    BRANCH=$(git branch --show-current)
     UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)
     REFERENCE_BRANCH=""
 
