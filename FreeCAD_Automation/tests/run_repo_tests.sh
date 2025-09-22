@@ -17,50 +17,178 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # ==============================================================================================
-#                                          Test Functions
-# ==============================================================================================
-# ToDo: setup function
-    # Checkout -b active_test
-        # Err if returns 1 (branch already exists)
-    # push active_test to remote
-    # Copies binaries into active_test dir
-    # return test dir path
-
-# ToDo: tearDown function
-    # Note: this should be called in the event any of the tests fail as well and then the script will exit early (this test will fail-fast)
-    # remove any locks in test dir
-    # git reset --hard
-    # git checkout main
-    # Delete active_test* branches (local and remote)
-
-# ToDo: Any custom assert functions
-
-# ToDo: Await user modification of `.FCStd` file (verify file was modified before exiting)
-# ==============================================================================================
 #                                          Get Binaries
 # ==============================================================================================
 git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 git clearFCStdMod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 
 # ==============================================================================================
+#                                          Test Functions
+# ==============================================================================================
+TEST_BRANCH="active_test"
+TEST_DIR="FreeCAD_Automation/tests/$TEST_BRANCH"
+setup() {
+    # Checkout -b active_test
+    if ! git checkout -b "$TEST_BRANCH"; then
+        echo "Error: Branch '$TEST_BRANCH' already exists" >&2
+        return $FAIL
+    fi
+    
+    # push active_test to remote
+    if ! git push -u origin "$TEST_BRANCH"; then
+        echo "Error: Failed to push branch '$TEST_BRANCH' to remote" >&2
+        return $FAIL
+    fi
+    # Copies binaries into active_test dir (already done globally, but ensure)
+    cp $TEST_DIR/../AssemblyExample.FCStd $TEST_DIR/../BIMExample.FCStd $TEST_DIR || return $FAIL
+    
+    # return test dir path (current dir)
+    echo "$TEST_DIR"
+
+    return $SUCCESS
+}
+
+tearDown() {
+    # remove any locks in test dir
+    # Assuming test dir is current dir, remove locks
+    git lfs locks --path="$TEST_DIR" | xargs -r git lfs unlock --force || true
+    # git reset --hard
+    git reset --hard
+    # git checkout main
+    git checkout main
+    # Delete active_test* branches (local and remote)
+    git branch -D active_test* 2>/dev/null || true
+    git push origin --delete active_test* 2>/dev/null || true
+}
+
+# Custom assert functions
+assert_dir_exists() {
+    local dir="$1"
+    if [ ! -d "$dir" ]; then
+        echo "Assertion failed: Directory '$dir' does not exist" >&2
+        tearDown
+        exit $FAIL
+    fi
+}
+
+assert_readonly() {
+    local file="$1"
+    if [ -w "$file" ]; then
+        echo "Assertion failed: File '$file' is writable" >&2
+        tearDown
+        exit $FAIL
+    fi
+}
+
+assert_writable() {
+    local file="$1"
+    if [ ! -w "$file" ]; then
+        echo "Assertion failed: File '$file' is readonly" >&2
+        tearDown
+        exit $FAIL
+    fi
+}
+
+assert_dir_has_changes() {
+    local dir="$1"
+    if ! git diff --name-only | grep -q "^$dir/"; then
+        echo "Assertion failed: Directory '$dir' has no changes" >&2
+        tearDown
+        exit $FAIL
+    fi
+}
+
+assert_command_fails() {
+    local cmd="$1"
+    if eval "$cmd"; then
+        echo "Assertion failed: Command '$cmd' succeeded but expected to fail" >&2
+        tearDown
+        exit $FAIL
+    fi
+}
+
+assert_command_succeeds() {
+    local cmd="$1"
+    if ! eval "$cmd"; then
+        echo "Assertion failed: Command '$cmd' failed but expected to succeed" >&2
+        tearDown
+        exit $FAIL
+    fi
+}
+
+await_user_modification() {
+    local file="$1"
+    while true; do
+        echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
+        read -r dummy
+        if git status --porcelain | grep -q "^.M $file$"; then
+            break
+        else
+            echo "No changes detected in '$file'. Please make sure to save your modifications."
+        fi
+    done
+}
+
+# ==============================================================================================
 #                                           Run Tests
 # ==============================================================================================
 # ToDo: Ponder edge cases missing from tests below
-# ToDo: Locking alias will need to be tested manually in separate cloned repos
 
-# ToDo: Test FCStd-filter.sh
+test_FCStd_filter() {
+    TEST_DIR=$(setup) || { echo "Setup failed" >&2 ; exit $FAIL; }
+
     # remove `BIMExample.FCStd` (not used for this test)
+    rm $TEST_DIR/BIMExample.FCStd
+
     # `git add` `AssemblyExample.FCStd` (file copied during setup)
+    git add $TEST_DIR/AssemblyExample.FCStd
+
     # Assert get_FCStd_dir for `AssemblyExample.FCStd` exists now
+    local FCStd_dir_path
+    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown; exit $FAIL; }
+    assert_dir_exists "$FCStd_dir_path"
+
     # git add get_FCStd_dir for `AssemblyExample.FCStd`
+    git add "$FCStd_dir_path"
+
     # git commit -m "initial active_test commit"
+    git commit -m "initial active_test commit"
+
     # Assert `AssemblyExample.FCStd` is now readonly
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"
+
     # Request user modify `AssemblyExample.FCStd`
+    await_user_modification "$TEST_DIR/AssemblyExample.FCStd"
+
     # attempt to git add changes (expect error)
+    assert_command_fails "git add $TEST_DIR/AssemblyExample.FCStd"
+
     # git lock `AssemblyExample.FCStd` (git alias)
+    git lock "$TEST_DIR/AssemblyExample.FCStd"
+
     # Assert `AssemblyExample.FCStd` is NOT readonly
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"
+
     # git add `AssemblyExample.FCStd`
+    git add "$TEST_DIR/AssemblyExample.FCStd"
+
     # Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
+    assert_dir_has_changes "$FCStd_dir_path"
+
+    tearDown
+}
+
+test_setup_teardown() {
+    TEST_DIR=$(setup) || { echo "Setup failed" >&2; exit $FAIL; }
+    git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd"
+    git commit -m "test commit for setup/tearDown"
+    git push origin $TEST_BRANCH
+    tearDown
+}
+
+# Run the tests
+test_setup_teardown
+# test_FCStd_filter
 
 # ToDo: Test Pre-Commit Hook
     # remove `BIMExample.FCStd` (not used for this test)

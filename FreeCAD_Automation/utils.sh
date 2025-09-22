@@ -204,7 +204,7 @@ FCStd_file_has_valid_lock() {
 }
 
 # DESCRIPTION: Function to get the uncompressed directory path for a .FCStd file
-# USAGE: `FCSTD_DIR=$(get_FCStd_dir "path/to/file.FCStd") || exit $FAIL`
+# USAGE: `FCStd_dir_path=$(get_FCStd_dir "path/to/file.FCStd") || exit $FAIL`
 get_FCStd_dir() {
     local FCStd_file_path="$1"
 
