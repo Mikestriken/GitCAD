@@ -10,7 +10,11 @@ cd "$GIT_ROOT"
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
-# ToDo: Check for uncommitted work in working directory, exit early if so with error message
+# Check for uncommitted work in working directory, exit early if so with error message
+if [ -n "$(git status --porcelain)" ]; then
+    echo "Error: There are uncommitted changes in the working directory. Please commit or stash them before running tests."
+    exit $FAIL
+fi
 
 # ==============================================================================================
 #                                          Test Functions
