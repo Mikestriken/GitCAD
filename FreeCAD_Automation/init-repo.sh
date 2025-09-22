@@ -309,4 +309,7 @@ setup_git_alias "FCStd" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PR
 
 # ToDo: Create default config file
 # ToDo: Ignore config file
+    # **/__pycache__
+    # FreeCAD_Automation/git-freecad-config.json
+# ToDo? Revert config file?
 exit $SUCCESS

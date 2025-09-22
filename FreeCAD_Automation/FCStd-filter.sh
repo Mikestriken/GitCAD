@@ -40,7 +40,7 @@ FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
 
 # echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 
-# ToDo: Figure out WTF I'm doing here.. aborting or just not exporting?
+# ToDo?: Figure out WTF I'm doing here.. aborting or just not exporting?
 if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
     echo "ERROR: User doesn't have lock for '$1'... Aborting add operation..." >&2
     exit $FAIL

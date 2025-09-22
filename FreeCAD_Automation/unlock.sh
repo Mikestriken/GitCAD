@@ -78,7 +78,7 @@ FCStd_dir_path=$(realpath --relative-to="$(git rev-parse --show-toplevel)" "$(di
 
 # Check for unpushed changes if not force
 if [ "$FORCE_FLAG" == 0 ]; then
-    # ToDo: Consider bringing back using upstream branch as reference first if it exists
+    # ToDo? Consider bringing back using upstream branch as reference first if it exists?
         # UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)
         # if [ -n "$UPSTREAM" ]; then; REFERENCE_BRANCH="$UPSTREAM"; fi;
 
