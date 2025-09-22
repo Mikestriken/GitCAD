@@ -2,7 +2,6 @@
 echo "=============================================================================================="
 echo "                                    Create Config File"
 echo "=============================================================================================="
-# ToDo? Revert config file?
 DEFAULT_CONFIG='{
     "freecad-python-instance-path": "",
     "require-lock-to-modify-FreeCAD-files": true,
