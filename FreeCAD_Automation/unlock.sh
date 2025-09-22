@@ -38,19 +38,21 @@ for arg in "$@"; do
     if [[ "$arg" == -* ]]; then
         if [ "$arg" == "--force" ]; then
             FORCE_FLAG=1
-            echo "DEBUG: FORCE_FLAG set" >&2
+            # echo "DEBUG: FORCE_FLAG set" >&2
         fi
+    
     else
         if [ "$CALLER_SUBDIR" != "" ]; then
             # echo "DEBUG: prepend '$arg'" >&2
             parsed_args+=("$CALLER_SUBDIR$arg")
+        
         else
             # echo "DEBUG: Don't prepend '$arg'" >&2
             parsed_args+=("$arg")
         fi
     fi
 done
-echo "DEBUG: Args='$parsed_args'" >&2
+# echo "DEBUG: Args='$parsed_args'" >&2
 
 # ==============================================================================================
 #                                          Unlock File
@@ -94,8 +96,10 @@ if [ "$FORCE_FLAG" == 0 ]; then
         
         for remote_branch in $REMOTE_BRANCHES; do
             MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
+            
             if [ -n "$MERGE_BASE" ]; then
                 num_commits_to_merge_base=$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)
+                
                 if [ "$num_commits_to_merge_base" -lt "$smallest_num_commits_to_merge_base" ]; then
                     smallest_num_commits_to_merge_base="$num_commits_to_merge_base"
                     REFERENCE_BRANCH="$remote_branch"
@@ -108,6 +112,7 @@ if [ "$FORCE_FLAG" == 0 ]; then
 
     if [ -n "$REFERENCE_BRANCH" ]; then
         DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
+        
         if [ "$DIR_HAS_CHANGES" == 1 ]; then
             echo "Error: Cannot unlock file with unpushed changes. Use --force to override." >&2
             exit $FAIL
@@ -118,6 +123,7 @@ if [ "$FORCE_FLAG" == 0 ]; then
     STASH_COUNT=$(git stash list | wc -l)
     for i in $(seq 0 $((STASH_COUNT - 1))); do
         echo "DEBUG: checking stash '$i'...." >&2
+        
         if git stash show --name-only "stash@{$i}" 2>/dev/null | grep -q "^$FCStd_dir_path/"; then
             echo "Error: Cannot unlock file with stashed changes. Use --force to override." >&2
             exit $FAIL
