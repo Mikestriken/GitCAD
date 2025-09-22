@@ -161,8 +161,8 @@ FCStd_file_has_valid_lock() {
     fi
 
     # File is tracked, get the .lockfile path
-    local lockfile_path
-    lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
+    local lockfile_path # 
+    lockfile_path=$(realpath --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
         echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
         return $FAIL
     }
@@ -176,7 +176,10 @@ FCStd_file_has_valid_lock() {
 
     # Check if user has lock
     local LOCK_INFO
-    LOCK_INFO=$(git lfs locks --path="$lockfile_path")
+    LOCK_INFO=$(git lfs locks --path="$lockfile_path") || {
+        echo "Error: failed to get lock info for '$lockfile_path'" >&2
+        return $FAIL
+    }
 
     local CURRENT_USER
     CURRENT_USER=$(git config --get user.name) || {
