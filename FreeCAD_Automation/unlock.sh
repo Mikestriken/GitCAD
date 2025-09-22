@@ -74,19 +74,23 @@ lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd
     exit $FAIL
 }
 
-FCStd_dir_path=$(dirname "$lockfile_path")
+FCStd_dir_path=$(realpath --relative-to="$(git rev-parse --show-toplevel)" "$(dirname "$lockfile_path")")
 
 # Check for unpushed changes if not force
 if [ "$FORCE_FLAG" == 0 ]; then
-    REFERENCE_BRANCH=""
+    echo "DEBUG: Looking for closest reference branch..." >&2
 
     # Reference the remote branch with the closest merge-base (fewest commits)
     mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
     FIRST_MERGE_BASE=$(git merge-base "${REMOTE_BRANCHES[0]}" HEAD 2>/dev/null)
+    
+    REFERENCE_BRANCH=${REMOTE_BRANCHES[0]}
     smallest_num_commits_to_merge_base=$(git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)
+    echo "DEBUG: Initial guess: '$REFERENCE_BRANCH' @ '$smallest_num_commits_to_merge_base' commits away" >&2
     
     for remote_branch in $REMOTE_BRANCHES; do
         MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
+        echo "Trying '$remote_branch' @ hash '$MERGE_BASE'" >&2
         
         if [ -n "$MERGE_BASE" ]; then
             num_commits_to_merge_base=$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)
@@ -120,7 +124,7 @@ if [ "$FORCE_FLAG" == 0 ]; then
             break
         fi
     done
-    echo "DEBUG: No uncommitted changes, clear to unlock!" >&2
+    echo "DEBUG: No uncommitted changes to '$FCStd_dir_path', clear to unlock!" >&2
 fi
 
 
