@@ -78,35 +78,27 @@ FCStd_dir_path=$(dirname "$lockfile_path")
 
 # Check for unpushed changes if not force
 if [ "$FORCE_FLAG" == 0 ]; then
-    UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)
     REFERENCE_BRANCH=""
 
-    if [ -n "$UPSTREAM" ]; then
-        # Reference the upstream branch if it exists
-        REFERENCE_BRANCH="$UPSTREAM"
-        echo "DEBUG: Found upstream reference='$REFERENCE_BRANCH'" >&2
+    # Reference the remote branch with the closest merge-base (fewest commits)
+    mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
+    FIRST_MERGE_BASE=$(git merge-base "${REMOTE_BRANCHES[0]}" HEAD 2>/dev/null)
+    smallest_num_commits_to_merge_base=$(git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)
     
-    else
-        # Reference the remote branch with the closest merge-base (fewest commits)
-        mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
-        FIRST_MERGE_BASE=$(git merge-base "${REMOTE_BRANCHES[0]}" HEAD 2>/dev/null)
-        smallest_num_commits_to_merge_base=$(git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)
+    for remote_branch in $REMOTE_BRANCHES; do
+        MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
         
-        for remote_branch in $REMOTE_BRANCHES; do
-            MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
+        if [ -n "$MERGE_BASE" ]; then
+            num_commits_to_merge_base=$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)
             
-            if [ -n "$MERGE_BASE" ]; then
-                num_commits_to_merge_base=$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)
-                
-                if [ "$num_commits_to_merge_base" -lt "$smallest_num_commits_to_merge_base" ]; then
-                    smallest_num_commits_to_merge_base="$num_commits_to_merge_base"
-                    REFERENCE_BRANCH="$remote_branch"
-                    echo "DEBUG: $smallest_num_commits_to_merge_base commits away is '$REFERENCE_BRANCH'" >&2
-                fi
+            if [ "$num_commits_to_merge_base" -lt "$smallest_num_commits_to_merge_base" ]; then
+                smallest_num_commits_to_merge_base="$num_commits_to_merge_base"
+                REFERENCE_BRANCH="$remote_branch"
+                echo "DEBUG: $smallest_num_commits_to_merge_base commits away is '$REFERENCE_BRANCH'" >&2
             fi
-        done
-        echo "DEBUG: Closest reference='$REFERENCE_BRANCH'" >&2
-    fi
+        fi
+    done
+    echo "DEBUG: Closest reference='$REFERENCE_BRANCH'" >&2
 
     if [ -n "$REFERENCE_BRANCH" ]; then
         DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
