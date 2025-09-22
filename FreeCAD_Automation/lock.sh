@@ -83,22 +83,19 @@ if [ "$FORCE_FLAG" == 1 ]; then
     echo "DEBUG: Stealing..." >&2
     
     if echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
-        echo "DEBUG: We own lock, no need to steal." >&2
-        # Already locked by us, no need to force_FLAG
+        echo "DEBUG: lock already owned, no need to steal." >&2
         :
+    
     elif [ -n "$LOCK_INFO" ]; then
-        # Locked by someone else, force_FLAG unlock
-        git lfs unlock --force "$lockfile_path" || {
-            echo "Error: Failed to force unlock $lockfile_path" >&2
-            exit $FAIL
-        }
-        echo "DEBUG: Forcefully unlocked the lock" >&2
+        echo "DEBUG: Forcefully unlocking..." >&2
+        git lfs unlock --force "$lockfile_path" || exit $FAIL
     fi
 fi
 
 git lfs lock "$lockfile_path" || exit $FAIL
 
 make_writable "$FCStd_file_path" || exit $FAIL
-echo "DEBUG: '$FCStd_file_path' now writable" >&2
+
+echo "DEBUG: '$FCStd_file_path' now writable and locked" >&2
 
 exit $SUCCESS

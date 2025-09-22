@@ -82,13 +82,16 @@ if [ "$FORCE_FLAG" == 0 ]; then
     REFERENCE_BRANCH=""
 
     if [ -n "$UPSTREAM" ]; then
-        # Use upstream if it exists
+        # Reference the upstream branch if it exists
         REFERENCE_BRANCH="$UPSTREAM"
         echo "DEBUG: Found upstream reference='$REFERENCE_BRANCH'" >&2
+    
     else
-        # Find the remote branch with the closest merge-base (fewest commits)
-        smallest_num_commits_to_merge_base=999999
-        REMOTE_BRANCHES=$(git branch -r 2>/dev/null | xargs)
+        # Reference the remote branch with the closest merge-base (fewest commits)
+        mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
+        FIRST_MERGE_BASE=$(git merge-base "${REMOTE_BRANCHES[0]}" HEAD 2>/dev/null)
+        smallest_num_commits_to_merge_base=$(git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)
+        
         for remote_branch in $REMOTE_BRANCHES; do
             MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
             if [ -n "$MERGE_BASE" ]; then
