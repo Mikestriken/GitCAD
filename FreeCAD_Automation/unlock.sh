@@ -78,7 +78,7 @@ FCStd_dir_path=$(realpath --relative-to="$(git rev-parse --show-toplevel)" "$(di
 
 # Check for unpushed changes if not force
 if [ "$FORCE_FLAG" == 0 ]; then
-    echo "DEBUG: Looking for closest reference branch..." >&2
+    # echo "DEBUG: Looking for closest reference branch..." >&2
 
     # Reference the remote branch with the closest merge-base (fewest commits)
     mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
@@ -86,12 +86,12 @@ if [ "$FORCE_FLAG" == 0 ]; then
     
     REFERENCE_BRANCH=${REMOTE_BRANCHES[0]}
     smallest_num_commits_to_merge_base=$(git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)
-    echo "DEBUG: Initial guess: '$REFERENCE_BRANCH' @ '$smallest_num_commits_to_merge_base' commits away" >&2
+    # echo "DEBUG: Initial guess: '$REFERENCE_BRANCH' @ '$smallest_num_commits_to_merge_base' commits away" >&2
     
-    echo "DEBUG: List to try='${REMOTE_BRANCHES[@]}'" >&2
+    # echo "DEBUG: List to try='${REMOTE_BRANCHES[@]}'" >&2
     for remote_branch in ${REMOTE_BRANCHES[@]}; do
         MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
-        echo "DEBUG: Trying '$remote_branch' @ hash '$MERGE_BASE'" >&2
+        # echo "DEBUG: Trying '$remote_branch' @ hash '$MERGE_BASE'" >&2
         
         if [ -n "$MERGE_BASE" ]; then
             num_commits_to_merge_base=$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)
@@ -99,11 +99,11 @@ if [ "$FORCE_FLAG" == 0 ]; then
             if [ "$num_commits_to_merge_base" -lt "$smallest_num_commits_to_merge_base" ]; then
                 smallest_num_commits_to_merge_base="$num_commits_to_merge_base"
                 REFERENCE_BRANCH="$remote_branch"
-                echo "DEBUG: $smallest_num_commits_to_merge_base commits away is '$REFERENCE_BRANCH'" >&2
+                # echo "DEBUG: $smallest_num_commits_to_merge_base commits away is '$REFERENCE_BRANCH'" >&2
             fi
         fi
     done
-    echo "DEBUG: Closest reference='$REFERENCE_BRANCH'" >&2
+    # echo "DEBUG: Closest reference='$REFERENCE_BRANCH'" >&2
 
     if [ -n "$REFERENCE_BRANCH" ]; then
         DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
@@ -117,7 +117,7 @@ if [ "$FORCE_FLAG" == 0 ]; then
     # Check for stashed changes
     STASH_COUNT=$(git stash list | wc -l)
     for i in $(seq 0 $((STASH_COUNT - 1))); do
-        echo "DEBUG: checking stash '$i'...." >&2
+        # echo "DEBUG: checking stash '$i'...." >&2
         
         if git stash show --name-only "stash@{$i}" 2>/dev/null | grep -q "^$FCStd_dir_path/"; then
             echo "Error: Cannot unlock file with stashed changes. Use --force to override." >&2
@@ -125,13 +125,13 @@ if [ "$FORCE_FLAG" == 0 ]; then
             break
         fi
     done
-    echo "DEBUG: No uncommitted changes to '$FCStd_dir_path', clear to unlock!" >&2
+    # echo "DEBUG: No uncommitted changes to '$FCStd_dir_path', clear to unlock!" >&2
 fi
 
 
 git lfs unlock "$lockfile_path" || exit $FAIL
 
 make_readonly "$FCStd_file_path" || exit $FAIL
-echo "DEBUG: '$FCStd_file_path' now readonly" >&2
+# echo "DEBUG: '$FCStd_file_path' now readonly" >&2
 
 exit $SUCCESS
