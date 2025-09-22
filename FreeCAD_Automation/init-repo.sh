@@ -2,6 +2,7 @@
 echo "=============================================================================================="
 echo "                                    Create Config File"
 echo "=============================================================================================="
+# ToDo? Revert config file?
 DEFAULT_CONFIG='{
     "freecad-python-instance-path": "",
     "require-lock-to-modify-FreeCAD-files": true,
@@ -89,6 +90,27 @@ echo "All checks passed"
 echo "=============================================================================================="
 echo "                                    Setup .gitignore"
 echo "=============================================================================================="
+add_to_gitignore() {
+    local ignore_target="$1"
+    if [ -f .gitignore ]; then
+        if ! grep -q "^$ignore_target$" .gitignore; then
+            # Ensure .gitignore ends with a newline before appending
+            if [ -s .gitignore ] && [ "$(tail -c1 .gitignore)" != $'\n' ]; then
+                echo >> .gitignore
+            fi
+            echo "$ignore_target" >> .gitignore
+            echo "Added $ignore_target to .gitignore"
+        else
+            echo "$ignore_target already in .gitignore"
+        fi
+    else
+        echo "$ignore_target" > .gitignore
+        echo "Created .gitignore and added $ignore_target"
+    fi
+}
+
+add_to_gitignore "**/__pycache__"
+add_to_gitignore "FreeCAD_Automation/config.json"
 
 # echo "=============================================================================================="
 # echo "                                     Setup Git Hooks"
@@ -342,9 +364,4 @@ setup_git_alias "unlock" "!sh FreeCAD_Automation/unlock.sh \"\${GIT_PREFIX}\"" "
 setup_git_alias "locks" "lfs locks" "1 to 1 alias for \`git lfs locks\`"
 setup_git_alias "FCStd" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\"" "Adds \`git FCStd\` as alias to run FCStdFileTool.py to local repo."
 
-# ToDo: Create default config file
-# ToDo: Ignore config file
-    # **/__pycache__
-    # FreeCAD_Automation/config.json
-# ToDo? Revert config file?
 exit $SUCCESS

@@ -1,7 +1,7 @@
 ### Workflow / ToDo List:
-- [ ] Move hard coded file locations to `utils.sh`
+- [x] Move hard coded file locations to `utils.sh`
 
-- [ ] Remove useless cds at start of hooks / filter / lock / unlock scripts
+- [x] Remove useless cds at start of hooks / filter / lock / unlock scripts
 
 - [ ] `freecad-repo-init.sh`
     - [x] Verify and retrieve dependency objects
