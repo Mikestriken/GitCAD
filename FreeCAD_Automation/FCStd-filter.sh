@@ -10,6 +10,11 @@
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
+if [ -z "$PYTHON_PATH" ]; then
+    echo "Config file missing or invalid; cannot proceed." >&2
+    exit $FAIL
+fi
+
 # ==============================================================================================
 #                           Early Exits Before Exporting .FCStd file
 # ==============================================================================================

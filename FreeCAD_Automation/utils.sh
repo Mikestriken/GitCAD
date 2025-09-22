@@ -250,5 +250,9 @@ dir_has_changes() {
 # ==============================================================================================
 CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
 FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
-REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL
+
+# Only set if the config file exists
+if [ -f "$CONFIG_FILE" ]; then
+    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL
+fi
