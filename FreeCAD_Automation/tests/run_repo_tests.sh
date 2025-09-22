@@ -7,7 +7,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 cd "$GIT_ROOT"
 
 # Import code used in this script
-FUNCTIONS_FILE="FreeCAD_Automation/functions.sh"
+FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
 # ToDo: Check for uncommitted work in working directory, exit early if so with error message

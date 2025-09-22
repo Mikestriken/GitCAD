@@ -7,7 +7,7 @@
 # cd "$GIT_ROOT"
 
 # Import code used in this script
-FUNCTIONS_FILE="FreeCAD_Automation/functions.sh"
+FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
 # ==============================================================================================

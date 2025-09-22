@@ -1,5 +1,5 @@
 ### Workflow / ToDo List:
-- [ ] Move hard coded file locations to `functions.sh`
+- [ ] Move hard coded file locations to `utils.sh`
 
 - [ ] Remove useless cds at start of hooks / filter / lock / unlock scripts
 
