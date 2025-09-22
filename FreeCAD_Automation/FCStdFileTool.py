@@ -45,7 +45,7 @@ import io
 import warnings
 from pathlib import PurePosixPath
 
-CONFIG_PATH:str = 'FreeCAD_Automation/git-freecad-config.json'
+CONFIG_PATH:str = 'FreeCAD_Automation/config.json'
 
 NO_EXTENSION_SUBDIR_NAME:str = 'no_extension'
 

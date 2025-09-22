@@ -33,7 +33,7 @@ This repository contains tools and scripts to automate the git workflow for comm
 
 3. Download and extract this repository into the root of your FreeCAD project's git repository.
    
-4. Configure the settings in `FreeCAD_Automation/git-freecad-config.json` as needed.  
+4. Configure the settings in `FreeCAD_Automation/config.json` as needed.  
     Make sure to configure:
     - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
       *IE: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*
@@ -61,11 +61,11 @@ This repository contains tools and scripts to automate the git workflow for comm
    *Template available in [Template Readme](#template-readmemd).*
 
 ## Updating
-1. Backup `FreeCAD_Automation/git-freecad-config.json`.
+1. Backup `FreeCAD_Automation/config.json`.
    
 2. Download, extract and overwrite this repository into the root of your FreeCAD project's git repository.
    
-3. Manually merge (if required) your backup of `FreeCAD_Automation/git-freecad-config.json` into the new (updated?) `FreeCAD_Automation/git-freecad-config.json`.
+3. Manually merge (if required) your backup of `FreeCAD_Automation/config.json` into the new (updated?) `FreeCAD_Automation/config.json`.
    
 4. Run the initialization script:
    ```bash
@@ -110,7 +110,7 @@ This repository contains tools and scripts to automate the git workflow for comm
    ```
 
 ## Changing Things
-Some configurations in `FreeCAD_Automation/git-freecad-config.json` cannot be changed by simply changing its value in the JSON file. After you have already initialized the repository with the `freecad-repo-init.sh` script.
+Some configurations in `FreeCAD_Automation/config.json` cannot be changed by simply changing its value in the JSON file. After you have already initialized the repository with the `freecad-repo-init.sh` script.
 
 This section will cover how you can change certain configurations, post-initialization.
 
@@ -126,7 +126,7 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
   
 - [ ] Change the values of the `uncompressed-directory-structure` JSON key to match.
 
-- [ ] `git add FreeCAD_Automation/git-freecad-config.json` (**DO NOT `git add .`**)
+- [ ] `git add FreeCAD_Automation/config.json` (**DO NOT `git add .`**)
 
 - [ ] `git commit` changes.
 

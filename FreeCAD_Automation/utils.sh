@@ -1,11 +1,14 @@
 #!/bin/bash
 # ==============================================================================================
-#                                       Constant Literals
+#                                       Constant Globals
 # ==============================================================================================
 SUCCESS=0
 FAIL=1
 TRUE=0
 FALSE=1
+
+CONFIG_FILE="FreeCAD_Automation/config.json"
+FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 
 # ==============================================================================================
 #                                           Functions
@@ -140,8 +143,6 @@ make_writable() {
     # `if [ $FILE_HAS_VALID_LOCK == 1 ]; then echo "File has valid lock"; elif [ $FILE_HAS_VALID_LOCK == 0 ]; then echo "File has invalid lock"; fi`
 FCStd_file_has_valid_lock() {
     local FCStd_file_path="$1"
-    local CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
-    local FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 
     # Get required variables
     local PYTHON_PATH
@@ -206,8 +207,6 @@ FCStd_file_has_valid_lock() {
 # USAGE: `FCSTD_DIR=$(get_FCStd_dir "path/to/file.FCStd") || exit $FAIL`
 get_FCStd_dir() {
     local FCStd_file_path="$1"
-    local CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
-    local FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 
     # Get Python path
     local PYTHON_PATH
@@ -246,11 +245,8 @@ dir_has_changes() {
 }
 
 # ==============================================================================================
-#                                        Global Variables
+#                                   Global Config Variables
 # ==============================================================================================
-CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
-FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
-
 # Only set if the config file exists
 if [ -f "$CONFIG_FILE" ]; then
     PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
