@@ -1,5 +1,43 @@
 #!/bin/bash
 echo "=============================================================================================="
+echo "                                    Create Config File"
+echo "=============================================================================================="
+DEFAULT_CONFIG='{
+    "freecad-python-instance-path": "",
+    "require-lock-to-modify-FreeCAD-files": true,
+    "include-thumbnails": true,
+
+    "uncompressed-directory-structure": {
+        "uncompressed-directory-suffix": "_FCStd",
+        "uncompressed-directory-prefix": "FCStd_",
+        "subdirectory": {
+            "put-uncompressed-directory-in-subdirectory": true,
+            "subdirectory-name": "uncompressed"
+        }
+    },
+
+    "compress-non-human-readable-FreeCAD-files": {
+        "enabled": true,
+        "files-to-compress": ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"],
+        "max-compressed-file-size-gigabyte": 2,
+        "compression-level": 9,
+        "zip-file-prefix": "compressed_binaries_"
+    }
+}'
+
+if [ ! -f "FreeCAD_Automation/config.json" ]; then
+    echo "$DEFAULT_CONFIG" > "FreeCAD_Automation/config.json"
+    echo "Created config file: FreeCAD_Automation/config.json" >&2
+    echo >&2
+    echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> USER ACTION REQUESTED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >&2
+    echo "1. Please define 'freecad-python-instance-path' key in config.json" >&2
+    echo "2. Then Re-Run This Script" >&2
+    exit $FAIL
+fi
+
+echo "Config already exists."
+
+echo "=============================================================================================="
 echo "                             Verify and Retrieve Dependencies"
 echo "=============================================================================================="
 # Check git user.name and user.email set
@@ -48,11 +86,13 @@ else
 fi
 
 echo "All checks passed"
+echo "=============================================================================================="
+echo "                                    Setup .gitignore"
+echo "=============================================================================================="
 
 # echo "=============================================================================================="
 # echo "                                     Setup Git Hooks"
 # echo "=============================================================================================="
-
 # # Setup Git hooks
 # HOOKS_DIR=".git/hooks"
 # if [ ! -d "$HOOKS_DIR" ]; then
@@ -87,10 +127,10 @@ echo "All checks passed"
 #         echo
 #     fi
 # done
+
 echo "=============================================================================================="
 echo "                                   Initializing Git-LFS"
 echo "=============================================================================================="
-
 # Configure locksverify for .lockfile
 git config lfs.locksverify true
 echo "Enabled git lfs locksverify for lockable files."
@@ -305,6 +345,6 @@ setup_git_alias "FCStd" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PR
 # ToDo: Create default config file
 # ToDo: Ignore config file
     # **/__pycache__
-    # FreeCAD_Automation/git-freecad-config.json
+    # FreeCAD_Automation/config.json
 # ToDo? Revert config file?
 exit $SUCCESS
