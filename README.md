@@ -243,6 +243,13 @@ Read more on `git status` running filters [here](https://stackoverflow.com/quest
 
 Usage: `git stat`
 
+### `git clearFCStdMod`
+Manually tells git to observe a `.FCStd` file as empty (unmodified).
+
+*Behind the scenes all this does is call `RESET_MOD=1 git add`*
+
+Usage: `git clearFCStdMod path/to/file.FCStd
+
 ### `git lock`
 Locks a `.FCStd` file for editing by locking the associated `.lockfile` in the uncompressed directory using Git LFS. This prevents others from modifying the file and makes the `.FCStd` file writable for editing in FreeCAD. Supports `--force` to steal existing locks (if you have permission to do so according to GitHub).
 

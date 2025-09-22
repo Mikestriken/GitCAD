@@ -27,7 +27,9 @@ PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
 # Note: when running `git status` sometimes this clean filter will be called. Read more here: https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters
     # If the user uses the alias `git stat` the the STATUS_CALL env variable will be set during the git status call.
     # If the environment variable is detected then exit early without exporting FCStd files
-if [ -n "$STATUS_CALL" ]; then
+
+    # $RESET_MOD is an environment variable set by the alias `git clearFCStdMod``
+if [[ -n "$STATUS_CALL" || -n "$RESET_MOD" ]]; then
     cat /dev/null
     exit $SUCCESS
 fi
