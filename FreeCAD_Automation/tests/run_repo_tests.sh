@@ -2,23 +2,13 @@
 # ==============================================================================================
 #                                  Verify and Retrieve Dependencies
 # ==============================================================================================
-# Check if inside a Git repository and ensure working dir is the root of the repo
-if ! git rev-parse --git-dir > /dev/null; then
-    echo "Error: Not inside a Git repository" >&2
-    exit 1
-fi
-
+# Ensure working dir is the root of the repo
 GIT_ROOT=$(git rev-parse --show-toplevel)
 cd "$GIT_ROOT"
 
 # Import code used in this script
 FUNCTIONS_FILE="FreeCAD_Automation/functions.sh"
 source "$FUNCTIONS_FILE"
-
-CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
-
-# Extract Python path
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
 
 # ToDo: Check for uncommitted work in working directory, exit early if so with error message
 

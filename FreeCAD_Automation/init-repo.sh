@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo "=============================================================================================="
 echo "                             Verify and Retrieve Dependencies"
 echo "=============================================================================================="
@@ -29,11 +28,7 @@ cd "$GIT_ROOT"
 FUNCTIONS_FILE="FreeCAD_Automation/functions.sh"
 source "$FUNCTIONS_FILE"
 
-CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
-
 # Extract Python path
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
-
 echo "Extracted Python path: $PYTHON_PATH"
 
 # Check if Python runs correctly

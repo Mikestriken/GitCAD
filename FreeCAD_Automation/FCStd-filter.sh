@@ -2,24 +2,18 @@
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
-# Check if inside a Git repository and ensure working dir is the root of the repo
-if ! git rev-parse --git-dir > /dev/null; then
-    echo "Error: Not inside a Git repository" >&2
-    exit 1
-fi
-
-GIT_ROOT=$(git rev-parse --show-toplevel)
-cd "$GIT_ROOT"
+# Ensure working dir is the root of the repo
+# GIT_ROOT=$(git rev-parse --show-toplevel)
+# cd "$GIT_ROOT"
 
 # Import code used in this script
 FUNCTIONS_FILE="FreeCAD_Automation/functions.sh"
 source "$FUNCTIONS_FILE"
 
-CONFIG_FILE="FreeCAD_Automation/git-freecad-config.json"
-FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
-
-# Extract Python path
-PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
+# ==============================================================================================
+#                           Early Exits Before Exporting .FCStd file
+# ==============================================================================================
+# Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
 # print all args to stderr
 # echo "DEBUG: All args: '$@'" >&2
@@ -33,6 +27,19 @@ if [[ -n "$STATUS_CALL" || -n "$RESET_MOD" ]]; then
     cat /dev/null
     exit $SUCCESS
 fi
+
+# Note: When checking out a file the clean filter will parse the current file in the working dir (even if git shows no changes)
+    # EG:
+        # git checkout test_binaries -- ./FreeCAD_Automation/tests/*.FCStd
+        # Parses empty .FCStd files with this script before importing the full binary file from test_binaries tag
+
+    # Solution: If file is empty don't export and exit early with success
+if [ ! -s "$1" ]; then
+    # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat /dev/null
+    exit $SUCCESS
+fi
+
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
@@ -50,18 +57,6 @@ fi
 #                                       Export the .FCStd file
 # ==============================================================================================
 # Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
-
-# Note: When checking out a file the clean filter will parse the current file in the working dir (even if git shows no changes)
-    # EG:
-        # git checkout test_binaries -- ./FreeCAD_Automation/tests/*.FCStd
-        # Parses empty .FCStd files with this script before importing the full binary file from test_binaries tag
-
-    # Solution: If file is empty don't export and exit early with success
-if [ ! -s "$1" ]; then
-    # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-    cat /dev/null
-    exit $SUCCESS
-fi
 
 # Export the .FCStd file
 echo -n "EXPORTING: '$1'...." >&2
