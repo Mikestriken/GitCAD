@@ -20,20 +20,33 @@ source "$FUNCTIONS_FILE"
 # ==============================================================================================
 #                       Check if user allowed to push local commits
 # ==============================================================================================
+echo "DEBUG: args='$@'" >&2
+
 # Get all tracked .FCStd files (case insensitive)
 TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
+
+echo "DEBUG: checking '$TRACKED_FCSTD_FILES'" >&2
+
 for FCStd_file in $TRACKED_FCSTD_FILES; do
+    echo "DEBUG: checking '$FCStd_file'" >&2
+
     # Get the uncompressed directory path for this .FCStd file
     FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {
         echo "Error: Failed to get directory path for '$FCStd_file'" >&2
         exit $FAIL
     }
 
+    echo "DEBUG: Found dir '$FCStd_dir_path'" >&2
+
+    echo "DEBUG: diffing <remote sha1>='$4'...'$2'=<local sha1>" >&2
+
     # Check if this directory has changes in the push
         # Note: git pre-push hook args: $1=<local ref> $2=<local sha1> $3=<remote ref> $4=<remote sha1>
     if git diff --name-only $4..$2 | grep -q "^$FCStd_dir_path/"; then
         # Directory has changes, check lock for the .FCStd file
         FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || exit $FAIL
+        
+        echo "DEBUG: Found changes in '$FCStd_file''s commits" >&2
 
         if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
             echo "ERROR: User doesn't have lock for '$FCStd_file'... Aborting commit operation..." >&2
