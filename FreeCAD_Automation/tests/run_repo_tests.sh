@@ -161,7 +161,7 @@ await_user_modification() {
 # ToDo: Ponder edge cases missing from tests below
 
 test_FCStd_filter() {
-    setup "test_FCStd_filter" || { echo "Setup failed" >&2 ; exit $FAIL; }
+    setup "test_FCStd_filter" || exit $FAIL
 
     # remove `BIMExample.FCStd` (not used for this test)
     rm $TEST_DIR/BIMExample.FCStd
@@ -201,13 +201,13 @@ test_FCStd_filter() {
     # Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
     assert_dir_has_changes "$FCStd_dir_path"
 
-    tearDown "test_FCStd_filter"
+    tearDown "test_FCStd_filter" || exit $FAIL
 
     return $SUCCESS
 }
 
 test_setup_teardown() {
-    setup "test_setup_teardown" || { echo "Setup failed" >&2; exit $FAIL; }
+    setup "test_setup_teardown" || exit $FAIL
     echo -n "Paused for user inspection..."; read -r dummy; echo
 
     git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null; echo
@@ -217,12 +217,14 @@ test_setup_teardown() {
     git push origin $TEST_BRANCH > /dev/null 2>&1; echo
 
     git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    git unlock --force "$TEST_DIR/AssemblyExample.FCStd"
     
     git lock "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo -n "Paused for user inspection..."; read -r dummy; echo
     
-    tearDown "test_setup_teardown"
+    tearDown "test_setup_teardown" || exit $FAIL
 
     return $SUCCESS
 }
