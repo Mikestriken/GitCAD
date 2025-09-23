@@ -5,7 +5,7 @@ mkdir -p "$TEMP_DIR"
 stdin_tempfile=$(mktemp $TEMP_DIR/pre-push.XXXXXX)
 echo "DEBUG: Created Tempfile: '$stdin_tempfile'" >&2
 cat >"$stdin_tempfile"
-echo "DEBUG: Captured input '$(cat $stdin_tempfile)'" >&2
+echo "DEBUG: stdin='$(cat $stdin_tempfile)'" >&2
 # ==============================================================================================
 #                                         GIT LFS Hooks
 # ==============================================================================================
@@ -60,7 +60,7 @@ rm "$stdin_tempfile"
 # Get all tracked .FCStd files (case insensitive)
 TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$') 
 
-echo "DEBUG: checking '$($TRACKED_FCSTD_FILES | xargs)'" >&2
+echo "DEBUG: checking '$(echo $TRACKED_FCSTD_FILES | xargs)'" >&2
 
 for FCStd_file in $TRACKED_FCSTD_FILES; do
     echo "DEBUG: checking '$FCStd_file'" >&2
