@@ -28,7 +28,7 @@ git clearFCStdMod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automat
 TEST_BRANCH="active_test"
 TEST_DIR="FreeCAD_Automation/tests/$TEST_BRANCH"
 setup() {
-    local test_name = "$1"
+    local test_name="$1"
     echo 
     echo ">>>> Setting Up '$1' <<<<"
 
@@ -56,7 +56,7 @@ setup() {
 }
 
 tearDown() {
-    local test_name = "$1"
+    local test_name="$1"
     echo 
     echo ">>>> Tearing Down '$1' <<<<"
 
