@@ -27,7 +27,11 @@ fi
 # ==============================================================================================
 # Get all tracked .FCStd files (case insensitive)
 TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
+echo -e "\nDEBUG: checking '$(echo $TRACKED_FCSTD_FILES | xargs)' for changes..." >&2
+
 for FCStd_file in $TRACKED_FCSTD_FILES; do
+    echo -e "\nDEBUG: checking '$FCStd_file'...." >&2
+
     # Check if .FCStd file exists
     if [ ! -f "$FCStd_file" ]; then
         echo "Error: Could not find '$FCStd_file', skipping..." >&2
@@ -40,6 +44,8 @@ for FCStd_file in $TRACKED_FCSTD_FILES; do
         continue
     }
 
+    echo "DEBUG: Found dir '$FCStd_dir_path'" >&2
+
     # Check if directory has changes in the merge
     DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "ORIG_HEAD" "HEAD") || {
         echo "Error: Failed to get dir changes for '$FCStd_dir_path', skipping..." >&2
@@ -47,6 +53,8 @@ for FCStd_file in $TRACKED_FCSTD_FILES; do
     }
 
     if [ "$DIR_HAS_CHANGES" == 1 ]; then
+        echo "DEBUG: Detected changes, reloading '$FCStd_file'...." >&2
+
         # Pull LFS data for the directory
         git lfs pull --include="$FCStd_dir_path/**"
 
@@ -64,9 +72,11 @@ for FCStd_file in $TRACKED_FCSTD_FILES; do
         if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file"
+            echo "DEBUG: set '$FCStd_file' readonly." >&2
         else
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file"
+            echo "DEBUG: set '$FCStd_file' writable." >&2
         fi
     fi
 done

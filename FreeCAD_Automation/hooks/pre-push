@@ -51,7 +51,7 @@ echo "DEBUG: file changes: '$changed_files'" >&2
 echo -e "\nDEBUG: checking '$(echo $TRACKED_FCSTD_FILES | xargs)' for matches" >&2
 
 for FCStd_file in $TRACKED_FCSTD_FILES; do
-    echo -e "\nDEBUG: checking '$FCStd_file'" >&2
+    echo -e "\nDEBUG: checking '$FCStd_file'...." >&2
 
     # Get the uncompressed directory path for this .FCStd file
     FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {

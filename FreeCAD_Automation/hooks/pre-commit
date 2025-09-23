@@ -16,12 +16,19 @@ source "$FUNCTIONS_FILE"
 # ==============================================================================================
 # Get staged .FCStd files
 STAGED_FCSTD_FILES=$(git diff --cached --name-only | grep -i '\.fcstd$')
+echo -e "\nDEBUG: checking '$(echo $STAGED_FCSTD_FILES | xargs)' for valid locks..." >&2
+
 for FCStd_file in $STAGED_FCSTD_FILES; do
+    echo -e "\nDEBUG: checking '$FCStd_file'...." >&2
+
     FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || exit $FAIL
     
     if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
         echo "ERROR: User doesn't have lock for '$FCStd_file'... Aborting commit operation..." >&2
         exit $FAIL
+    else
+        echo "DEBUG: valid lock found" >&2
+        :
     fi
 done
 
