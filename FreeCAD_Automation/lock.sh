@@ -28,7 +28,7 @@ shift
 parsed_args=()
 FORCE_FLAG=0
 for arg in "$@"; do
-    # echo "DEBUG: paring '$arg'..." >&2
+    # echo "DEBUG: parsing '$arg'..." >&2
     if [[ "$arg" == -* ]]; then
         if [ "$arg" == "--force" ]; then
             FORCE_FLAG=1
