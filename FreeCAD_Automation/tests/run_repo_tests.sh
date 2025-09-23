@@ -210,10 +210,19 @@ test_setup_teardown() {
     setup "test_setup_teardown" || { echo "Setup failed" >&2; exit $FAIL; }
     echo -n "Paused for user inspection..."; read -r dummy
 
+    echo
+
     git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null
 
+    echo
+
     git commit -m "test commit for setup/tearDown" > /dev/null
-    git push origin $TEST_BRANCH > /dev/null
+
+    echo
+    
+    git push origin $TEST_BRANCH > /dev/null 2>&1
+
+    echo
 
     echo -n "Paused for user inspection..."; read -r dummy
     tearDown "test_setup_teardown"
