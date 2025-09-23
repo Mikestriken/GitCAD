@@ -66,8 +66,14 @@ tearDown() {
     git reset --hard >/dev/null
 
     # Delete active_test* branches (local and remote)
-    git push origin --delete $TEST_BRANCH* >/dev/null 2>&1 || true
-    git branch -D $TEST_BRANCH* >/dev/null 2>&1 || true
+    mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
+    
+    for remote_branch in ${REMOTE_BRANCHES[@]}; do
+        if [[ "$remote_branch" == "origin/$TEST_BRANCH"* ]]; then
+            git push origin --delete "${remote_branch#origin/}" >/dev/null 2>&1 || true
+            git branch -D "${remote_branch#origin/}" >/dev/null 2>&1 || true
+        fi
+    done
     
     echo ">>>> TearDown complete <<<<"
     
