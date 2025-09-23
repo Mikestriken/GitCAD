@@ -45,9 +45,6 @@ setup() {
     # Copies binaries into active_test dir (already done globally, but ensure)
     cp $TEST_DIR/../AssemblyExample.FCStd $TEST_DIR/../BIMExample.FCStd $TEST_DIR || return $FAIL
     
-    # return test dir path (current dir)
-    echo "$TEST_DIR"
-
     echo ">>>> Setup complete <<<<"
 
     return $SUCCESS
@@ -154,7 +151,7 @@ await_user_modification() {
 # ToDo: Ponder edge cases missing from tests below
 
 test_FCStd_filter() {
-    TEST_DIR=$(setup) || { echo "Setup failed" >&2 ; exit $FAIL; }
+    setup || { echo "Setup failed" >&2 ; exit $FAIL; }
 
     # remove `BIMExample.FCStd` (not used for this test)
     rm $TEST_DIR/BIMExample.FCStd
@@ -195,10 +192,12 @@ test_FCStd_filter() {
     assert_dir_has_changes "$FCStd_dir_path"
 
     tearDown
+
+    return $SUCCESS
 }
 
 test_setup_teardown() {
-    TEST_DIR=$(setup) || { echo "Setup failed" >&2; exit $FAIL; }
+    setup || { echo "Setup failed" >&2; exit $FAIL; }
     echo -n "Paused for user inspection..."
     read -r dummy
 
@@ -213,6 +212,8 @@ test_setup_teardown() {
     echo -n "Paused for user inspection..."
     read -r dummy
     tearDown
+
+    return $SUCCESS
 }
 
 # Run the tests
