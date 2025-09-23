@@ -57,8 +57,8 @@ tearDown() {
     # git checkout main
     git checkout main
     # Delete active_test* branches (local and remote)
-    git branch -D active_test* 2>/dev/null || true
     git push origin --delete active_test* 2>/dev/null || true
+    git branch -D active_test* 2>/dev/null || true
 }
 
 # Custom assert functions
