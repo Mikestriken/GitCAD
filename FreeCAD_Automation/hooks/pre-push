@@ -22,6 +22,15 @@ source "$FUNCTIONS_FILE"
 # ==============================================================================================
 echo "DEBUG: args='$@'" >&2
 
+# Read each line from stdin
+while read -r local_ref local_sha remote_ref remote_sha; do
+    echo "DEBUG: Local ref:   $local_ref" >&2
+    echo "DEBUG: Local SHA:   $local_sha" >&2
+    echo "DEBUG: Remote ref:  $remote_ref" >&2
+    echo "DEBUG: Remote SHA:  $remote_sha" >&2
+    echo
+done
+
 # Get all tracked .FCStd files (case insensitive)
 TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$') 
 
