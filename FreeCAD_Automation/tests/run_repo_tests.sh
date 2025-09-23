@@ -46,6 +46,7 @@ setup() {
     cp $TEST_DIR/../AssemblyExample.FCStd $TEST_DIR/../BIMExample.FCStd $TEST_DIR || return $FAIL
     
     echo ">>>> Setup complete <<<<"
+    echo 
 
     return $SUCCESS
 }
@@ -72,6 +73,7 @@ tearDown() {
         fi
     done
     
+    echo 
     echo ">>>> TearDown complete <<<<"
     
     return $SUCCESS
@@ -198,8 +200,7 @@ test_FCStd_filter() {
 
 test_setup_teardown() {
     setup || { echo "Setup failed" >&2; exit $FAIL; }
-    echo -n "Paused for user inspection..."
-    read -r dummy
+    echo -n "Paused for user inspection..."; read -r dummy
 
     echo "Adding: '$TEST_DIR/AssemblyExample.FCStd' and '$TEST_DIR/BIMExample.FCStd'........"
 
@@ -209,8 +210,7 @@ test_setup_teardown() {
     git commit -m "test commit for setup/tearDown"
     git push origin $TEST_BRANCH
 
-    echo -n "Paused for user inspection..."
-    read -r dummy
+    echo -n "Paused for user inspection..."; read -r dummy
     tearDown
 
     return $SUCCESS
