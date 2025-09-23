@@ -40,7 +40,7 @@ setup() {
         return $FAIL
     fi
 
-    mkdir -p my_directory
+    mkdir -p $TEST_DIR
 
     # Copies binaries into active_test dir (already done globally, but ensure)
     cp $TEST_DIR/../AssemblyExample.FCStd $TEST_DIR/../BIMExample.FCStd $TEST_DIR || return $FAIL
