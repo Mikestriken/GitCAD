@@ -29,19 +29,38 @@ source "$FUNCTIONS_FILE"
 echo "DEBUG: args='$@'" >&2
 
 # Read each line from stdin
-while read -r local_ref local_sha remote_ref remote_sha; do
-    echo "DEBUG: Local ref:   $local_ref" >&2
-    echo "DEBUG: Local SHA:   $local_sha" >&2
-    echo "DEBUG: Remote ref:  $remote_ref" >&2
-    echo "DEBUG: Remote SHA:  $remote_sha" >&2
-done <"$stdin_tempfile"
+read -r local_ref local_sha remote_ref remote_sha < <(tail -n1 "$stdin_tempfile")
+echo "DEBUG: Local ref:   $local_ref" >&2
+echo "DEBUG: Local SHA:   $local_sha" >&2
+echo "DEBUG: Remote ref:  $remote_ref" >&2
+echo "DEBUG: Remote SHA:  $remote_sha" >&2
+
+# mapfile -t std_inputs < <(cat $stdin_tempfile)
+# for input in "${std_inputs[@]}"; do
+#     local_ref=$(echo "$line" | awk '{print $1}')
+#     local_sha=$(echo "$line" | awk '{print $2}')
+#     remote_ref=$(echo "$line" | awk '{print $3}')
+#     remote_sha=$(echo "$line" | awk '{print $4}')
+# done
+
+# echo "DEBUG: Local ref:   $local_ref" >&2
+# echo "DEBUG: Local SHA:   $local_sha" >&2
+# echo "DEBUG: Remote ref:  $remote_ref" >&2
+# echo "DEBUG: Remote SHA:  $remote_sha" >&2
+
+# while read -r local_ref local_sha remote_ref remote_sha; do
+#     echo "DEBUG: Local ref:   $local_ref" >&2
+#     echo "DEBUG: Local SHA:   $local_sha" >&2
+#     echo "DEBUG: Remote ref:  $remote_ref" >&2
+#     echo "DEBUG: Remote SHA:  $remote_sha" >&2
+# done <"$stdin_tempfile"
 
 rm "$stdin_tempfile"
 
 # Get all tracked .FCStd files (case insensitive)
 TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$') 
 
-echo "DEBUG: checking '$TRACKED_FCSTD_FILES'" >&2
+echo "DEBUG: checking '$($TRACKED_FCSTD_FILES | xargs)'" >&2
 
 for FCStd_file in $TRACKED_FCSTD_FILES; do
     echo "DEBUG: checking '$FCStd_file'" >&2
