@@ -156,7 +156,7 @@ await_user_modification() {
 }
 
 # ==============================================================================================
-#                                           Run Tests
+#                                          Define Tests
 # ==============================================================================================
 # ToDo: Ponder edge cases missing from tests below
 # Note on formatting:
@@ -233,10 +233,6 @@ test_setup_teardown() {
 
     return $SUCCESS
 }
-
-# Run the tests
-test_setup_teardown
-# test_FCStd_filter
 
 # ToDo: Test Pre-Commit Hook
     # remove `BIMExample.FCStd` (not used for this test)
@@ -379,5 +375,11 @@ test_setup_teardown
     # Assert `BIMExample.FCStd` is NOT readonly
     # Assert `AssemblyExample.FCStd` is readonly
     # Ask user to confirm `AssemblyExample.FCStd` changes are back
+
+# ==============================================================================================
+#                                          Run Tests
+# ==============================================================================================
+# test_setup_teardown
+test_FCStd_filter
 
 exit $SUCCESS
