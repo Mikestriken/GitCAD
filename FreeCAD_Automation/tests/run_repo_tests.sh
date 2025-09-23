@@ -218,7 +218,7 @@ test_setup_teardown() {
 
     git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    git unlock --force "$TEST_DIR/AssemblyExample.FCStd"
+    git unlock --force "$TEST_DIR/AssemblyExample.FCStd"; echo
     
     git lock "$TEST_DIR/BIMExample.FCStd"; echo
 
