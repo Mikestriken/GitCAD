@@ -35,7 +35,7 @@ setup() {
     fi
     
     # push active_test to remote
-    if ! git push -u origin "$TEST_BRANCH" > /dev/null; then
+    if ! git push -u origin "$TEST_BRANCH" > /dev/null 2>&1; then
         echo "Error: Failed to push branch '$TEST_BRANCH' to remote" >&2
         return $FAIL
     fi
@@ -57,13 +57,13 @@ tearDown() {
     # remove any locks in test dir
     git lfs locks --path="$TEST_DIR" | xargs -r git lfs unlock --force || true
     
-    git reset --hard >/dev/null
+    git reset --hard >/dev/null 2>&1
     
     git checkout main > /dev/null
 
     rm -rf $TEST_DIR
 
-    git reset --hard >/dev/null
+    git reset --hard >/dev/null 2>&1
 
     # Delete active_test* branches (local and remote)
     mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
@@ -199,10 +199,18 @@ test_FCStd_filter() {
 
 test_setup_teardown() {
     TEST_DIR=$(setup) || { echo "Setup failed" >&2; exit $FAIL; }
+    echo -n "Paused for user inspection..."
     read -r dummy
+
+    echo "Adding: '$TEST_DIR/AssemblyExample.FCStd' and '$TEST_DIR/BIMExample.FCStd'........"
+
     git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd"
+
+    echo "committing..."
     git commit -m "test commit for setup/tearDown"
     git push origin $TEST_BRANCH
+
+    echo -n "Paused for user inspection..."
     read -r dummy
     tearDown
 }
