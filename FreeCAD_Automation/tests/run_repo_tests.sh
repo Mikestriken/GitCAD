@@ -159,47 +159,52 @@ await_user_modification() {
 #                                           Run Tests
 # ==============================================================================================
 # ToDo: Ponder edge cases missing from tests below
+# Note on formatting:
+    # End every command with `; echo` (variable declarations can be excluded from this)
+    # git add should be appended with `>/dev/null`
+    # git commit should be appended with `>/dev/null`
+    # git push should be appended with `>/dev/null 2>&1`
 
 test_FCStd_filter() {
     setup "test_FCStd_filter" || exit $FAIL
 
     # remove `BIMExample.FCStd` (not used for this test)
-    rm $TEST_DIR/BIMExample.FCStd
+    rm $TEST_DIR/BIMExample.FCStd; echo
 
     # `git add` `AssemblyExample.FCStd` (file copied during setup)
-    git add $TEST_DIR/AssemblyExample.FCStd
+    git add $TEST_DIR/AssemblyExample.FCStd > /dev/null; echo
 
     # Assert get_FCStd_dir for `AssemblyExample.FCStd` exists now
     local FCStd_dir_path
     FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown; exit $FAIL; }
-    assert_dir_exists "$FCStd_dir_path"
+    assert_dir_exists "$FCStd_dir_path"; echo
 
     # git add get_FCStd_dir for `AssemblyExample.FCStd`
-    git add "$FCStd_dir_path"
+    git add "$FCStd_dir_path" > /dev/null; echo
 
     # git commit -m "initial active_test commit"
-    git commit -m "initial active_test commit"
+    git commit -m "initial active_test commit" > /dev/null; echo
 
     # Assert `AssemblyExample.FCStd` is now readonly
-    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     # Request user modify `AssemblyExample.FCStd`
-    await_user_modification "$TEST_DIR/AssemblyExample.FCStd"
+    await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     # attempt to git add changes (expect error)
-    assert_command_fails "git add $TEST_DIR/AssemblyExample.FCStd"
+    assert_command_fails "git add $TEST_DIR/AssemblyExample.FCStd"; echo
 
     # git lock `AssemblyExample.FCStd` (git alias)
-    git lock "$TEST_DIR/AssemblyExample.FCStd"
+    git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     # Assert `AssemblyExample.FCStd` is NOT readonly
-    assert_writable "$TEST_DIR/AssemblyExample.FCStd"
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     # git add `AssemblyExample.FCStd`
-    git add "$TEST_DIR/AssemblyExample.FCStd"
+    git add "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     # Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
-    assert_dir_has_changes "$FCStd_dir_path"
+    assert_dir_has_changes "$FCStd_dir_path"; echo
 
     tearDown "test_FCStd_filter" || exit $FAIL
 
