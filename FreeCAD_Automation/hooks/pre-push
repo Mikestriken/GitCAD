@@ -71,8 +71,15 @@ for FCStd_file in $TRACKED_FCSTD_FILES; do
         if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
             echo "ERROR: User doesn't have lock for '$FCStd_file'... Aborting push operation..." >&2
             exit $FAIL
+        else
+            echo "DEBUG: User has valid lock" >&2
+            :
         fi
+    else
+        echo "DEBUG: No changes found" >&2
+        :
     fi
+
 done
 
 exit $SUCCESS
