@@ -1,11 +1,17 @@
 #!/bin/bash
 echo "DEBUG: pre-push hook trap-card triggered!" >&2
+TEMP_DIR=".git/tempfiles"
+mkdir -p "$TEMP_DIR"
+stdin_tempfile=$(mktemp $TEMP_DIR/pre-push.XXXXXX)
+echo "DEBUG: Created Tempfile: '$stdin_tempfile'" >&2
+cat >"$stdin_tempfile"
+echo "DEBUG: Captured input '$(cat $stdin_tempfile)'" >&2
 # ==============================================================================================
 #                                         GIT LFS Hooks
 # ==============================================================================================
 command -v git-lfs >/dev/null 2>&1 || { echo >&2 "\nThis repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting the 'pre-push' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks').\n"; exit 2; }
 
-git lfs pre-push "$@"
+git lfs pre-push "$@" <"$stdin_tempfile"
 # ==============================================================================================
 #                              Verify and Retrieve Dependencies
 # ==============================================================================================
@@ -29,7 +35,9 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     echo "DEBUG: Remote ref:  $remote_ref" >&2
     echo "DEBUG: Remote SHA:  $remote_sha" >&2
     echo
-done
+done <"$stdin_tempfile"
+
+rm "$stdin_tempfile"
 
 # Get all tracked .FCStd files (case insensitive)
 TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$') 
