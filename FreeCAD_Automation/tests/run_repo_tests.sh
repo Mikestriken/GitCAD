@@ -28,6 +28,10 @@ git clearFCStdMod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automat
 TEST_BRANCH="active_test"
 TEST_DIR="FreeCAD_Automation/tests/$TEST_BRANCH"
 setup() {
+    local test_name = "$1"
+    echo 
+    echo ">>>> Setup Start for '$1' <<<<"
+
     # Checkout -b active_test
     if ! git checkout -b "$TEST_BRANCH" > /dev/null; then
         echo "Error: Branch '$TEST_BRANCH' already exists" >&2
@@ -45,13 +49,17 @@ setup() {
     # Copies binaries into active_test dir (already done globally, but ensure)
     cp $TEST_DIR/../AssemblyExample.FCStd $TEST_DIR/../BIMExample.FCStd $TEST_DIR || return $FAIL
     
-    echo ">>>> Setup complete <<<<"
+    echo ">>>> Setup Complete <<<<"
     echo 
 
     return $SUCCESS
 }
 
 tearDown() {
+    local test_name = "$1"
+    echo 
+    echo ">>>> TearDown Start for '$1' <<<<"
+
     # remove any locks in test dir
     git lfs locks --path="$TEST_DIR" | xargs -r git lfs unlock --force || true
     
@@ -73,8 +81,8 @@ tearDown() {
         fi
     done
     
+    echo ">>>> TearDown Complete <<<<"
     echo 
-    echo ">>>> TearDown complete <<<<"
     
     return $SUCCESS
 }
@@ -153,7 +161,7 @@ await_user_modification() {
 # ToDo: Ponder edge cases missing from tests below
 
 test_FCStd_filter() {
-    setup || { echo "Setup failed" >&2 ; exit $FAIL; }
+    setup "test_FCStd_filter" || { echo "Setup failed" >&2 ; exit $FAIL; }
 
     # remove `BIMExample.FCStd` (not used for this test)
     rm $TEST_DIR/BIMExample.FCStd
@@ -193,25 +201,22 @@ test_FCStd_filter() {
     # Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
     assert_dir_has_changes "$FCStd_dir_path"
 
-    tearDown
+    tearDown "test_FCStd_filter"
 
     return $SUCCESS
 }
 
 test_setup_teardown() {
-    setup || { echo "Setup failed" >&2; exit $FAIL; }
+    setup "test_setup_teardown" || { echo "Setup failed" >&2; exit $FAIL; }
     echo -n "Paused for user inspection..."; read -r dummy
 
-    echo "Adding: '$TEST_DIR/AssemblyExample.FCStd' and '$TEST_DIR/BIMExample.FCStd'........"
+    git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null
 
-    git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd"
-
-    echo "committing..."
-    git commit -m "test commit for setup/tearDown"
-    git push origin $TEST_BRANCH
+    git commit -m "test commit for setup/tearDown" > /dev/null
+    git push origin $TEST_BRANCH > /dev/null
 
     echo -n "Paused for user inspection..."; read -r dummy
-    tearDown
+    tearDown "test_setup_teardown"
 
     return $SUCCESS
 }
