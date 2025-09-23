@@ -23,7 +23,7 @@ source "$FUNCTIONS_FILE"
 echo "DEBUG: args='$@'" >&2
 
 # Get all tracked .FCStd files (case insensitive)
-TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
+TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$') 
 
 echo "DEBUG: checking '$TRACKED_FCSTD_FILES'" >&2
 
