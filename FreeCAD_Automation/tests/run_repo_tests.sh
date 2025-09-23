@@ -217,6 +217,8 @@ test_setup_teardown() {
     git push origin $TEST_BRANCH > /dev/null 2>&1; echo
 
     git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
+    
+    git lock "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo -n "Paused for user inspection..."; read -r dummy; echo
     
