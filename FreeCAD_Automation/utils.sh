@@ -220,7 +220,7 @@ get_FCStd_dir() {
     }
 
     # Return the directory path (parent of lockfile)
-    realpath --relative-to="$(git rev-parse --show-toplevel)" "$(dirname "$lockfile_path")"
+    realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$(dirname "$lockfile_path")"
 }
 
 # DESCRIPTION: Function to check if a directory has changes between two commits
