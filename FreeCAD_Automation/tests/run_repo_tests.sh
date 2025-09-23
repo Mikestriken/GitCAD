@@ -29,13 +29,13 @@ TEST_BRANCH="active_test"
 TEST_DIR="FreeCAD_Automation/tests/$TEST_BRANCH"
 setup() {
     # Checkout -b active_test
-    if ! git checkout -b "$TEST_BRANCH"; then
+    if ! git checkout -b "$TEST_BRANCH" > /dev/null; then
         echo "Error: Branch '$TEST_BRANCH' already exists" >&2
         return $FAIL
     fi
     
     # push active_test to remote
-    if ! git push -u origin "$TEST_BRANCH"; then
+    if ! git push -u origin "$TEST_BRANCH" > /dev/null; then
         echo "Error: Failed to push branch '$TEST_BRANCH' to remote" >&2
         return $FAIL
     fi
@@ -48,6 +48,8 @@ setup() {
     # return test dir path (current dir)
     echo "$TEST_DIR"
 
+    echo ">>>> Setup complete <<<<"
+
     return $SUCCESS
 }
 
@@ -55,17 +57,21 @@ tearDown() {
     # remove any locks in test dir
     git lfs locks --path="$TEST_DIR" | xargs -r git lfs unlock --force || true
     
-    git reset --hard
+    git reset --hard >/dev/null
     
-    git checkout main
+    git checkout main > /dev/null
 
     rm -rf $TEST_DIR
 
-    git reset --hard
+    git reset --hard >/dev/null
 
     # Delete active_test* branches (local and remote)
-    git push origin --delete active_test* 2>/dev/null || true
-    git branch -D active_test* 2>/dev/null || true
+    git push origin --delete $TEST_BRANCH* >/dev/null 2>&1 || true
+    git branch -D $TEST_BRANCH* >/dev/null 2>&1 || true
+    
+    echo ">>>> TearDown complete <<<<"
+    
+    return $SUCCESS
 }
 
 # Custom assert functions
@@ -187,9 +193,11 @@ test_FCStd_filter() {
 
 test_setup_teardown() {
     TEST_DIR=$(setup) || { echo "Setup failed" >&2; exit $FAIL; }
+    read -r dummy
     git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd"
     git commit -m "test commit for setup/tearDown"
     git push origin $TEST_BRANCH
+    read -r dummy
     tearDown
 }
 
