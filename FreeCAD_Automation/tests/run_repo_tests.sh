@@ -30,7 +30,7 @@ TEST_DIR="FreeCAD_Automation/tests/$TEST_BRANCH"
 setup() {
     local test_name = "$1"
     echo 
-    echo ">>>> Setup Start for '$1' <<<<"
+    echo ">>>> Setting Up '$1' <<<<"
 
     # Checkout -b active_test
     if ! git checkout -b "$TEST_BRANCH" > /dev/null; then
@@ -58,7 +58,7 @@ setup() {
 tearDown() {
     local test_name = "$1"
     echo 
-    echo ">>>> TearDown Start for '$1' <<<<"
+    echo ">>>> Tearing Down '$1' <<<<"
 
     # remove any locks in test dir
     git lfs locks --path="$TEST_DIR" | xargs -r git lfs unlock --force || true
@@ -208,23 +208,18 @@ test_FCStd_filter() {
 
 test_setup_teardown() {
     setup "test_setup_teardown" || { echo "Setup failed" >&2; exit $FAIL; }
-    echo -n "Paused for user inspection..."; read -r dummy
+    echo -n "Paused for user inspection..."; read -r dummy; echo
 
-    echo
+    git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null; echo
 
-    git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null
-
-    echo
-
-    git commit -m "test commit for setup/tearDown" > /dev/null
-
-    echo
+    git commit -m "test commit for setup/tearDown" > /dev/null; echo
     
-    git push origin $TEST_BRANCH > /dev/null 2>&1
+    git push origin $TEST_BRANCH > /dev/null 2>&1; echo
 
-    echo
+    git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    echo -n "Paused for user inspection..."; read -r dummy
+    echo -n "Paused for user inspection..."; read -r dummy; echo
+    
     tearDown "test_setup_teardown"
 
     return $SUCCESS
