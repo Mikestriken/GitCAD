@@ -39,6 +39,9 @@ setup() {
         echo "Error: Failed to push branch '$TEST_BRANCH' to remote" >&2
         return $FAIL
     fi
+
+    mkdir -p my_directory
+
     # Copies binaries into active_test dir (already done globally, but ensure)
     cp $TEST_DIR/../AssemblyExample.FCStd $TEST_DIR/../BIMExample.FCStd $TEST_DIR || return $FAIL
     
@@ -50,12 +53,16 @@ setup() {
 
 tearDown() {
     # remove any locks in test dir
-    # Assuming test dir is current dir, remove locks
     git lfs locks --path="$TEST_DIR" | xargs -r git lfs unlock --force || true
-    # git reset --hard
+    
     git reset --hard
-    # git checkout main
+    
     git checkout main
+
+    rm -rf $TEST_DIR
+
+    git reset --hard
+
     # Delete active_test* branches (local and remote)
     git push origin --delete active_test* 2>/dev/null || true
     git branch -D active_test* 2>/dev/null || true
