@@ -405,10 +405,11 @@ def bad_args(args:argparse.Namespace) -> bool:
     Returns:
         bool: True if invalid, else False.
     """
-    no_mode_specified:bool = True if not args.export_flag and not args.import_flag and not args.lockfile_flag else False
+    mode_flags:list = [bool(args.export_flag), bool(args.import_flag), bool(args.lockfile_flag)]
+    no_mode_specified:bool = sum(mode_flags) < 1
     if no_mode_specified: return True
-    
-    multiple_modes_specified:bool = True if (args.export_flag and args.import_flag) or (args.export_flag and args.lockfile_flag) or (args.import_flag and args.lockfile_flag) else False
+
+    multiple_modes_specified:bool = sum(mode_flags) > 1
     if multiple_modes_specified: return True
 
     bad_arg_count:bool = True if args.export_flag and len(args.export_flag) > 2 or args.import_flag and len(args.import_flag) > 2 else False
@@ -418,8 +419,11 @@ def bad_args(args:argparse.Namespace) -> bool:
     no_config:bool = args.config_file_path is None
     if missing_output_arg and no_config: return True
 
-    lockfile_flag_without_config_or_with_silent_flag:bool = args.lockfile_flag and (no_config or args.silent_flag)
-    if lockfile_flag_without_config_or_with_silent_flag: return True
+    mode_requires_config:bool = no_config and (args.lockfile_flag)
+    if mode_requires_config: return True
+    
+    mode_cannot_be_silent:bool = args.silent_flag and (args.lockfile_flag)
+    if mode_cannot_be_silent: return True
     
     return False
 
@@ -457,10 +461,10 @@ def main():
     
     # Main Logic
     if args.lockfile_flag:
-        FCStd_file_path:str = os.path.relpath(args.lockfile_flag[0])
-        
+        FCStd_file_path:str = os.path.relpath(args.lockfile_flag[INPUT_ARG])
+
         FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
-        
+
         lockfile_path:str = os.path.abspath(os.path.join(FCStd_dir_path, '.lockfile'))
             
         if not args.silent_flag:
