@@ -3,9 +3,9 @@ IMPORT_FLAG:str = '--import'
 SILENT_FLAG:str = '--SILENT'
 CONFIG_FILE_FLAG:str = '--CONFIG-FILE' # Uses config file to determine configurations. Optionally provide path to config file. Args interpreted differently from what's listed in help()
 LOCKFILE_FLAG:str = '--lockfile'
-REPAIR_PATHFILE_FLAG:str = '--repair-pathfile-relpath'
+REPAIR_FILEPATH_FLAG:str = '--repair-filepath-relpath'
 HELP_MESSAGE:str =f"""
-usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {IMPORT_FLAG} FCSTD_FILE] [{LOCKFILE_FLAG} FCStd_file_path] [{REPAIR_PATHFILE_FLAG} FCStd_file_path]
+usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {IMPORT_FLAG} FCSTD_FILE] [{LOCKFILE_FLAG} FCStd_file_path] [{REPAIR_FILEPATH_FLAG} FCStd_file_path]
 
 FreeCAD .FCStd file tool. Used to automate the process of importing and exporting .FCStd files.
 
@@ -32,7 +32,7 @@ options:
     {LOCKFILE_FLAG} FCStd_file_path
                         Print path to .lockfile for the given FCStd file. Requires {CONFIG_FILE_FLAG}. Does not guarantee .lockfile exists.
 
-    {REPAIR_PATHFILE_FLAG} FCStd_file_path
+    {REPAIR_FILEPATH_FLAG} FCStd_file_path
                         Repair .lockfile for the given FCStd file by updating the relative path. Requires {CONFIG_FILE_FLAG}.
 
     {SILENT_FLAG}
@@ -111,7 +111,7 @@ def parseArgs() -> argparse.Namespace:
     parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+')
     parser.add_argument(CONFIG_FILE_FLAG, dest="config_file_path", nargs='?', const=CONFIG_PATH, default=None)
     parser.add_argument(LOCKFILE_FLAG, dest='lockfile_flag', nargs=1)
-    parser.add_argument(REPAIR_PATHFILE_FLAG, dest='repair_pathfile_flag', nargs=1)
+    parser.add_argument(REPAIR_FILEPATH_FLAG, dest='repair_filepath_flag', nargs=1)
     parser.add_argument(SILENT_FLAG, dest="silent_flag", action='store_true')
     parser.add_argument("-h", "--help", dest="help_flag", action="store_true")
     
@@ -410,7 +410,7 @@ def bad_args(args:argparse.Namespace) -> bool:
     Returns:
         bool: True if invalid, else False.
     """
-    mode_flags:list = [bool(args.export_flag), bool(args.import_flag), bool(args.lockfile_flag), bool(args.repair_pathfile_flag)]
+    mode_flags:list = [bool(args.export_flag), bool(args.import_flag), bool(args.lockfile_flag), bool(args.repair_filepath_flag)]
     no_mode_specified:bool = sum(mode_flags) < 1
     if no_mode_specified: return True
 
@@ -424,7 +424,7 @@ def bad_args(args:argparse.Namespace) -> bool:
     no_config:bool = args.config_file_path is None
     if missing_output_arg and no_config: return True
 
-    mode_requires_config:bool = no_config and (args.lockfile_flag or args.repair_pathfile_flag)
+    mode_requires_config:bool = no_config and (args.lockfile_flag or args.repair_filepath_flag)
     if mode_requires_config: return True
     
     mode_cannot_be_silent:bool = args.silent_flag and (args.lockfile_flag)
@@ -440,6 +440,10 @@ def ensure_lockfile_exists(FCStd_dir_path:str):
     Args:
         FCStd_dir_path (str): Path to FCStd directory.
     """
+    # ToDo: Ensure this doesn't impact file status as readonly
+    # ToDo: Put path in `.filepath` file instead 
+        # E1: Config change -> no lock on anything
+        # E2: No change -> Import / Export occurs.
     lock_file_path:str = os.path.join(FCStd_dir_path, '.lockfile')
     if not os.path.exists(lock_file_path):
         with open(lock_file_path, 'w') as f:
@@ -475,8 +479,8 @@ def main():
         if not args.silent_flag:
             print(lockfile_path)
 
-    elif args.repair_pathfile_flag:
-        FCStd_file_path:str = os.path.relpath(args.repair_pathfile_flag[INPUT_ARG])
+    elif args.repair_filepath_flag:
+        FCStd_file_path:str = os.path.relpath(args.repair_filepath_flag[INPUT_ARG])
 
         FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
 

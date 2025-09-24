@@ -654,7 +654,7 @@ class TestFCStdFileTool(unittest.TestCase):
         # Should print help due to multiple modes
         main()
 
-    def test_repair_lockfile_flag(self):
+    def test_repair_filepath_flag(self):
         # SET CONFIGS:
         self.config_file.enable_locking = True
         self.config_file.enable_thumbnail = False
@@ -700,7 +700,7 @@ class TestFCStdFileTool(unittest.TestCase):
 
         # REPAIR LOCKFILE
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--repair-lockfile-relpath', self.temp_AssemblyExample_path]):
+            with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--repair-filepath-relpath', self.temp_AssemblyExample_path]):
                 main()
 
         # CHECK LOCKFILE (updated relpath)
@@ -713,7 +713,7 @@ class TestFCStdFileTool(unittest.TestCase):
         expected_relpath:str = f"../AssemblyExample.FCStd"
         self.assertEqual(content, expected_relpath, f"ERR: lockfile content doesn't match expected relpath\ncontent={content}, expected={expected_relpath}")
 
-    @patch('sys.argv', [FILE_NAME, '--repair-lockfile-relpath', 'dummy.FCStd'])
+    @patch('sys.argv', [FILE_NAME, '--repair-filepath-relpath', 'dummy.FCStd'])
     def test_repair_lockfile_without_config(self):
         # Should print help due to bad args
         main()
