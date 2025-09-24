@@ -500,8 +500,7 @@ def main():
             if config['compress_binaries']['enabled']:
                 compress_binaries(FCStd_dir_path, config)
 
-            if config['require_lock']:
-                ensure_lockfile_exists(FCStd_dir_path)
+            ensure_lockfile_exists(FCStd_dir_path)
                 
         if not args.silent_flag:
             print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
@@ -542,8 +541,7 @@ def main():
                 add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
         
         if config_provided:
-            if config['require_lock']:
-                ensure_lockfile_exists(FCStd_dir_path)
+            ensure_lockfile_exists(FCStd_dir_path)
         
         if not args.silent_flag:
             print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
