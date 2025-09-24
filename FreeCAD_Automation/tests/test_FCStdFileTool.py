@@ -654,6 +654,70 @@ class TestFCStdFileTool(unittest.TestCase):
         # Should print help due to multiple modes
         main()
 
+    def test_repair_lockfile_flag(self):
+        # SET CONFIGS:
+        self.config_file.enable_locking = True
+        self.config_file.enable_thumbnail = False
+
+        self.config_file.dir_suffix = "_FCStd"
+        self.config_file.dir_prefix = "FCStd_"
+        self.config_file.subdir_enabled = True
+        self.config_file.subdir_name = "uncompressed"
+
+        self.config_file.enable_compressing = False
+        self.config_file.files_to_compress = ["**/no_extension/*", "*.brp", "**/thumbnails/*", "*.Map.*", "*.Table.*"]
+        self.config_file.max_size_gb = 2.0
+        self.config_file.compression_level = 9
+        self.config_file.zip_prefix = "compressed_binaries_"
+
+        self.config_file.createTestConfig()
+
+        # EXPORT
+        with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--export', self.temp_AssemblyExample_path]):
+            main()
+
+        # CHECK EXPORT
+        # lockfile exists
+        FCStd_dir_name:str = os.path.splitext(os.path.basename(self.temp_AssemblyExample_path))[0]
+        expected_dir:str = os.path.join(self.temp_dir, "uncompressed", f"FCStd_{FCStd_dir_name}_FCStd")
+        lockfile_path:str = os.path.join(expected_dir, '.lockfile')
+        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' does not exist after export.")
+        
+        # lockfile contains appropriate relpath
+        with open(lockfile_path, 'r') as f:
+            initial_content:str = f.read().strip()
+        expected_initial_relpath:str = "../../AssemblyExample.FCStd"
+        self.assertEqual(initial_content, expected_initial_relpath, f"ERR: initial lockfile content doesn't match\ncontent={initial_content}, expected={expected_initial_relpath}")
+
+        # MODIFY CONFIG (simulate file structure change)
+        self.config_file.dir_suffix = "_newFCStd"
+        self.config_file.subdir_enabled = False
+        self.config_file.createTestConfig()  # Overwrite config file
+
+        # MOVE DIR TO MATCH NEW CONFIG
+        new_expected_dir:str = os.path.join(self.temp_dir, f"FCStd_{FCStd_dir_name}_newFCStd")
+        os.rename(expected_dir, new_expected_dir)
+
+        # REPAIR LOCKFILE
+        with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
+            with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--repair-lockfile-relpath', self.temp_AssemblyExample_path]):
+                main()
+
+        # CHECK LOCKFILE (updated relpath)
+        new_lockfile_path:str = os.path.join(new_expected_dir, '.lockfile')
+        self.assertTrue(os.path.exists(new_lockfile_path), f"ERR: '{new_lockfile_path}' does not exist after repair.")
+
+        with open(new_lockfile_path, 'r') as f:
+            content:str = f.read().strip()
+
+        expected_relpath:str = f"../AssemblyExample.FCStd"
+        self.assertEqual(content, expected_relpath, f"ERR: lockfile content doesn't match expected relpath\ncontent={content}, expected={expected_relpath}")
+
+    @patch('sys.argv', [FILE_NAME, '--repair-lockfile-relpath', 'dummy.FCStd'])
+    def test_repair_lockfile_without_config(self):
+        # Should print help due to bad args
+        main()
+
 
 if __name__ == "__main__":
     unittest.main()
