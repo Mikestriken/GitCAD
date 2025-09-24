@@ -268,7 +268,7 @@ class TestFCStdFileTool(unittest.TestCase):
         with zipfile.ZipFile(self.temp_BIMExample_path, 'r') as zf:
             self.assertTrue(not any('./' in file_name for file_name in zf.namelist()), f"ERR: Phantom './' files found in created .FCStd file.")
         
-    def test_config_export_import__no_lockfile_thumbnail(self):
+    def test_config_export_import__no_locking_no_thumbnail(self):
         # SET CONFIGS:
         self.config_file.enable_locking = False
         self.config_file.enable_thumbnail = False
@@ -307,7 +307,7 @@ class TestFCStdFileTool(unittest.TestCase):
         self.assertTrue(os.path.exists(docXML_path), f"ERR: '{docXML_path}', does not exist.")
         self.assertTrue(len(os.listdir(no_extension_dir)) == 0, f"ERR: '{no_extension_dir}' is not empty (files should be compressed).")
         self.assertTrue(not os.path.exists(thumbnail_path), f"ERR: '{thumbnail_path}' should NOT exist.")
-        self.assertTrue(not os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' should NOT exist.")
+        self.assertTrue(os.path.exists(lockfile_path), f"ERR: '{lockfile_path}' should exist.")
         self.assertTrue(len(brp_files) == 0, f"ERR: Num brp files '{len(brp_files)}' is != 0 (files should be compressed).")
         self.assertTrue(len(zip_files) > 0, f"ERR: Num zip files '{len(zip_files)}' is <= 0")
         
