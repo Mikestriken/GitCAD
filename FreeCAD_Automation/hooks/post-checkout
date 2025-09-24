@@ -32,8 +32,8 @@ echo "DEBUG: Pulled lfs files" >&2
 #                         Update .FCStd files with uncompressed files
 # ==============================================================================================
 # Note, Args: $1=old-head-sha $2=new-head-sha $3=checkout-type (1=branch, 0=file)
-if [[ "$3" == "0" || "$3" == "1" ]]; then
-    echo "DEBUG: Processing Checkout...." >&2
+if [ "$3" == "1" ]; then
+    echo "DEBUG: Processing Branch Checkout...." >&2
 
     # Branch checkout - process all tracked .FCStd files with change detection
     TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
@@ -91,57 +91,30 @@ if [[ "$3" == "0" || "$3" == "1" ]]; then
         fi
     done
 
-# elif [ "$3" == "0" ]; then
-#     echo "DEBUG: Processing file Checkout...." >&2
-#     # File checkout - check if it's a .FCStd file and handle accordingly
-#     # For file checkouts, we need to determine which file was checked out
-#     # This is more complex as git doesn't directly tell us which file was checked out
-#     # For now, we'll process all .FCStd files but this could be optimized
+elif [ "$3" == "0" ]; then
+    echo "DEBUG: Processing File Checkout...." >&2
+    
+    # ToDo: Get commit hash for file checkout
+    # ToDo: Get list of FCStd_file_path(s) to checkout
+        # ToDo: Checkout FCStd_dir_path with same hash
+        # ToDo: If dir doesn't exist, don't import
+        # ToDo: if dir exists import
+        # ToDo: Set FCStd_file_path writable / readonly
 
-#     TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
-#     echo -e "\nDEBUG: checking '$(echo $TRACKED_FCSTD_FILES | xargs)' for changes..." >&2
-#     for FCStd_file in $TRACKED_FCSTD_FILES; do
-#         echo -e "\nDEBUG: checking '$FCStd_file'...." >&2
+    OLD=$1
+    NEW=$2
 
-#         # Check if .FCStd file exists and was recently modified (indicating checkout)
-#         if [ ! -f "$FCStd_file" ]; then
-#             continue
-#         fi
+    FILES=$(git diff --name-only HEAD)
+    
+    echo "DEBUG: Files with changes '$(echo $FILES | xargs)'"
 
-#         # Get the uncompressed directory path for this .FCStd file
-#         FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {
-#             echo "Error: Failed to get directory path for '$FCStd_file', skipping..." >&2
-#             continue
-#         }
-
-#         echo "DEBUG: Found dir '$FCStd_dir_path'" >&2
-
-#         # For file checkouts, we assume the directory was updated if the file exists
-#         # Pull LFS data for the directory
-#         git lfs pull --include="$FCStd_dir_path/**"
-
-#         # Import data to FCStd file
-#         "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file" || {
-#             echo "Error: Failed to import $FCStd_file, skipping..." >&2
-#             continue
-#         }
-
-#         if [ "$REQUIRE_LOCKS" == "1" ]; then
-#             # Check if user has valid lock
-#             FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || continue
-
-#             if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
-#                 # User doesn't have lock, set .FCStd file to readonly
-#                 make_readonly "$FCStd_file"
-#                 echo "DEBUG: set '$FCStd_file' readonly." >&2
-#             else
-#                 # User has lock, set .FCStd file to writable
-#                 make_writable "$FCStd_file"
-#                 echo "DEBUG: set '$FCStd_file' writable." >&2
-#             fi
-#         fi
-#     done
-
+    for file in $FILES; do
+        BLOB_HASH=$(git ls-files -s "$FILE" | awk '{print $2}')
+        COMMIT_HASH=$(git log --all --pretty=format:%H -- "$FILE" | while read c; do
+            git ls-tree "$c" "$FILE" | grep -q "$BLOB_HASH" && echo "$c" && break
+        done)
+        echo "'$file' checked out from commit '$COMMIT_HASH'" >&2
+    done
 else
     # Unknown checkout type
     echo "Unknown checkout type: $3, skipping .FCStd processing..." >&2
