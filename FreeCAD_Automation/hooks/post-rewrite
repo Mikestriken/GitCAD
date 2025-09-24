@@ -1,0 +1,78 @@
+#!/bin/sh
+echo "DEBUG: post-rewrite hook trap-card triggered!" >&2
+# ==============================================================================================
+#                               Verify and Retrieve Dependencies
+# ==============================================================================================
+# Ensure working dir is the root of the repo
+# GIT_ROOT=$(git rev-parse --show-toplevel)
+# cd "$GIT_ROOT"
+
+# Import code used in this script
+FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
+source "$FUNCTIONS_FILE"
+
+if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
+    echo "Config file missing or invalid; cannot proceed." >&2
+    exit $FAIL
+fi
+
+# ==============================================================================================
+#                         Update .FCStd files with uncompressed files
+# ==============================================================================================
+# Get all tracked .FCStd files (case insensitive)
+TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
+echo -e "\nDEBUG: checking '$(echo $TRACKED_FCSTD_FILES | xargs)' for changes..." >&2
+
+for FCStd_file in $TRACKED_FCSTD_FILES; do
+    echo -e "\nDEBUG: checking '$FCStd_file'...." >&2
+
+    # Check if .FCStd file exists
+    if [ ! -f "$FCStd_file" ]; then
+        echo "Error: Could not find '$FCStd_file', skipping..." >&2
+        continue
+    fi
+
+    # Get the uncompressed directory path for this .FCStd file
+    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {
+        echo "Error: Failed to get directory path for '$FCStd_file', skipping..." >&2
+        continue
+    }
+
+    echo "DEBUG: Found dir '$FCStd_dir_path'" >&2
+
+    # Check if directory has changes in the merge
+    DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "ORIG_HEAD" "HEAD") || {
+        echo "Error: Failed to get dir changes for '$FCStd_dir_path', skipping..." >&2
+        continue
+    }
+
+    if [ "$DIR_HAS_CHANGES" == 1 ]; then
+        echo "DEBUG: Detected changes, reloading '$FCStd_file'...." >&2
+
+        # Pull LFS data for the directory
+        git lfs pull --include="$FCStd_dir_path/**"
+
+        # Import data to FCStd file
+        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file" || {
+            echo "Error: Failed to import $FCStd_file, skipping..." >&2
+            continue
+        }
+    fi
+
+    if [ "$REQUIRE_LOCKS" == "1" ]; then
+        # Check if user has valid lock
+        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || continue
+
+        if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
+            # User doesn't have lock, set .FCStd file to readonly
+            make_readonly "$FCStd_file"
+            echo "DEBUG: set '$FCStd_file' readonly." >&2
+        else
+            # User has lock, set .FCStd file to writable
+            make_writable "$FCStd_file"
+            echo "DEBUG: set '$FCStd_file' writable." >&2
+        fi
+    fi
+done
+
+exit $SUCCESS

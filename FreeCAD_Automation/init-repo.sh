@@ -126,7 +126,7 @@ if [ ! -d "FreeCAD_Automation/hooks" ]; then
     exit $FAIL
 fi
 
-HOOKS=("post-checkout" "post-commit" "post-merge" "pre-commit" "pre-push")
+HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push")
 for hook in "${HOOKS[@]}"; do
     if [ -f "$HOOKS_DIR/$hook" ]; then
         echo "Hook $hook already exists in $HOOKS_DIR"
