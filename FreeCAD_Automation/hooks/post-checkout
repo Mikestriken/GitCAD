@@ -87,29 +87,8 @@ if [ "$3" == "1" ]; then
     done
 
 elif [ "$3" == "0" ]; then
-    echo "DEBUG: Processing File Checkout...." >&2
-    
-    # ToDo: Get commit hash for file checkout
-    # ToDo: Get list of FCStd_file_path(s) to checkout
-        # ToDo: Checkout FCStd_dir_path with same hash
-        # ToDo: If dir doesn't exist, don't import
-        # ToDo: if dir exists import
-        # ToDo: Set FCStd_file_path writable / readonly
-
-    OLD=$1
-    NEW=$2
-
-    FILES=$(git diff --name-only HEAD)
-    
-    echo "DEBUG: Files with changes '$(echo $FILES | xargs)'"
-
-    for file in $FILES; do
-        BLOB_HASH=$(git ls-files -s "$FILE" | awk '{print $2}')
-        COMMIT_HASH=$(git log --all --pretty=format:%H -- "$FILE" | while read c; do
-            git ls-tree "$c" "$FILE" | grep -q "$BLOB_HASH" && echo "$c" && break
-        done)
-        echo "'$file' checked out from commit '$COMMIT_HASH'" >&2
-    done
+    # echo "DEBUG: Processing File Checkout...." >&2
+    :
 else
     # Unknown checkout type
     echo "Unknown checkout type: $3, skipping .FCStd processing..." >&2
