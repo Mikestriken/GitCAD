@@ -46,18 +46,18 @@
 	- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
 		- [x] Cancel push if in any commits being pushed, user doesn't have lock on .lockfile for dir with modifications.
 
-- [ ] Post-Merge => `git merge`
+- [x] Post-Merge => `git merge`
 	- [x] Run `git lfs` hook
     - [x] Pull LFS files
 		- [x] Make sure `FCStdFileTool.py` doesn't import pointer files
-	- [ ] Update changed `.FCStd` files with uncompressed files
-		- [ ] Iterates all `.FCStd` files and checks for changes in dir
+	- [x] Update changed `.FCStd` files with uncompressed files
+		- [x] Iterates all `.FCStd` files and checks for changes in dir
 
-- [ ] Post-Rewrite => `git pull --rebase` & `git rebase` & `git commit --amend`
+- [x] Post-Rewrite => `git pull --rebase` & `git rebase` & `git commit --amend`
     - [x] Pull LFS files
 		- [x] Make sure `FCStdFileTool.py` doesn't import pointer files
-	- [ ] Update changed `.FCStd` files with uncompressed files
-		- [ ] Iterates all `.FCStd` files and checks for changes in dir
+	- [x] Update changed `.FCStd` files with uncompressed files
+		- [x] Iterates all `.FCStd` files and checks for changes in dir
 
 - [x] Git Aliases:
 	- [x] Experiment with `${GIT_PREFIX:-.}` see https://stackoverflow.com/questions/26243145/git-aliases-operate-in-the-wrong-directory
