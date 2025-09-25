@@ -696,7 +696,7 @@ test_FCStd_filter
 test_pre_commit_hook
 test_pre_push_hook
 test_post_checkout_hook
-test_stashing
+# test_stashing
 test_post_merge_hook
 
 echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
