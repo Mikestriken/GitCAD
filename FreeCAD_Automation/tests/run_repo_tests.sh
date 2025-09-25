@@ -81,6 +81,7 @@ tearDown() {
         fi
     done
     
+    rm -rf FreeCAD_Automation/tests/uncompressed/
     echo ">>>> TearDown Complete <<<<"
     echo 
     
