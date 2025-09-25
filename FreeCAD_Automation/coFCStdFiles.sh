@@ -34,6 +34,9 @@ COMMIT_HASH=$1
 shift
 FILES=("$@")
 
+changed_files=$(git diff --name-only HEAD)
+echo "DEBUG: Changed files BEFORE checkout: '$changed_files'" >&2
+
 # Collect dirs to checkout
 dirs_to_checkout=()
 for file in "${FILES[@]}"; do
@@ -46,6 +49,12 @@ for file in "${FILES[@]}"; do
     # Prepend CALLER_SUBDIR if set
     if [ "$CALLER_SUBDIR" != "" ]; then
         file="$CALLER_SUBDIR$file"
+    fi
+
+    # Skip if file has changes
+    if echo "$changed_files" | grep -q "^$file$"; then
+        echo "Error: '$file' has changes, commit them before running this operation. Skipping..." >&2
+        continue
     fi
 
     # Ensure file has .fcstd extension (case insensitive)
@@ -79,7 +88,7 @@ git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || {
 
 # Get changed files after checkout
 changed_files=$(git diff --name-only)
-echo "DEBUG: Changed files after checkout: '$changed_files'" >&2
+echo "DEBUG: Changed files AFTER checkout: '$changed_files'" >&2
 
 # For each file, check if dir exists and import if it does
 for file in "${FILES[@]}"; do
