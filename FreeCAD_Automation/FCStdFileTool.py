@@ -479,10 +479,14 @@ def main():
         
         if config_provided:
             FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
-        
+
         # Clear previously exported files
-        if os.path.exists(FCStd_dir_path): shutil.rmtree(FCStd_dir_path)
-        
+        if os.path.exists(FCStd_dir_path):
+            lockfile_path = os.path.join(FCStd_dir_path, '.lockfile')
+            if os.path.exists(lockfile_path): os.remove(lockfile_path) # Note: shutil.rmtree will err on readonly files
+            
+            shutil.rmtree(FCStd_dir_path)
+
         os.makedirs(FCStd_dir_path, exist_ok=True)
 
         try:
