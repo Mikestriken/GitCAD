@@ -38,6 +38,7 @@ changed_files=$(git diff --name-only HEAD)
 echo "DEBUG: Changed files BEFORE checkout: '$changed_files'" >&2
 
 # Collect dirs to checkout
+declare -A dir_to_file
 dirs_to_checkout=()
 for file in "${FILES[@]}"; do
     # Check for wildcards in file names (not supported)
@@ -68,6 +69,7 @@ for file in "${FILES[@]}"; do
         continue
     }
     dirs_to_checkout+=("$FCStd_dir_path")
+    dir_to_file["$FCStd_dir_path"]="$file"
 done
 
 if [ ${#dirs_to_checkout[@]} -eq 0 ]; then
@@ -90,41 +92,38 @@ git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || {
 changed_files=$(git diff --name-only)
 echo "DEBUG: Changed files AFTER checkout: '$changed_files'" >&2
 
-# For each file, check if dir exists and import if it does
-for file in "${FILES[@]}"; do
-    if [ "$CALLER_SUBDIR" != "" ]; then
-        file="$CALLER_SUBDIR$file"
-    fi
+# For each dir, check if it exists and import if it does
+for dir in "${dirs_to_checkout[@]}"; do
+    FCStd_file_path="${dir_to_file[$dir]}"
+    FCStd_dir_path="$dir"
 
-    FCStd_dir_path=$(get_FCStd_dir "$file") || continue
-
-    echo "DEBUG: Processing '$file' with dir '$FCStd_dir_path'" >&2
+    echo "DEBUG: Processing '$FCStd_file_path' with dir '$FCStd_dir_path'" >&2
 
     if [ -d "$FCStd_dir_path" ] && echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
-        echo "DEBUG: Dir has has modifications, importing changes to '$file'..." >&2
+        echo "DEBUG: Dir has modifications, importing changes to '$FCStd_file_path'..." >&2
 
         # Import data to FCStd file
-        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$file" || {
-            echo "Error: Failed to import $file, skipping..." >&2
+        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+            echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
             continue
         }
     else
-        echo "DEBUG: Dir '$FCStd_dir_path' does not exist, skipping import for '$file'" >&2
+        echo "DEBUG: Dir '$FCStd_dir_path' does not exist or has no changes, skipping import for '$FCStd_file_path'" >&2
         continue
     fi
 
     # Handle locks
     if [ "$REQUIRE_LOCKS" == "1" ]; then
-        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file") || continue
+        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || continue
 
         if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
             # User doesn't have lock, set .FCStd file to readonly
-            make_readonly "$file"
-            echo "DEBUG: Set '$file' readonly." >&2
+            make_readonly "$FCStd_file_path"
+            echo "DEBUG: Set '$FCStd_file_path' readonly." >&2
         else
             # User has lock, set .FCStd file to writable
-            make_writable "$file"
-            echo "DEBUG: Set '$file' writable." >&2
+            make_writable "$FCStd_file_path"
+            echo "DEBUG: Set '$FCStd_file_path' writable." >&2
         fi
     fi
 done
