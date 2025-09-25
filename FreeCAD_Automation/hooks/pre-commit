@@ -26,7 +26,8 @@ if [ "$REQUIRE_LOCKS" == "1" ]; then
     }
 
     # Get staged .lockfiles
-    STAGED_LOCKFILES=$(git diff --cached --name-only | grep -i '\.lockfile$')
+    # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
+    STAGED_LOCKFILES=$(git diff --cached --diff-filter=CDMRTUXB --name-only | grep -i '\.lockfile$')
     echo -e "\nDEBUG: checking staged lockfiles: '$(echo $STAGED_LOCKFILES | xargs)'" >&2
 
     for lockfile in $STAGED_LOCKFILES; do
