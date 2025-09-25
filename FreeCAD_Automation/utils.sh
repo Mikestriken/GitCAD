@@ -159,7 +159,7 @@ FCStd_file_has_valid_lock() {
     fi
 
     # File not tracked by git (new file), no lock needed (valid lock)
-    if ! git ls-files --error-unmatch "$FCStd_file_path" > /dev/null 2>&1; then
+    if ! git cat-file -e HEAD:"$FCStd_file_path" > /dev/null 2>&1; then
         echo "DEBUG: New .FCStd file, '$FCStd_file_path' lock is valid." >&2
         echo 1
         return $SUCCESS
@@ -173,7 +173,7 @@ FCStd_file_has_valid_lock() {
     }
 
     # Lockfile not tracked by git (new export), no lock needed (valid lock)
-    if ! git ls-files --error-unmatch "$lockfile_path" > /dev/null 2>&1; then
+    if ! git cat-file -e HEAD:"$lockfile_path" > /dev/null 2>&1; then
         echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
         echo 1
         return $SUCCESS
