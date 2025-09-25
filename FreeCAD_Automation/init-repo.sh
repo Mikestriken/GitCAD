@@ -358,9 +358,10 @@ setup_git_alias() {
 
 setup_git_alias "stat" "!STATUS_CALL=1 git status" "Stops clean filter from running on \`git status\`"
 setup_git_alias "clearFCStdMod" "!RESET_MOD=1 git add" "Forcefully adds files (bypass clean filter valid lock checks)"
-setup_git_alias "lock" "!sh FreeCAD_Automation/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh to local repo."
-setup_git_alias "unlock" "!sh FreeCAD_Automation/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh to local repo."
+setup_git_alias "coFCStdFiles" "!sh FreeCAD_Automation/coFCStdFiles.sh \"\${GIT_PREFIX}\"" "Adds \`git coFCStdFiles\` as alias to run coFCStdFiles.sh"
+setup_git_alias "lock" "!sh FreeCAD_Automation/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh"
+setup_git_alias "unlock" "!sh FreeCAD_Automation/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh"
 setup_git_alias "locks" "lfs locks" "1 to 1 alias for \`git lfs locks\`"
-setup_git_alias "FCStd" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\"" "Adds \`git FCStd\` as alias to run FCStdFileTool.py to local repo."
+setup_git_alias "FCStd" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\"" "Adds \`git FCStd\` as alias to run FCStdFileTool.py"
 
 exit $SUCCESS
