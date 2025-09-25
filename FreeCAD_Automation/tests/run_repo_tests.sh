@@ -208,6 +208,7 @@ test_FCStd_filter() {
 
     tearDown "test_FCStd_filter" || exit $FAIL
 
+    echo ">>>>>>>>> TEST 'test_FCStd_filter' PASSED <<<<<<<<<" >&2
     return $SUCCESS
 }
 
@@ -380,7 +381,8 @@ test_setup_teardown() {
 #                                          Run Tests
 # ==============================================================================================
 # test_setup_teardown
-# test_FCStd_filter
+test_FCStd_filter
+
 echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
 rm -rf FreeCAD_Automation/tests/uncompressed/
 exit $SUCCESS
