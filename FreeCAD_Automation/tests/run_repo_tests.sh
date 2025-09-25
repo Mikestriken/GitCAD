@@ -381,7 +381,7 @@ test_setup_teardown() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
-# test_setup_teardown
-test_FCStd_filter
+test_setup_teardown
+# test_FCStd_filter
 
 exit $SUCCESS
