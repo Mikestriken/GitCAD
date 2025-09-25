@@ -117,7 +117,7 @@ assert_writable() {
 
 assert_dir_has_changes() {
     local dir="$1"
-    if ! git diff --name-only | grep -q "^$dir/"; then
+    if ! git diff --name-only HEAD | grep -q "^$dir/"; then
         echo "Assertion failed: Directory '$dir' has no changes" >&2
         tearDown
         exit $FAIL
@@ -381,7 +381,7 @@ test_setup_teardown() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
-test_setup_teardown
-# test_FCStd_filter
+# test_setup_teardown
+test_FCStd_filter
 
 exit $SUCCESS
