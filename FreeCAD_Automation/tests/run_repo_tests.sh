@@ -155,6 +155,20 @@ await_user_modification() {
     done
 }
 
+confirm_user() {
+    local message="$1"
+    local test_name="$2"
+    while true; do
+        echo "$message (y/n)"
+        read -r response
+        case $response in
+            [Yy]* ) return;;
+            [Nn]* ) tearDown "$test_name"; exit $FAIL;;
+            * ) echo "Please answer y or n.";;
+        esac
+    done
+}
+
 # ==============================================================================================
 #                                          Define Tests
 # ==============================================================================================
@@ -229,155 +243,466 @@ test_sandbox() {
     return $SUCCESS
 }
 
-# ToDo: Test Pre-Commit Hook
-    # remove `BIMExample.FCStd` (not used for this test)
-    # `git add` `AssemblyExample.FCStd` (file copied during setup)
-    # Assert get_FCStd_dir for `AssemblyExample.FCStd` exists now
-    # git add get_FCStd_dir for `AssemblyExample.FCStd`
-    # git commit -m "initial active_test commit"
-    # Assert `AssemblyExample.FCStd` is now readonly
-    # Request user modify `AssemblyExample.FCStd`
-    # GIT_ALLOW_FILTER_FAILURE=1 git add `AssemblyExample.FCStd`
-    # Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
-    # git add get_FCStd_dir for `AssemblyExample.FCStd`
-    # git commit -m "active_test commit that should error, no lock" (expect error)
+test_pre_commit_hook() {
+    setup "test_pre_commit_hook" || exit $FAIL
 
-# ToDo: Test Pre-Push Hook
-    # `git add` `AssemblyExample.FCStd` and `BIMExample.FCStd` (files copied during setup)
-    # Assert get_FCStd_dir exists now for both `AssemblyExample.FCStd` and `BIMExample.FCStd`
-    # git add get_FCStd_dir for both `AssemblyExample.FCStd` and `BIMExample.FCStd`
-    # git commit -m "initial active_test commit"
-    # Assert `AssemblyExample.FCStd` and `BIMExample.FCStd` are now readonly
-    # git lock `AssemblyExample.FCStd` (git alias)
-    # Assert `AssemblyExample.FCStd` is NOT readonly
-    # 2x Request user modify `AssemblyExample.FCStd`
-    # 2x git add `AssemblyExample.FCStd`
-    # 2x Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
-    # 2x git add get_FCStd_dir for `AssemblyExample.FCStd`
-    # 2x git commit -m "active_test commit 1" ... git commit -m "active_test commit 2"
-    # 2x assert `AssemblyExample.FCStd` is NOT readonly
-    # git unlock `AssemblyExample.FCStd` (git alias)
-    # Assert error shows up in stderr about unlocking a file that has local changes not pushed to remote
-    # git unlock --force `AssemblyExample.FCStd` (git alias)
-    # assert `AssemblyExample.FCStd` is now readonly
-    # git lock `BIMExample.FCStd` (git alias)
-    # assert `BIMExample.FCStd` is NOT readonly
-    # Request user modify `BIMExample.FCStd`
-    # git add `BIMExample.FCStd`
-    # Assert `BIMExample.FCStd` dir has changes that can be `git add`(ed)
-    # git add get_FCStd_dir for `BIMExample.FCStd`
-    # git commit -m "active_test commit 3"
-    # assert `BIMExample.FCStd` is NOT readonly
-    # git push origin active_test
-    # assert error about commits with changes to files without locks being pushed
-    # git lock `AssemblyExample.FCStd` again (git alias)
-    # Assert `AssemblyExample.FCStd` is NOT readonly
-    # git push origin active_test
-    # assert success
+    echo "TEST: remove \`BIMExample.FCStd\` (not used for this test)" >&2
+    rm $TEST_DIR/BIMExample.FCStd; echo
 
-# ToDo: Test Post-Checkout Hook -- Branch and file checkout
-    # `git add` `AssemblyExample.FCStd` and `BIMExample.FCStd` (files copied during setup)
-    # Assert get_FCStd_dir exists now for both `AssemblyExample.FCStd` and `BIMExample.FCStd`
-    # git add get_FCStd_dir for both `AssemblyExample.FCStd` and `BIMExample.FCStd`
-    # git commit -m "initial active_test commit"
-    # Assert `AssemblyExample.FCStd` and `BIMExample.FCStd` are now readonly
-    # git checkout -b active_test_branch1
-    # git lock `AssemblyExample.FCStd` (git alias)
-    # Assert `AssemblyExample.FCStd` is NOT readonly
-    # Request user modify `AssemblyExample.FCStd`
-    # git add `AssemblyExample.FCStd`
-    # Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
-    # git add get_FCStd_dir for `AssemblyExample.FCStd`
-    # git commit -m "active_test_branch1 commit 1"
-    # assert `AssemblyExample.FCStd` is NOT readonly
-    # git unlock `AssemblyExample.FCStd` (git alias)
-    # Assert error shows up in stderr about unlocking a file that has local changes not pushed
-    # git checkout active_branch
-    # assert `AssemblyExample.FCStd` is NOT readonly
-    # assert `BIMExample.FCStd` is readonly
-    # Ask user to confirm `AssemblyExample.FCStd` changes reverted
-    # git coFCStdFiles active_test_branch1 `*.FCStd`
-    # assert fail because wildcards not supported in file names
-    # git coFCStdFiles active_test_branch1 `AssemblyExample.FCStd`
-    # Ask user to confirm `AssemblyExample.FCStd` changes are back
-    # assert `AssemblyExample.FCStd` is NOT readonly
-    # assert `BIMExample.FCStd` is readonly
+    echo "TEST: \`git add\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
+    git add $TEST_DIR/AssemblyExample.FCStd >/dev/null; echo
 
-# ToDo: Test stashing
-    # remove `BIMExample.FCStd` (not used for this test)
-    # `git add` `AssemblyExample.FCStd` (file copied during setup)
-    # Assert get_FCStd_dir for `AssemblyExample.FCStd` exists now
-    # git add get_FCStd_dir for `AssemblyExample.FCStd`
-    # git commit -m "initial active_test commit"
-    # Assert `AssemblyExample.FCStd` is now readonly
-    # git lock `AssemblyExample.FCStd` (git alias)
-    # Assert `AssemblyExample.FCStd` is NOT readonly
-    # Request user modify `AssemblyExample.FCStd`
-    # git add `AssemblyExample.FCStd`
-    # Assert changes to get_FCStd_dir for `AssemblyExample.FCStd` exists now
-    # git stash the changes
-    # Ask user to confirm `AssemblyExample.FCStd` changes reverted
-    # git unlock `AssemblyExample.FCStd` (git alias)
-    # Assert error shows up in stderr about unlocking a file that has stashed changes not pushed
-    # git unlock --force `AssemblyExample.FCStd` (git alias)
-    # Assert `AssemblyExample.FCStd` is readonly
-    # git stash pop
-    # Assert error shows up in stderr about failing to merge stashed changes with files user doesn't have lock for
-    # git lock `AssemblyExample.FCStd` (git alias)
-    # Assert `AssemblyExample.FCStd` is NOT readonly
-    # git stash pop
-    # Ask user to confirm `AssemblyExample.FCStd` changes are back
+    echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
+    local FCStd_dir_path
+    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_pre_commit_hook"; exit $FAIL; }
+    assert_dir_exists "$FCStd_dir_path"; echo
 
-# ToDo: Test Post-Merge Hook
-    # `git add` `AssemblyExample.FCStd` and `BIMExample.FCStd` (files copied during setup)
-    # Assert get_FCStd_dir exists now for both `AssemblyExample.FCStd` and `BIMExample.FCStd`
-    # git add get_FCStd_dir for both `AssemblyExample.FCStd` and `BIMExample.FCStd`
-    # git commit -m "initial active_test commit"
-    # Assert `AssemblyExample.FCStd` and `BIMExample.FCStd` are now readonly
-    # git lock `AssemblyExample.FCStd` (git alias)
-    # Assert `AssemblyExample.FCStd` is NOT readonly
-    # Request user modify `AssemblyExample.FCStd`
-    # git add `AssemblyExample.FCStd`
-    # Assert `AssemblyExample.FCStd` dir has changes that can be `git add`(ed)
-    # git add get_FCStd_dir for `AssemblyExample.FCStd`
-    # git commit -m "active_test commit 1"
-    # git push origin active_test
-    # git reset --hard active_test^
-    # git update-ref refs/remotes/origin/active_test active_test
-    # Ask user to confirm `AssemblyExample.FCStd` changes reverted
-    # git unlock `AssemblyExample.FCStd` (git alias)
-    # Assert `AssemblyExample.FCStd` is now readonly
-    # Assert no error from git unlock
-    # git lock `BIMExample.FCStd` (git alias)
-    # Assert `BIMExample.FCStd` is NOT readonly
-    # Request user modify `BIMExample.FCStd`
-    # git add `BIMExample.FCStd`
-    # Assert `BIMExample.FCStd` dir has changes that can be `git add`(ed)
-    # git add get_FCStd_dir for `BIMExample.FCStd`
-    # git commit -m "active_test commit 1b"
-    # git pull --rebase origin active_test
-    # Assert `BIMExample.FCStd` is NOT readonly
-    # Assert `AssemblyExample.FCStd` is readonly
-    # Ask user to confirm `AssemblyExample.FCStd` changes are back
-    # git reset --soft active_test^
-    # git stash
-    # git reset --hard active_test^
-    # Ask user to confirm `BIMExample.FCStd` changes reverted
-    # Ask user to confirm `AssemblyExample.FCStd` changes reverted
-    # git update-ref refs/remotes/origin/active_test active_test
-    # git stash pop
-    # git commit -m "active_test commit 1b"
-    # Ask user to confirm `BIMExample.FCStd` changes are back
-    # git pull origin active_test
-    # Assert `BIMExample.FCStd` is NOT readonly
-    # Assert `AssemblyExample.FCStd` is readonly
-    # Ask user to confirm `AssemblyExample.FCStd` changes are back
+    echo "TEST: git add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
+    git add "$FCStd_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"initial active_test commit\"" >&2
+    git commit -m "initial active_test commit" >/dev/null; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is now readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
+    await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: GIT_ALLOW_FILTER_FAILURE=1 git add \`AssemblyExample.FCStd\`" >&2
+    GIT_ALLOW_FILTER_FAILURE=1 git add $TEST_DIR/AssemblyExample.FCStd; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git add\`(ed)" >&2
+    assert_dir_has_changes "$FCStd_dir_path"; echo
+
+    echo "TEST: git add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
+    git add "$FCStd_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"active_test commit that should error, no lock\" (expect error)" >&2
+    assert_command_fails "git commit -m \"active_test commit that should error, no lock\""; echo
+
+    tearDown "test_pre_commit_hook" || exit $FAIL
+
+    echo ">>>>>>>>> TEST 'test_pre_commit_hook' PASSED <<<<<<<<<" >&2
+    return $SUCCESS
+}
+
+test_pre_push_hook() {
+    setup "test_pre_push_hook" || exit $FAIL
+
+    echo "TEST: \`git add\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
+    git add $TEST_DIR/AssemblyExample.FCStd $TEST_DIR/BIMExample.FCStd >/dev/null; echo
+
+    echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
+    local Assembly_dir_path
+    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    assert_dir_exists "$Assembly_dir_path"; echo
+    local BIM_dir_path
+    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    assert_dir_exists "$BIM_dir_path"; echo
+
+    echo "TEST: git add get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
+    git add "$Assembly_dir_path" "$BIM_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"initial active_test commit\"" >&2
+    git commit -m "initial active_test commit" >/dev/null; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` are now readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
+    git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    for i in 1 2; do
+        echo "TEST: 2x Request user modify \`AssemblyExample.FCStd\` ($i)" >&2
+        await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+        echo "TEST: 2x git add \`AssemblyExample.FCStd\` ($i)" >&2
+        git add $TEST_DIR/AssemblyExample.FCStd >/dev/null; echo
+
+        echo "TEST: 2x Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git add\`(ed) ($i)" >&2
+        assert_dir_has_changes "$Assembly_dir_path"; echo
+
+        echo "TEST: 2x git add get_FCStd_dir for \`AssemblyExample.FCStd\` ($i)" >&2
+        git add "$Assembly_dir_path" >/dev/null; echo
+
+        echo "TEST: 2x git commit -m \"active_test commit $i\" ($i)" >&2
+        git commit -m "active_test commit $i" >/dev/null; echo
+
+        echo "TEST: 2x assert \`AssemblyExample.FCStd\` is NOT readonly ($i)" >&2
+        assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+    done
+
+    echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias)" >&2
+    assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+
+    echo "TEST: git unlock --force \`AssemblyExample.FCStd\` (git alias)" >&2
+    git unlock --force "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: assert \`AssemblyExample.FCStd\` is now readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: git lock \`BIMExample.FCStd\` (git alias)" >&2
+    git lock "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: assert \`BIMExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: Request user modify \`BIMExample.FCStd\`" >&2
+    await_user_modification "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: git add \`BIMExample.FCStd\`" >&2
+    git add $TEST_DIR/BIMExample.FCStd >/dev/null; echo
+
+    echo "TEST: Assert \`BIMExample.FCStd\` dir has changes that can be \`git add\`(ed)" >&2
+    assert_dir_has_changes "$BIM_dir_path"; echo
+
+    echo "TEST: git add get_FCStd_dir for \`BIMExample.FCStd\`" >&2
+    git add "$BIM_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"active_test commit 3\"" >&2
+    git commit -m "active_test commit 3" >/dev/null; echo
+
+    echo "TEST: assert \`BIMExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: git push origin active_test" >&2
+    assert_command_fails "git push origin active_test"; echo
+
+    echo "TEST: git lock \`AssemblyExample.FCStd\` again (git alias)" >&2
+    git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: git push origin active_test" >&2
+    git push origin active_test >/dev/null 2>&1; echo
+
+    tearDown "test_pre_push_hook" || exit $FAIL
+
+    echo ">>>>>>>>> TEST 'test_pre_push_hook' PASSED <<<<<<<<<" >&2
+    return $SUCCESS
+}
+
+test_post_checkout_hook() {
+    setup "test_post_checkout_hook" || exit $FAIL
+
+    echo "TEST: \`git add\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
+    git add $TEST_DIR/AssemblyExample.FCStd $TEST_DIR/BIMExample.FCStd >/dev/null; echo
+
+    echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
+    local Assembly_dir_path
+    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_post_checkout_hook"; exit $FAIL; }
+    assert_dir_exists "$Assembly_dir_path"; echo
+    local BIM_dir_path
+    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_post_checkout_hook"; exit $FAIL; }
+    assert_dir_exists "$BIM_dir_path"; echo
+
+    echo "TEST: git add get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
+    git add "$Assembly_dir_path" "$BIM_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"initial active_test commit\"" >&2
+    git commit -m "initial active_test commit" >/dev/null; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` are now readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: git checkout -b active_test_branch1" >&2
+    git checkout -b active_test_branch1 >/dev/null; echo
+
+    echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
+    git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
+    await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: git add \`AssemblyExample.FCStd\`" >&2
+    git add $TEST_DIR/AssemblyExample.FCStd >/dev/null; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git add\`(ed)" >&2
+    assert_dir_has_changes "$Assembly_dir_path"; echo
+
+    echo "TEST: git add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
+    git add "$Assembly_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"active_test_branch1 commit 1\"" >&2
+    git commit -m "active_test_branch1 commit 1" >/dev/null; echo
+
+    echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias)" >&2
+    assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+
+    echo "TEST: git checkout active_test" >&2
+    git checkout active_test >/dev/null; echo
+
+    echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: assert \`BIMExample.FCStd\` is readonly" >&2
+    assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook"
+
+    echo "TEST: git coFCStdFiles active_test_branch1 \`*.FCStd\`" >&2
+    assert_command_fails "git coFCStdFiles active_test_branch1 \"*.FCStd\""; echo
+
+    echo "TEST: git coFCStdFiles active_test_branch1 \`AssemblyExample.FCStd\`" >&2
+    git coFCStdFiles active_test_branch1 "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook"
+
+    echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: assert \`BIMExample.FCStd\` is readonly" >&2
+    assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
+
+    tearDown "test_post_checkout_hook" || exit $FAIL
+
+    echo ">>>>>>>>> TEST 'test_post_checkout_hook' PASSED <<<<<<<<<" >&2
+    return $SUCCESS
+}
+
+test_stashing() {
+    setup "test_stashing" || exit $FAIL
+
+    echo "TEST: remove \`BIMExample.FCStd\` (not used for this test)" >&2
+    rm $TEST_DIR/BIMExample.FCStd; echo
+
+    echo "TEST: \`git add\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
+    git add $TEST_DIR/AssemblyExample.FCStd >/dev/null; echo
+
+    echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
+    local FCStd_dir_path
+    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_stashing"; exit $FAIL; }
+    assert_dir_exists "$FCStd_dir_path"; echo
+
+    echo "TEST: git add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
+    git add "$FCStd_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"initial active_test commit\"" >&2
+    git commit -m "initial active_test commit" >/dev/null; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is now readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
+    git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
+    await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: git add \`AssemblyExample.FCStd\`" >&2
+    git add $TEST_DIR/AssemblyExample.FCStd >/dev/null; echo
+
+    echo "TEST: Assert changes to get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
+    assert_dir_has_changes "$FCStd_dir_path"; echo
+
+    echo "TEST: git stash the changes" >&2
+    git stash; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_stashing"
+
+    echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias)" >&2
+    assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+
+    echo "TEST: git unlock --force \`AssemblyExample.FCStd\` (git alias)" >&2
+    git unlock --force "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: git stash pop" >&2
+    assert_command_fails "git stash pop"; echo
+
+    echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
+    git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: git stash pop" >&2
+    git stash pop; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_stashing"
+
+    tearDown "test_stashing" || exit $FAIL
+
+    echo ">>>>>>>>> TEST 'test_stashing' PASSED <<<<<<<<<" >&2
+    return $SUCCESS
+}
+
+test_post_merge_hook() {
+    setup "test_post_merge_hook" || exit $FAIL
+
+    echo "TEST: \`git add\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
+    git add $TEST_DIR/AssemblyExample.FCStd $TEST_DIR/BIMExample.FCStd >/dev/null; echo
+
+    echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
+    local Assembly_dir_path
+    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_post_merge_hook"; exit $FAIL; }
+    assert_dir_exists "$Assembly_dir_path"; echo
+    local BIM_dir_path
+    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_post_merge_hook"; exit $FAIL; }
+    assert_dir_exists "$BIM_dir_path"; echo
+
+    echo "TEST: git add get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
+    git add "$Assembly_dir_path" "$BIM_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"initial active_test commit\"" >&2
+    git commit -m "initial active_test commit" >/dev/null; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` are now readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
+    git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
+    await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: git add \`AssemblyExample.FCStd\`" >&2
+    git add $TEST_DIR/AssemblyExample.FCStd >/dev/null; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git add\`(ed)" >&2
+    assert_dir_has_changes "$Assembly_dir_path"; echo
+
+    echo "TEST: git add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
+    git add "$Assembly_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"active_test commit 1\"" >&2
+    git commit -m "active_test commit 1" >/dev/null; echo
+
+    echo "TEST: git push origin active_test" >&2
+    git push origin active_test >/dev/null 2>&1; echo
+
+    echo "TEST: git reset --hard active_test^" >&2
+    git reset --hard active_test^ >/dev/null 2>&1; echo
+
+    echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
+    git update-ref refs/remotes/origin/active_test active_test; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook"
+
+    echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias)" >&2
+    git unlock "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is now readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Assert no error from git unlock" >&2
+    # Assuming success if no error
+
+    echo "TEST: git lock \`BIMExample.FCStd\` (git alias)" >&2
+    git lock "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: Assert \`BIMExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: Request user modify \`BIMExample.FCStd\`" >&2
+    await_user_modification "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: git add \`BIMExample.FCStd\`" >&2
+    git add $TEST_DIR/BIMExample.FCStd >/dev/null; echo
+
+    echo "TEST: Assert \`BIMExample.FCStd\` dir has changes that can be \`git add\`(ed)" >&2
+    assert_dir_has_changes "$BIM_dir_path"; echo
+
+    echo "TEST: git add get_FCStd_dir for \`BIMExample.FCStd\`" >&2
+    git add "$BIM_dir_path" >/dev/null; echo
+
+    echo "TEST: git commit -m \"active_test commit 1b\"" >&2
+    git commit -m "active_test commit 1b" >/dev/null; echo
+
+    echo "TEST: git pull --rebase origin active_test" >&2
+    git pull --rebase origin active_test >/dev/null 2>&1; echo
+
+    echo "TEST: Assert \`BIMExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook"
+
+    echo "TEST: git reset --soft active_test^" >&2
+    git reset --soft active_test^ >/dev/null 2>&1; echo
+
+    echo "TEST: git stash" >&2
+    git stash; echo
+
+    echo "TEST: git reset --hard active_test^" >&2
+    git reset --hard active_test^ >/dev/null 2>&1; echo
+
+    echo "TEST: Ask user to confirm \`BIMExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'BIMExample.FCStd' changes have been reverted." "test_post_merge_hook"
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook"
+
+    echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
+    git update-ref refs/remotes/origin/active_test active_test; echo
+
+    echo "TEST: git stash pop" >&2
+    git stash pop; echo
+
+    echo "TEST: git commit -m \"active_test commit 1b\"" >&2
+    git commit -m "active_test commit 1b" >/dev/null; echo
+
+    echo "TEST: Ask user to confirm \`BIMExample.FCStd\` changes are back" >&2
+    confirm_user "Please confirm that 'BIMExample.FCStd' changes are back." "test_post_merge_hook"
+
+    echo "TEST: git pull origin active_test" >&2
+    git pull origin active_test >/dev/null 2>&1; echo
+
+    echo "TEST: Assert \`BIMExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
+    assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook"
+
+    tearDown "test_post_merge_hook" || exit $FAIL
+
+    echo ">>>>>>>>> TEST 'test_post_merge_hook' PASSED <<<<<<<<<" >&2
+    return $SUCCESS
+}
 
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
 # test_sandbox
 test_FCStd_filter
+test_pre_commit_hook
+test_pre_push_hook
+test_post_checkout_hook
+test_stashing
+test_post_merge_hook
 
 echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
 rm -rf FreeCAD_Automation/tests/uncompressed/
