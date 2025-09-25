@@ -44,6 +44,7 @@ import shutil
 import io
 import warnings
 from pathlib import PurePosixPath
+import stat
 
 CONFIG_PATH:str = 'FreeCAD_Automation/config.json'
 
@@ -483,7 +484,9 @@ def main():
         # Clear previously exported files
         if os.path.exists(FCStd_dir_path):
             lockfile_path = os.path.join(FCStd_dir_path, '.lockfile')
-            if os.path.exists(lockfile_path): os.remove(lockfile_path) # Note: shutil.rmtree will err on readonly files
+            if os.path.exists(lockfile_path):
+                os.chmod(lockfile_path, stat.S_IWRITE) # Note: os.remove and rmtree will err if lockfile is readonly.
+                os.remove(lockfile_path)
             
             shutil.rmtree(FCStd_dir_path)
 
