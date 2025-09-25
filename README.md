@@ -266,6 +266,15 @@ Provides a list of who has locks on files and which file they have a lock for.
 
 Usage: `git locks`
 
+### `git coFCStdFiles`
+Checks out specific `.FCStd` files from a given commit by retrieving their uncompressed directories and importing the data back into the `.FCStd` files. This allows reverting individual `.FCStd` files to a previous version without affecting other files.
+
+This is basically how you `git checkout COMMIT_HASH -- FILE [FILE ...]` `.FCStd` files. The purpose of this alias is to redirect `FILE` from the empty `.FCStd` file to the directory containing the data for the `.FCStd` file.
+
+Usage: `git coFCStdFiles COMMIT_HASH FILE [FILE ...]`
+
+Note: Wildcards are not supported; specify exact file paths.
+
 ### `git FCStd`
 Runs the `FCStdFileTool.py` script for manual export or import of `.FCStd` files. Useful for advanced operations, troubleshooting, or direct manipulation of `.FCStd` files outside the normal Git workflow.
 
