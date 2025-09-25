@@ -176,7 +176,7 @@ test_FCStd_filter() {
 
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
-    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown; exit $FAIL; }
+    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_FCStd_filter"; exit $FAIL; }
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
