@@ -40,6 +40,7 @@
 
 - [x] Post-Commit Hook => `git commit`
 	- [x] Run `git lfs` hook
+	- [ ] Set committed `.FCStd` files readonly / writable per `FCStd_file_has_valid_lock` function
 
 - [x] Pre-Push Hook => `git push`
 	- [x] Run `git lfs` hook
