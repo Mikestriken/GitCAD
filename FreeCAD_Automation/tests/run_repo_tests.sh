@@ -164,6 +164,7 @@ await_user_modification() {
     # git add should be appended with `>/dev/null`
     # git commit should be appended with `>/dev/null`
     # git push should be appended with `>/dev/null 2>&1`
+    # Convert comments to echo statements prepended with "TEST: "
 
 test_FCStd_filter() {
     setup "test_FCStd_filter" || exit $FAIL
