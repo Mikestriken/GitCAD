@@ -19,10 +19,8 @@ fi
 # ==============================================================================================
 #                                          Get Binaries
 # ==============================================================================================
-echo -n "Paused for user inspection..."; read -r dummy; echo
 git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 git clearFCStdMod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
-echo -n "Paused for user inspection..."; read -r dummy; echo
 
 # ==============================================================================================
 #                                          Test Functions
@@ -381,7 +379,8 @@ test_setup_teardown() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
-test_setup_teardown
+# test_setup_teardown
 # test_FCStd_filter
 
+rm -rf $TEST_DIR/../uncompressed
 exit $SUCCESS
