@@ -225,6 +225,35 @@ get_FCStd_dir() {
     return $SUCCESS
 }
 
+# DESCRIPTION: Function to get the .FCStd file path from a .lockfile, relative to repo root
+# USAGE: `FCStd_file_path=$(get_FCStd_file_from_lockfile "path/to/.lockfile") || exit $FAIL`
+get_FCStd_file_from_lockfile() {
+    local lockfile_path="$1"
+
+    if [ ! -f "$lockfile_path" ]; then
+        echo "Error: Lockfile '$lockfile_path' does not exist" >&2
+        return $FAIL
+    fi
+
+    # Read the line with FCStd_file_relpath
+    local line=$(grep "FCStd_file_relpath=" "$lockfile_path")
+    if [ -z "$line" ]; then
+        echo "Error: FCStd_file_relpath not found in '$lockfile_path'" >&2
+        return $FAIL
+    fi
+
+    local FCStd_file_from_dir=$(echo "$line" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")
+
+    # The FCStd_file_from_dir is relative to the lockfile's directory
+    local lockfile_dir=$(dirname "$lockfile_path")
+    local FCStd_file_abs=$(realpath "$lockfile_dir/$FCStd_file_from_dir")
+    local FCStd_file_abs="$(echo "${FCStd_file_abs#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
+    local FCStd_file_rel=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$FCStd_file_abs")
+
+    echo "$FCStd_file_rel"
+    return $SUCCESS
+}
+
 # DESCRIPTION: Function to check if a directory has changes between two commits
 # USAGE:
     # `DIR_HAS_CHANGES=$(dir_has_changes "path/to/dir") || exit $FAIL`
