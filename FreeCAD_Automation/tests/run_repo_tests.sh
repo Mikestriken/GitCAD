@@ -301,7 +301,9 @@ test_setup_teardown() {
     # assert `AssemblyExample.FCStd` is NOT readonly
     # assert `BIMExample.FCStd` is readonly
     # Ask user to confirm `AssemblyExample.FCStd` changes reverted
-    # git checkout active_test_branch1 -- `AssemblyExample.FCStd`
+    # git coFCStdFiles active_test_branch1 `*.FCStd`
+    # assert fail because wildcards not supported in file names
+    # git coFCStdFiles active_test_branch1 `AssemblyExample.FCStd`
     # Ask user to confirm `AssemblyExample.FCStd` changes are back
     # assert `AssemblyExample.FCStd` is NOT readonly
     # assert `BIMExample.FCStd` is readonly
