@@ -364,5 +364,6 @@ setup_git_alias "lock" "!sh FreeCAD_Automation/lock.sh \"\${GIT_PREFIX}\"" "Adds
 setup_git_alias "unlock" "!sh FreeCAD_Automation/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh"
 setup_git_alias "locks" "lfs locks" "1 to 1 alias for \`git lfs locks\`"
 setup_git_alias "FCStd" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\"" "Adds \`git FCStd\` as alias to run FCStdFileTool.py"
+# ToDo: Create a stash alias to restore .FCStd files post-stash
 
 exit $SUCCESS

@@ -41,7 +41,7 @@ if [ "$3" == "1" ]; then
             exit $FAIL
         }
 
-        CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $3}') || {
+        CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
             echo "Error: failed to list of active lock info." >&2
             exit $FAIL
         }
