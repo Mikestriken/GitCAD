@@ -110,6 +110,7 @@ add_to_gitignore() {
 
 add_to_gitignore "**/__pycache__"
 add_to_gitignore "FreeCAD_Automation/config.json"
+add_to_gitignore "*.FCBak"
 
 echo "=============================================================================================="
 echo "                                     Setup Git Hooks"
