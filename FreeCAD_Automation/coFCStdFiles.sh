@@ -37,6 +37,12 @@ FILES=("$@")
 # Collect dirs to checkout
 dirs_to_checkout=()
 for file in "${FILES[@]}"; do
+    # Check for wildcards in file names (not supported)
+    if [[ "$file" == *[*?]* ]]; then
+        echo "Error: Wildcards not supported in file names. Please specify exact file paths." >&2
+        exit $FAIL
+    fi
+
     # Prepend CALLER_SUBDIR if set
     if [ "$CALLER_SUBDIR" != "" ]; then
         file="$CALLER_SUBDIR$file"
