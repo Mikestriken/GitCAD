@@ -35,6 +35,7 @@ options:
                         Suppress all print statements. Nothing will be printed to console
 """
 from freecad import project_utility as PU
+import datetime
 import os
 import sys
 import argparse
@@ -428,18 +429,17 @@ def bad_args(args:argparse.Namespace) -> bool:
     
     return False
 
-def ensure_lockfile_exists(FCStd_dir_path:str):
+def create_lockfile(FCStd_dir_path:str):
     """
-    Ensures file called `.lockfile` exists in FCStd_dir_path.
-    (Creates one if it doesn't exist)
+    Creates a file called `.lockfile`in FCStd_dir_path with current timestamp.
 
     Args:
         FCStd_dir_path (str): Path to FCStd directory.
     """
     lock_file_path:str = os.path.join(FCStd_dir_path, '.lockfile')
-    if not os.path.exists(lock_file_path):
-        with open(lock_file_path, 'w') as f:
-            f.write('')
+    current_time:str = datetime.datetime.now().isoformat()
+    with open(lock_file_path, 'w') as f:
+        f.write(f"File Last Exported On: {current_time}\n")
 
 def main():
     args:argparse.Namespace = parseArgs()
@@ -507,7 +507,7 @@ def main():
             if config['compress_binaries']['enabled']:
                 compress_binaries(FCStd_dir_path, config)
 
-            ensure_lockfile_exists(FCStd_dir_path)
+            create_lockfile(FCStd_dir_path)
                 
         if not args.silent_flag:
             print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
@@ -546,9 +546,6 @@ def main():
 
             if INCLUDE_THUMBNAIL:
                 add_thumbnail_to_FCStd_file(FCStd_dir_path, FCStd_file_path)
-        
-        if config_provided:
-            ensure_lockfile_exists(FCStd_dir_path)
         
         if not args.silent_flag:
             print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
