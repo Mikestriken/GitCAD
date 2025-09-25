@@ -29,6 +29,7 @@ fi
 
     # $RESET_MOD is an environment variable set by the alias `git clearFCStdMod``
 if [[ -n "$STATUS_CALL" || -n "$RESET_MOD" ]]; then
+    echo "DEBUG: Status or reset mod call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
@@ -40,7 +41,7 @@ fi
 
     # Solution: If file is empty don't export and exit early with success
 if [ ! -s "$1" ]; then
-    # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
