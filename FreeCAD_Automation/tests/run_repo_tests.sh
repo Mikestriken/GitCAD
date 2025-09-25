@@ -213,23 +213,18 @@ test_FCStd_filter() {
     return $SUCCESS
 }
 
-test_setup_teardown() {
-    setup "test_setup_teardown" || exit $FAIL
-    echo -n "Paused for user inspection..."; read -r dummy; echo
+test_sandbox() {
+    setup "test_sandbox" || exit $FAIL
 
-    # git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null; echo
+    git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null; echo
 
-    # git add "$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)" "$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)" > /dev/null; echo
+    git add "$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)" "$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)" > /dev/null; echo
 
-    # git commit -m "test commit for setup/tearDown" > /dev/null; echo
+    git commit -m "initial test commit" > /dev/null; echo
+
+    echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
     
-    # echo -n "Paused for user inspection..."; read -r dummy; echo
-    
-    # git push origin $TEST_BRANCH > /dev/null 2>&1; echo
-    
-    # echo -n "Paused for user inspection..."; read -r dummy; echo
-
-    tearDown "test_setup_teardown" || exit $FAIL
+    tearDown "test_sandbox" || exit $FAIL
 
     return $SUCCESS
 }
@@ -381,7 +376,7 @@ test_setup_teardown() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
-# test_setup_teardown
+# test_sandbox
 test_FCStd_filter
 
 echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
