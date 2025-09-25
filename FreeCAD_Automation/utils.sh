@@ -236,21 +236,25 @@ get_FCStd_file_from_lockfile() {
     fi
 
     # Read the line with FCStd_file_relpath
-    local line=$(grep "FCStd_file_relpath=" "$lockfile_path")
-    if [ -z "$line" ]; then
+    local FCStd_file_relpath_line_in_lockfile=$(grep "FCStd_file_relpath=" "$lockfile_path")
+    if [ -z "$FCStd_file_relpath_line_in_lockfile" ]; then
         echo "Error: FCStd_file_relpath not found in '$lockfile_path'" >&2
         return $FAIL
     fi
 
-    local FCStd_file_from_dir=$(echo "$line" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")
+    # Extract the FCStd_file_relpath value
+    local FCStd_file_relpath=$(echo "$FCStd_file_relpath_line_in_lockfile" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")
 
-    # The FCStd_file_from_dir is relative to the lockfile's directory
-    local lockfile_dir=$(dirname "$lockfile_path")
-    local FCStd_file_abs=$(realpath "$lockfile_dir/$FCStd_file_from_dir")
-    local FCStd_file_abs="$(echo "${FCStd_file_abs#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
-    local FCStd_file_rel=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$FCStd_file_abs")
+    # Derive the FCStd_file_path from the FCStd_file_relpath
+    local FCStd_dir_path=$(dirname "$lockfile_path")
+    
+    local FCStd_file_path=$(realpath "$FCStd_dir_path/$FCStd_file_relpath")
 
-    echo "$FCStd_file_rel"
+    FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
+    
+    FCStd_file_path="$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$FCStd_file_path")"
+
+    echo "$FCStd_file_path"
     return $SUCCESS
 }
 
