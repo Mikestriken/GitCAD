@@ -193,11 +193,11 @@ FCStd_file_has_valid_lock() {
     }
 
     if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
-        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is INVALID." >&2
+        echo "DEBUG: '$FCStd_file_path' lock is INVALID." >&2
         echo 0
         return $SUCCESS
     else
-        echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
+        echo "DEBUG: '$FCStd_file_path' lock is valid." >&2
         echo 1
         return $SUCCESS
     fi
