@@ -429,17 +429,20 @@ def bad_args(args:argparse.Namespace) -> bool:
     
     return False
 
-def create_lockfile(FCStd_dir_path:str):
+def create_lockfile(FCStd_dir_path:str, FCStd_file_path:str):
     """
-    Creates a file called `.lockfile`in FCStd_dir_path with current timestamp.
+    Creates a file called `.lockfile`in FCStd_dir_path with current timestamp and path to FCStd file from FCStd_dir_path.
 
     Args:
         FCStd_dir_path (str): Path to FCStd directory.
+        FCStd_file_path (str): Path to .FCStd file.
     """
     lock_file_path:str = os.path.join(FCStd_dir_path, '.lockfile')
+    FCStd_file_relpath:str = os.path.relpath(FCStd_file_path, start=FCStd_dir_path)
+    
     current_time:str = datetime.datetime.now().isoformat()
     with open(lock_file_path, 'w') as f:
-        f.write(f"File Last Exported On: {current_time}\n")
+        f.write(f"File Last Exported On: {current_time}\nFCStd_file_relpath='{FCStd_file_relpath}'\n")
 
 def main():
     args:argparse.Namespace = parseArgs()
@@ -507,7 +510,7 @@ def main():
             if config['compress_binaries']['enabled']:
                 compress_binaries(FCStd_dir_path, config)
 
-            create_lockfile(FCStd_dir_path)
+            create_lockfile(FCStd_dir_path, FCStd_file_path)
                 
         if not args.silent_flag:
             print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
