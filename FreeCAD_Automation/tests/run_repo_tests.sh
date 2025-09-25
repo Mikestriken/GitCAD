@@ -382,5 +382,5 @@ test_setup_teardown() {
 # test_setup_teardown
 # test_FCStd_filter
 
-rm -rf $TEST_DIR/../uncompressed
+rm -rf FreeCAD_Automation/tests/uncompressed/
 exit $SUCCESS
