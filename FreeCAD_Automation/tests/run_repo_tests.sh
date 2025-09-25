@@ -264,8 +264,8 @@ test_pre_commit_hook() {
     echo "TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    echo "TEST: GIT_ALLOW_FILTER_FAILURE=1 git add \`AssemblyExample.FCStd\`" >&2
-    assert_command_succeeds "GIT_ALLOW_FILTER_FAILURE=1 git add $TEST_DIR/AssemblyExample.FCStd"; echo
+    echo "TEST: BYPASS_LOCK=1 git add \`AssemblyExample.FCStd\`" >&2
+    assert_command_succeeds "BYPASS_LOCK=1 git add $TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git add\`(ed)" >&2
     assert_dir_has_changes "$FCStd_dir_path"; echo
