@@ -20,7 +20,10 @@ fi
 #                                          Get Binaries
 # ==============================================================================================
 git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
+echo -n "Paused for user inspection..."; read -r dummy; echo
+
 git clearFCStdMod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
+echo -n "Paused for user inspection..."; read -r dummy; echo
 
 # ==============================================================================================
 #                                          Test Functions
@@ -215,17 +218,17 @@ test_setup_teardown() {
     setup "test_setup_teardown" || exit $FAIL
     echo -n "Paused for user inspection..."; read -r dummy; echo
 
-    git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null; echo
+    # git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null; echo
 
-    git add "$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)" "$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)" > /dev/null; echo
+    # git add "$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)" "$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)" > /dev/null; echo
 
-    git commit -m "test commit for setup/tearDown" > /dev/null; echo
+    # git commit -m "test commit for setup/tearDown" > /dev/null; echo
     
-    echo -n "Paused for user inspection..."; read -r dummy; echo
+    # echo -n "Paused for user inspection..."; read -r dummy; echo
     
-    git push origin $TEST_BRANCH > /dev/null 2>&1; echo
+    # git push origin $TEST_BRANCH > /dev/null 2>&1; echo
     
-    echo -n "Paused for user inspection..."; read -r dummy; echo
+    # echo -n "Paused for user inspection..."; read -r dummy; echo
 
     tearDown "test_setup_teardown" || exit $FAIL
 
