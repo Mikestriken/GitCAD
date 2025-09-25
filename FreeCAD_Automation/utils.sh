@@ -167,7 +167,7 @@ FCStd_file_has_valid_lock() {
 
     # File is tracked, get the .lockfile path
     local lockfile_path # 
-    lockfile_path=$(realpath --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
+    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
         echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
         return $FAIL
     }
