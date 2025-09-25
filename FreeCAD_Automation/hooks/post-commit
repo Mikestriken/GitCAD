@@ -26,17 +26,27 @@ fi
 #                                   Set Readonly / Writable
 # ==============================================================================================
 if [ "$REQUIRE_LOCKS" == "1" ]; then
-    for FCStd_file in $(git diff-tree --no-commit-id --name-only -r HEAD | grep -i '\.fcstd$'); do
-        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || continue
+    CURRENT_USER=$(git config --get user.name) || {
+        echo "Error: git config user.name not set!" >&2
+        exit $FAIL
+    }
 
-        if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
-            # User doesn't have lock, set .FCStd file to readonly
-            make_readonly "$FCStd_file"
-            echo "DEBUG: set '$FCStd_file' readonly." >&2
-        else
+    CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $3}') || {
+        echo "Error: failed to list of active lock info." >&2
+        exit $FAIL
+    }
+
+    for lockfile in $(git diff-tree --no-commit-id --name-only -r HEAD | grep -i '\.lockfile$'); do
+        FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
+
+        if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
             # User has lock, set .FCStd file to writable
-            make_writable "$FCStd_file"
-            echo "DEBUG: set '$FCStd_file' writable." >&2
+            make_writable "$FCStd_file_path"
+            echo "DEBUG: set '$FCStd_file_path' writable." >&2
+        else
+            # User doesn't have lock, set .FCStd file to readonly
+            make_readonly "$FCStd_file_path"
+            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
         fi
     done
 fi

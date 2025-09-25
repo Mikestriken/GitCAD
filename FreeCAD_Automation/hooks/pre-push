@@ -40,46 +40,38 @@ source "$FUNCTIONS_FILE"
 # ==============================================================================================
 echo "DEBUG: args='$@'" >&2
 
-# Get all tracked .FCStd files (case insensitive)
-TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
-
-echo "DEBUG: diffing <remote sha1>='$remote_sha'..'$local_sha'=<local sha1>" >&2
-changed_files=$(git diff --name-only $remote_sha..$local_sha)
-
-echo "DEBUG: file changes: '$changed_files'" >&2
-
-echo -e "\nDEBUG: checking '$(echo $TRACKED_FCSTD_FILES | xargs)' for matches" >&2
-
-for FCStd_file in $TRACKED_FCSTD_FILES; do
-    echo -e "\nDEBUG: checking '$FCStd_file'...." >&2
-
-    # Get the uncompressed directory path for this .FCStd file
-    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {
-        echo "Error: Failed to get directory path for '$FCStd_file'" >&2
+if [ "$REQUIRE_LOCKS" == "1" ]; then
+    CURRENT_USER=$(git config --get user.name) || {
+        echo "Error: git config user.name not set!" >&2
         exit $FAIL
     }
 
-    echo "DEBUG: Found dir '$FCStd_dir_path'" >&2
+    CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $3}') || {
+        echo "Error: failed to list of active lock info." >&2
+        exit $FAIL
+    }
 
-    # Check if this directory has changes in the push
-    if echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
-        # Directory has changes, check lock for the .FCStd file
-        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || exit $FAIL
-        
-        echo "DEBUG: Found changes in '$FCStd_file''s commits" >&2
+    echo "DEBUG: diffing <remote sha1>='$remote_sha'..'$local_sha'=<local sha1>" >&2
+    changed_files=$(git diff --name-only $remote_sha..$local_sha)
 
-        if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
-            echo "ERROR: User doesn't have lock for '$FCStd_file'... Aborting push operation..." >&2
-            exit $FAIL
-        else
-            echo "DEBUG: User has valid lock" >&2
+    echo "DEBUG: file changes: '$changed_files'" >&2
+
+    # Get changed .lockfiles
+    changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
+
+    echo -e "\nDEBUG: checking changed lockfiles for valid locks..." >&2
+
+    for lockfile in $changed_lockfiles; do
+        echo -e "\nDEBUG: checking '$lockfile'...." >&2
+
+        if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
+            echo "DEBUG: User has valid lock for '$lockfile'" >&2
             :
+        else
+            echo "ERROR: User doesn't have lock for '$lockfile'... Aborting push operation..." >&2
+            exit $FAIL
         fi
-    else
-        echo "DEBUG: No changes found" >&2
-        :
-    fi
-
-done
+    done
+fi
 
 exit $SUCCESS

@@ -25,53 +25,48 @@ echo "DEBUG: Pulled lfs files" >&2
 # ==============================================================================================
 #                         Update .FCStd files with uncompressed files
 # ==============================================================================================
-# Get all tracked .FCStd files (case insensitive)
-TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
+if [ "$REQUIRE_LOCKS" == "1" ]; then
+    CURRENT_USER=$(git config --get user.name) || {
+        echo "Error: git config user.name not set!" >&2
+        exit $FAIL
+    }
+
+    CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $3}') || {
+        echo "Error: failed to list of active lock info." >&2
+        exit $FAIL
+    }
+fi
 
 echo "DEBUG: diffing <remote sha1>='ORIG_HEAD'..'HEAD'=<local sha1>" >&2
 changed_files=$(git diff --name-only ORIG_HEAD..HEAD)
 
-echo "DEBUG: file changes: '$changed_files'" >&2
+# Get changed .lockfiles
+changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
 
-echo -e "\nDEBUG: checking '$(echo $TRACKED_FCSTD_FILES | xargs)' for changes..." >&2
+echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
 
-for FCStd_file in $TRACKED_FCSTD_FILES; do
-    echo -e "\nDEBUG: checking '$FCStd_file'...." >&2
+for lockfile in $changed_lockfiles; do
+    echo -e "\nDEBUG: checking '$lockfile'...." >&2
 
-    # Get the uncompressed directory path for this .FCStd file
-    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {
-        echo "Error: Failed to get directory path for '$FCStd_file', skipping..." >&2
+    FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
+
+    echo "DEBUG: Detected changes, reloading '$FCStd_file_path'...." >&2
+
+    # Import data to FCStd file
+    "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+        echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
         continue
     }
 
-    echo "DEBUG: Found dir '$FCStd_dir_path'" >&2
-
-    # Check if this directory has changes in the push
-    if echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
-        echo "DEBUG: Detected changes, reloading '$FCStd_file'...." >&2
-
-        # Import data to FCStd file
-        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file" || {
-            echo "Error: Failed to import $FCStd_file, skipping..." >&2
-            continue
-        }
-    else
-        echo "DEBUG: No changes found" >&2
-        :
-    fi
-
     if [ "$REQUIRE_LOCKS" == "1" ]; then
-        # Check if user has valid lock
-        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file") || continue
-
-        if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
-            # User doesn't have lock, set .FCStd file to readonly
-            make_readonly "$FCStd_file"
-            echo "DEBUG: set '$FCStd_file' readonly." >&2
-        else
+        if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
             # User has lock, set .FCStd file to writable
-            make_writable "$FCStd_file"
-            echo "DEBUG: set '$FCStd_file' writable." >&2
+            make_writable "$FCStd_file_path"
+            echo "DEBUG: set '$FCStd_file_path' writable." >&2
+        else
+            # User doesn't have lock, set .FCStd file to readonly
+            make_readonly "$FCStd_file_path"
+            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
         fi
     fi
 done
