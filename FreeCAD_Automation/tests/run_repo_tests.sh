@@ -219,16 +219,12 @@ test_setup_teardown() {
 
     git commit -m "test commit for setup/tearDown" > /dev/null; echo
     
-    git push origin $TEST_BRANCH > /dev/null 2>&1; echo
-
-    git lock "$TEST_DIR/AssemblyExample.FCStd"; echo
-
-    git unlock --force "$TEST_DIR/AssemblyExample.FCStd"; echo
-    
-    git lock "$TEST_DIR/BIMExample.FCStd"; echo
-
     echo -n "Paused for user inspection..."; read -r dummy; echo
     
+    git push origin $TEST_BRANCH > /dev/null 2>&1; echo
+    
+    echo -n "Paused for user inspection..."; read -r dummy; echo
+
     tearDown "test_setup_teardown" || exit $FAIL
 
     return $SUCCESS
@@ -381,7 +377,7 @@ test_setup_teardown() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
-# test_setup_teardown
-test_FCStd_filter
+test_setup_teardown
+# test_FCStd_filter
 
 exit $SUCCESS
