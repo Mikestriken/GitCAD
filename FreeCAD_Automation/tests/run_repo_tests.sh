@@ -217,6 +217,8 @@ test_setup_teardown() {
 
     git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null; echo
 
+    git add "$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)" "$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)" > /dev/null; echo
+
     git commit -m "test commit for setup/tearDown" > /dev/null; echo
     
     echo -n "Paused for user inspection..."; read -r dummy; echo
