@@ -225,11 +225,11 @@ test_FCStd_filter() {
 test_sandbox() {
     setup "test_sandbox" || exit $FAIL
 
-    assert_command_succeeds "git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null"; echo
+    # assert_command_succeeds "git add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null"; echo
 
-    assert_command_succeeds "git add "$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)" "$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)" > /dev/null"; echo
+    # assert_command_succeeds "git add "$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)" "$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)" > /dev/null"; echo
 
-    assert_command_succeeds "git commit -m "initial test commit" > /dev/null"; echo
+    # assert_command_succeeds "git commit -m "initial test commit" > /dev/null"; echo
 
     echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
     
