@@ -54,12 +54,10 @@ if [ "$REQUIRE_LOCKS" == "1" ]; then
     echo "DEBUG: diffing <remote sha1>='$remote_sha'..'$local_sha'=<local sha1>" >&2
     changed_files=$(git diff --name-only $remote_sha..$local_sha)
 
-    echo "DEBUG: file changes: '$changed_files'" >&2
-
     # Get changed .lockfiles
     changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
 
-    echo -e "\nDEBUG: checking changed lockfiles for valid locks..." >&2
+    echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
 
     for lockfile in $changed_lockfiles; do
         echo -e "\nDEBUG: checking '$lockfile'...." >&2
