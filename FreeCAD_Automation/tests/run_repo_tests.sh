@@ -19,9 +19,8 @@ fi
 # ==============================================================================================
 #                                          Get Binaries
 # ==============================================================================================
-git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 echo -n "Paused for user inspection..."; read -r dummy; echo
-
+git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 git clearFCStdMod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 echo -n "Paused for user inspection..."; read -r dummy; echo
 
