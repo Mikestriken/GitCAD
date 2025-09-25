@@ -41,7 +41,7 @@ source "$FUNCTIONS_FILE"
 echo "DEBUG: args='$@'" >&2
 
 # Get all tracked .FCStd files (case insensitive)
-TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$') 
+TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
 
 echo "DEBUG: diffing <remote sha1>='$remote_sha'..'$local_sha'=<local sha1>" >&2
 changed_files=$(git diff --name-only $remote_sha..$local_sha)

@@ -37,16 +37,16 @@ if [ "$3" == "1" ]; then
 
     # Branch checkout - process all tracked .FCStd files with change detection
     TRACKED_FCSTD_FILES=$(git ls-files | grep -i '\.fcstd$')
+
+    echo "DEBUG: diffing <remote sha1>='$1'..'$2'=<local sha1>" >&2
+    changed_files=$(git diff --name-only $1..$2)
+
+    echo "DEBUG: file changes: '$changed_files'" >&2
+
     echo -e "\nDEBUG: checking '$(echo $TRACKED_FCSTD_FILES | xargs)' for changes..." >&2
 
     for FCStd_file in $TRACKED_FCSTD_FILES; do
         echo -e "\nDEBUG: checking '$FCStd_file'...." >&2
-
-        # Check if .FCStd file exists
-        if [ ! -f "$FCStd_file" ]; then
-            echo "Error: Could not find '$FCStd_file', skipping..." >&2
-            continue
-        fi
 
         # Get the uncompressed directory path for this .FCStd file
         FCStd_dir_path=$(get_FCStd_dir "$FCStd_file") || {
@@ -56,23 +56,18 @@ if [ "$3" == "1" ]; then
 
         echo "DEBUG: Found dir '$FCStd_dir_path'" >&2
 
-        # Check if directory has changes in the checkout
-        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$1" "$2") || {
-            echo "Error: Failed to get dir changes for '$FCStd_dir_path', skipping..." >&2
-            continue
-        }
-
-        if [ "$DIR_HAS_CHANGES" == "1" ]; then
+        # Check if this directory has changes in the push
+        if echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
             echo "DEBUG: Detected changes, reloading '$FCStd_file'...." >&2
-            
-            # Pull LFS data for the directory
-            git lfs pull --include="$FCStd_dir_path/**"
 
             # Import data to FCStd file
             "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file" || {
                 echo "Error: Failed to import $FCStd_file, skipping..." >&2
                 continue
             }
+        else
+            echo "DEBUG: No changes found" >&2
+            :
         fi
 
         if [ "$REQUIRE_LOCKS" == "1" ]; then
