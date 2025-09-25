@@ -55,6 +55,11 @@ FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
 
 # ToDo?: Figure out WTF I'm doing here.. aborting or just not exporting?
 if [ $FCSTD_FILE_HAS_VALID_LOCK == 0 ]; then
+    if [[ "$GIT_ALLOW_FILTER_FAILURE" == "1" ]]; then
+        echo "DEBUG: GIT_ALLOW_FILTER_FAILURE=1, allowing filter to succeed despite invalid lock." >&2
+        cat /dev/null
+        exit $SUCCESS
+    fi
     echo "ERROR: User doesn't have lock for '$1'... Aborting add operation..." >&2
     exit $FAIL
 fi
