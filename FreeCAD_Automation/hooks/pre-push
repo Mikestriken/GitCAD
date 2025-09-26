@@ -52,7 +52,7 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     }
 
     echo "DEBUG: diffing <remote sha1>='$remote_sha'..'$local_sha'=<local sha1>" >&2
-    changed_files=$(git diff --name-only $remote_sha..$local_sha)
+    changed_files=$(git diff-tree --no-commit-id --name-only -r "$remote_sha" "$local_sha")
 
     # Get changed .lockfiles
     changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')

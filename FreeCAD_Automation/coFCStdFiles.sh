@@ -35,7 +35,7 @@ COMMIT_HASH=$1
 shift
 FILES=("$@")
 
-changed_files=$(git diff --name-only HEAD) # Note: includes staged files
+changed_files=$(git diff-index --name-only HEAD) # Note: includes staged files
 echo "DEBUG: Changed files BEFORE checkout: '$changed_files'" >&2
 
 # Collect dirs to checkout
