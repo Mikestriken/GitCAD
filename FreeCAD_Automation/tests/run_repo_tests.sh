@@ -181,6 +181,22 @@ confirm_user() {
     # git push should be appended with `>/dev/null 2>&1`
     # Convert comments to echo statements prepended with "TEST: "
 
+test_sandbox() {
+    setup "test_sandbox" || exit $FAIL
+
+    assert_command_succeeds "git add \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\" > /dev/null"; echo
+
+    assert_command_succeeds "git add \"$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)\" \"$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)\" > /dev/null"; echo
+
+    assert_command_succeeds "git commit -m \"initial test commit\" > /dev/null"; echo
+
+    echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+    
+    tearDown "test_sandbox" || exit $FAIL
+
+    return $SUCCESS
+}
+
 test_FCStd_filter() {
     setup "test_FCStd_filter" || exit $FAIL
 
@@ -225,22 +241,6 @@ test_FCStd_filter() {
     tearDown "test_FCStd_filter" || exit $FAIL
 
     echo ">>>>>>>>> TEST 'test_FCStd_filter' PASSED <<<<<<<<<" >&2
-    return $SUCCESS
-}
-
-test_sandbox() {
-    setup "test_sandbox" || exit $FAIL
-
-    assert_command_succeeds "git add \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\" > /dev/null"; echo
-
-    assert_command_succeeds "git add \"$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)\" \"$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)\" > /dev/null"; echo
-
-    assert_command_succeeds "git commit -m \"initial test commit\" > /dev/null"; echo
-
-    echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
-    
-    tearDown "test_sandbox" || exit $FAIL
-
     return $SUCCESS
 }
 
@@ -704,12 +704,12 @@ test_post_merge_hook() {
 #                                          Run Tests
 # ==============================================================================================
 # test_sandbox
-test_stashing
-test_FCStd_filter
-test_pre_commit_hook
-test_pre_push_hook
-# test_post_checkout_hook # ! File checkout failed to revert .FCStd file
-# test_post_merge_hook
+# test_FCStd_filter
+# test_pre_commit_hook
+# test_pre_push_hook
+test_post_checkout_hook # ! File checkout failed to revert .FCStd file
+# test_stashing
+test_post_merge_hook
 
 echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
 rm -rf FreeCAD_Automation/tests/uncompressed/
