@@ -67,14 +67,21 @@ tearDown() {
 
     # Delete active_test* branches (local and remote)
     mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
-    
+
     for remote_branch in ${REMOTE_BRANCHES[@]}; do
         if [[ "$remote_branch" == "origin/$TEST_BRANCH"* ]]; then
             git push origin --delete "${remote_branch#origin/}" >/dev/null 2>&1 || true
             git branch -D "${remote_branch#origin/}" >/dev/null 2>&1 || true
         fi
     done
-    
+
+    # Get list of local active_test* branches and delete them
+    LOCAL_ACTIVE_TEST_BRANCHES=$(git branch --list "$TEST_BRANCH*" | sed 's/^* //;s/^  //')
+    if [ -n "$LOCAL_ACTIVE_TEST_BRANCHES" ]; then
+        echo "Local active_test* branches: '$LOCAL_ACTIVE_TEST_BRANCHES'"
+        echo "$LOCAL_ACTIVE_TEST_BRANCHES" | xargs -r git branch -D >/dev/null 2>&1 || true
+    fi
+
     rm -rf FreeCAD_Automation/tests/uncompressed/
     echo ">>>> TearDown Complete <<<<"
     echo 
