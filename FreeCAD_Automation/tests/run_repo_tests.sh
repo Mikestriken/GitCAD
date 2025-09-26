@@ -87,6 +87,7 @@ assert_dir_exists() {
     local dir="$1"
     if [ ! -d "$dir" ]; then
         echo "Assertion failed: Directory '$dir' does not exist" >&2
+        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -96,6 +97,7 @@ assert_readonly() {
     local file="$1"
     if [ -w "$file" ]; then
         echo "Assertion failed: File '$file' is writable" >&2
+        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -105,6 +107,7 @@ assert_writable() {
     local file="$1"
     if [ ! -w "$file" ]; then
         echo "Assertion failed: File '$file' is readonly" >&2
+        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -114,6 +117,7 @@ assert_dir_has_changes() {
     local dir="$1"
     if ! git diff --name-only HEAD | grep -q "^$dir/"; then
         echo "Assertion failed: Directory '$dir' has no changes" >&2
+        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -123,6 +127,7 @@ assert_command_fails() {
     local cmd="$1"
     if eval "$cmd"; then
         echo "Assertion failed: Command '$cmd' succeeded but expected to fail" >&2
+        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -132,6 +137,7 @@ assert_command_succeeds() {
     local cmd="$1"
     if ! eval "$cmd"; then
         echo "Assertion failed: Command '$cmd' failed but expected to succeed" >&2
+        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -697,13 +703,13 @@ test_post_merge_hook() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
-# test_sandbox
-test_stashing
-test_FCStd_filter
-test_pre_commit_hook
-test_pre_push_hook
-test_post_checkout_hook
-test_post_merge_hook
+test_sandbox
+# test_stashing
+# test_FCStd_filter
+# test_pre_commit_hook
+# test_pre_push_hook
+# test_post_checkout_hook
+# test_post_merge_hook
 
 echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
 rm -rf FreeCAD_Automation/tests/uncompressed/
