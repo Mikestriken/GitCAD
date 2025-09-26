@@ -26,12 +26,12 @@ shift
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
 parsed_args=()
-FORCE_FLAG=0
+FORCE_FLAG=$FALSE
 for arg in "$@"; do
     # echo "DEBUG: parsing '$arg'..." >&2
     if [[ "$arg" == -* ]]; then
         if [ "$arg" == "--force" ]; then
-            FORCE_FLAG=1
+            FORCE_FLAG=$TRUE
             # echo "DEBUG: FORCE_FLAG set" >&2
         fi
     else
@@ -66,7 +66,7 @@ lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd
     exit $FAIL
 }
 
-if [ "$FORCE_FLAG" == 1 ]; then
+if [ "$FORCE_FLAG" == "$TRUE" ]; then
     # Check if locked by someone else
     LOCK_INFO=$(git lfs locks --path="$lockfile_path")
     CURRENT_USER=$(git config --get user.name) || {

@@ -14,7 +14,7 @@ source "$FUNCTIONS_FILE"
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd files
 # ==============================================================================================
-if [ "$REQUIRE_LOCKS" == "1" ]; then
+if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     CURRENT_USER=$(git config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL

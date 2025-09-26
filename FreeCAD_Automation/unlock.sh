@@ -26,12 +26,12 @@ shift
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
 parsed_args=()
-FORCE_FLAG=0
+FORCE_FLAG=$FALSE
 for arg in "$@"; do
     # echo "DEBUG: parsing '$arg'..." >&2
     if [[ "$arg" == -* ]]; then
         if [ "$arg" == "--force" ]; then
-            FORCE_FLAG=1
+            FORCE_FLAG=$TRUE
             # echo "DEBUG: FORCE_FLAG set" >&2
         fi
     
@@ -71,7 +71,7 @@ lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd
 FCStd_dir_path=$(realpath --relative-to="$(git rev-parse --show-toplevel)" "$(dirname "$lockfile_path")")
 
 # Check for unpushed changes if not force
-if [ "$FORCE_FLAG" == 0 ]; then
+if [ "$FORCE_FLAG" == "$FALSE" ]; then
     # ToDo? Consider bringing back using upstream branch as reference first if it exists?
         # UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)
         # if [ -n "$UPSTREAM" ]; then; REFERENCE_BRANCH="$UPSTREAM"; fi;
@@ -105,8 +105,8 @@ if [ "$FORCE_FLAG" == 0 ]; then
 
     if [ -n "$REFERENCE_BRANCH" ]; then
         DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
-        
-        if [ "$DIR_HAS_CHANGES" == 1 ]; then
+
+        if [ "$DIR_HAS_CHANGES" == "$TRUE" ]; then
             echo "Error: Cannot unlock file with unpushed changes. Use --force to override." >&2
             exit $FAIL
         fi
@@ -126,7 +126,7 @@ if [ "$FORCE_FLAG" == 0 ]; then
     # echo "DEBUG: No uncommitted changes to '$FCStd_dir_path', clear to unlock!" >&2
 fi
 
-if [ "$FORCE_FLAG" == 1 ]; then
+if [ "$FORCE_FLAG" == "$TRUE" ]; then
     git lfs unlock --force "$lockfile_path" || exit $FAIL
     
 else

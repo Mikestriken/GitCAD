@@ -45,9 +45,9 @@ get_freecad_python_path() {
 }
 
 # DESCRIPTION: Function to extract require-lock-to-modify-FreeCAD-files boolean from config file
-# USAGE: 
+# USAGE:
     # `REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL`
-    # `if [ $REQUIRE_LOCKS == 1 ]; then echo "Locks required"; elif [ $REQUIRE_LOCKS == 0 ]; then echo "Locks not required"; fi`
+    # `if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then echo "Locks required"; elif [ "$REQUIRE_LOCKS" == "$FALSE" ]; then echo "Locks not required"; fi`
 get_require_locks_bool() {
     local file=$1
     local key="require-lock-to-modify-FreeCAD-files"
@@ -75,12 +75,12 @@ get_require_locks_bool() {
     # Check if value matches JSON boolean syntax
     if [ "$value" = "true" ]; then
         # echo "DEBUG: REQUIRE LOCKS = TRUE" >&2
-        echo 1
+        echo $TRUE
         return $SUCCESS
 
     elif [ "$value" = "false" ]; then
         # echo "DEBUG: REQUIRE LOCKS = FALSE" >&2
-        echo 0
+        echo $FALSE
         return $SUCCESS
         
     else
@@ -137,10 +137,10 @@ make_writable() {
     return $SUCCESS
 }
 
-# DESCRIPTION: Function to check if FCStd file has valid lock. Returns 1 if valid (no lock required or lock held), 0 if invalid (lock required but not held)
-# USAGE: 
+# DESCRIPTION: Function to check if FCStd file has valid lock. Returns $TRUE (0) if valid (no lock required or lock held), $FALSE (1) if invalid (lock required but not held)
+# USAGE:
     # `FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "path/to/file.FCStd") || exit $FAIL`
-    # `if [ $FILE_HAS_VALID_LOCK == 1 ]; then echo "File has valid lock"; elif [ $FILE_HAS_VALID_LOCK == 0 ]; then echo "File has invalid lock"; fi`
+    # `if [ $FILE_HAS_VALID_LOCK == $TRUE ]; then echo "File has valid lock"; elif [ $FILE_HAS_VALID_LOCK == $FALSE ]; then echo "File has invalid lock"; fi`
 FCStd_file_has_valid_lock() {
     local FCStd_file_path="$1"
 
@@ -152,16 +152,16 @@ FCStd_file_has_valid_lock() {
     REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || return $FAIL
 
     # If locks not required, return valid
-    if [ "$REQUIRE_LOCKS" == 0 ]; then
+    if [ "$REQUIRE_LOCKS" == "$FALSE" ]; then
         echo "DEBUG: Locks not required, '$FCStd_file_path' lock is valid." >&2
-        echo 1
+        echo $TRUE
         return $SUCCESS
     fi
 
     # File not tracked by git (new file), no lock needed (valid lock)
     if ! git cat-file -e HEAD:"$FCStd_file_path" > /dev/null 2>&1; then
         echo "DEBUG: New .FCStd file, '$FCStd_file_path' lock is valid." >&2
-        echo 1
+        echo $TRUE
         return $SUCCESS
     fi
 
@@ -175,7 +175,7 @@ FCStd_file_has_valid_lock() {
     # Lockfile not tracked by git (new export), no lock needed (valid lock)
     if ! git cat-file -e HEAD:"$lockfile_path" > /dev/null 2>&1; then
         echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
-        echo 1
+        echo $TRUE
         return $SUCCESS
     fi
 
@@ -194,11 +194,11 @@ FCStd_file_has_valid_lock() {
 
     if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
         echo "DEBUG: '$FCStd_file_path' lock is INVALID." >&2
-        echo 0
+        echo $FALSE
         return $SUCCESS
     else
         echo "DEBUG: '$FCStd_file_path' lock is valid." >&2
-        echo 1
+        echo $TRUE
         return $SUCCESS
     fi
 }
@@ -261,7 +261,7 @@ get_FCStd_file_from_lockfile() {
 # DESCRIPTION: Function to check if a directory has changes between two commits
 # USAGE:
     # `DIR_HAS_CHANGES=$(dir_has_changes "path/to/dir") || exit $FAIL`
-    # `if [ $DIR_HAS_CHANGES == 1 ]; then echo "dir has changed files"; elif [ $DIR_HAS_CHANGES == 0 ]; then echo "No changed files in dir"; fi`
+    # `if [ $DIR_HAS_CHANGES == $TRUE ]; then echo "dir has changed files"; elif [ $DIR_HAS_CHANGES == $FALSE ]; then echo "No changed files in dir"; fi`
 dir_has_changes() {
     local dir_path="$1"
     local old_sha="$2"
@@ -269,12 +269,12 @@ dir_has_changes() {
 
     if git diff --name-only "$old_sha..$new_sha" | grep -q "^$dir_path/"; then
         # echo "DEBUG: '$$dir_path/' HAS changes" >&2
-        echo 1
+        echo $TRUE
         return $SUCCESS
-    
+
     else
         # echo "DEBUG: '$$dir_path/' has NO changes" >&2
-        echo 0
+        echo $FALSE
         return $SUCCESS
     fi
 }

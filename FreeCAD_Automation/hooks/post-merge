@@ -31,7 +31,7 @@ echo "DEBUG: Pulled lfs files" >&2
 # ==============================================================================================
 #                         Update .FCStd files with uncompressed files
 # ==============================================================================================
-if [ "$REQUIRE_LOCKS" == "1" ]; then
+if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     CURRENT_USER=$(git config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
@@ -66,7 +66,7 @@ for lockfile in $changed_lockfiles; do
 
     echo "SUCCESS" >&2
 
-    if [ "$REQUIRE_LOCKS" == "1" ]; then
+    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"

@@ -15,7 +15,7 @@ if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
     exit $FAIL
 fi
 
-if [ "$REQUIRE_LOCKS" == "1" ]; then
+if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     CURRENT_USER=$(git config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
@@ -40,7 +40,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     echo "DEBUG: Stash application detected" >&2
 
     # Check that user has locks for stashed lockfiles
-    if [ "$REQUIRE_LOCKS" == "1" ]; then
+    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if [ -n "$STASH_INDEX" ]; then
             STASH_REF="stash@{$STASH_INDEX}"
         else

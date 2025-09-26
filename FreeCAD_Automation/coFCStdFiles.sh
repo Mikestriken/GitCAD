@@ -34,7 +34,7 @@ COMMIT_HASH=$1
 shift
 FILES=("$@")
 
-changed_files=$(git diff --name-only HEAD)
+changed_files=$(git diff --name-only HEAD) # Note: includes staged files
 echo "DEBUG: Changed files BEFORE checkout: '$changed_files'" >&2
 
 # Collect dirs to checkout
@@ -83,13 +83,14 @@ fi
 
 # Checkout the uncompressed dirs from the commit
 echo "DEBUG: Checking out dirs from commit '$COMMIT_HASH': ${dirs_to_checkout[*]}" >&2
+echo "DEBUG: \`git checkout "$COMMIT_HASH" -- \"${dirs_to_checkout[@]}\"\`" >&2
 git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || {
     echo "Error: Failed to checkout dirs from commit '$COMMIT_HASH'" >&2
     exit $FAIL
 }
 
 # Get changed files after checkout
-changed_files=$(git diff --name-only)
+changed_files=$(git ls-files -m) # Note: Excludes staged files
 echo "DEBUG: Changed files AFTER checkout: '$changed_files'" >&2
 
 # For each dir, check if it exists and import if it does
@@ -97,7 +98,7 @@ for dir in "${dirs_to_checkout[@]}"; do
     FCStd_file_path="${dir_to_file[$dir]}"
     FCStd_dir_path="$dir"
 
-    echo "DEBUG: Processing '$FCStd_file_path' with dir '$FCStd_dir_path'" >&2
+    echo "DEBUG: Checking '$FCStd_file_path' & '$FCStd_dir_path'" >&2
 
     if [ -d "$FCStd_dir_path" ] && echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
@@ -113,10 +114,10 @@ for dir in "${dirs_to_checkout[@]}"; do
     fi
 
     # Handle locks
-    if [ "$REQUIRE_LOCKS" == "1" ]; then
+    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || continue
 
-        if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "0" ]; then
+        if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "$FALSE" ]; then
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
             echo "DEBUG: Set '$FCStd_file_path' readonly." >&2

@@ -40,7 +40,7 @@ source "$FUNCTIONS_FILE"
 # ==============================================================================================
 echo "DEBUG: args='$@'" >&2
 
-if [ "$REQUIRE_LOCKS" == "1" ]; then
+if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     CURRENT_USER=$(git config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
