@@ -233,7 +233,7 @@ SOMETIMES*** Running `git status` causes git to execute clean filters on any mod
 Using `git stat` adds an environment variable prior to running `git status`, this lets the filter scripts (namely clean) know that a `git status` command called the filter.
 This tells the clean filter to not extract any `.FCStd` files passed to the filter (only show git that the `.FCStd` file is empty).
 
-Post version v1.0 I think this scenario will be very rare and can be ignored.
+Post v1.0 I think this scenario will be very rare and can be ignored.
 
 The only scenario where I have this issue is when I'm using `git checkout` to checkout specific .FCStd files that are not empty for debugging/testing purposes.
 
