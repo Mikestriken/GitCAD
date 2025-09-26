@@ -110,6 +110,8 @@ else
             echo "Failed to import $FCStd_file_path" >&2
         }
         echo "SUCCESS" >&2
+        
+        git clearFCStdMod "$FCStd_file_path"
     done
 fi
 
