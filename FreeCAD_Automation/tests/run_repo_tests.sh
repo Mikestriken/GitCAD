@@ -508,13 +508,19 @@ test_stashing() {
     echo "TEST: Assert changes to get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     assert_dir_has_changes "$FCStd_dir_path"; echo
 
-    echo "TEST: git stash the changes" >&2
-    assert_command_succeeds "git stash"; echo
+    echo "TEST: git FCStdStash the changes" >&2
+    assert_command_succeeds "git FCStdStash"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_stashing"
 
     echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias) -- should fail because changes haven't been pushed" >&2
+    assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+
+    echo "TEST: git push origin active_test" >&2
+    assert_command_succeeds "git push origin active_test >/dev/null 2>&1"; echo
+
+    echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias) -- should fail because STASHED changes haven't been pushed" >&2
     assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: git unlock --force \`AssemblyExample.FCStd\` (git alias)" >&2
@@ -523,8 +529,8 @@ test_stashing() {
     echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    echo "TEST: git stash pop -- should fail need lock to modify AssemblyExample.FCStd" >&2
-    assert_command_fails "git stash pop"; echo
+    echo "TEST: git FCStdStash pop -- should fail need lock to modify AssemblyExample.FCStd" >&2
+    assert_command_fails "git FCStdStash pop"; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
     assert_command_succeeds "git lock "$TEST_DIR/AssemblyExample.FCStd""; echo
@@ -532,8 +538,8 @@ test_stashing() {
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    echo "TEST: git stash pop" >&2
-    assert_command_succeeds "git stash pop"; echo
+    echo "TEST: git FCStdStash pop" >&2
+    assert_command_succeeds "git FCStdStash pop"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_stashing"
