@@ -100,13 +100,13 @@ for dir in "${dirs_to_checkout[@]}"; do
     echo "DEBUG: Processing '$FCStd_file_path' with dir '$FCStd_dir_path'" >&2
 
     if [ -d "$FCStd_dir_path" ] && echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
-        echo "DEBUG: Dir has modifications, importing changes to '$FCStd_file_path'..." >&2
-
+        echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         # Import data to FCStd file
         "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
             echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
             continue
         }
+        echo "SUCCESS" >&2
     else
         echo "DEBUG: Dir '$FCStd_dir_path' does not exist or has no changes, skipping import for '$FCStd_file_path'" >&2
         continue

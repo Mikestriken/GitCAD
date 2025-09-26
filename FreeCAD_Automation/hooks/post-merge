@@ -56,13 +56,15 @@ for lockfile in $changed_lockfiles; do
 
     FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
 
-    echo "DEBUG: Detected changes, reloading '$FCStd_file_path'...." >&2
+    echo -n "IMPORTING: '$FCStd_file_path'...." >&2
 
     # Import data to FCStd file
     "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
         echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
         continue
     }
+
+    echo "SUCCESS" >&2
 
     if [ "$REQUIRE_LOCKS" == "1" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
