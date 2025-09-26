@@ -70,6 +70,8 @@ if [ "$3" == "1" ]; then
         
         echo "SUCCESS" >&2
 
+        git clearFCStdMod "$FCStd_file_path"
+
         if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
             if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
                 # User has lock, set .FCStd file to writable
