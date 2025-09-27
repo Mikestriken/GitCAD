@@ -3,6 +3,14 @@
 
 - [x] Remove useless cds at start of hooks / filter / lock / unlock scripts
 
+- [ ] PROBLEM: Hooks aren't the MOST reliable when it comes to keeping `.FCStd` files synced with their directories.  
+	  One of the most recent offenders is `git reset --hard` which only SOMETIMES calls the `post-checkout` hook.
+		- [ ] SOLUTION: 
+			- [ ] Exporting a `.FCStd` file deletes the `.FCStd` file after successful export.
+			- [ ] Open a `.FCStd` file by double clicking a `.oFCStd` file.
+				- [ ] This file will temporarily load the `.FCStd` file with data
+				- [ ] Then it will open the file and delete the file.
+
 - [ ] `freecad-repo-init.sh`
     - [x] Verify and retrieve dependency objects
     - [x] setup git-lfs.
