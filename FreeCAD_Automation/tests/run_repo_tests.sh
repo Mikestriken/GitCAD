@@ -16,6 +16,21 @@ if [ -n "$(git status --porcelain)" ]; then
     exit $FAIL
 fi
 
+# Check for stashed items, warn user they will be dropped and ask if they want to exit early
+if [ -n "$(git stash list)" ]; then
+    echo "Warning: There are stashed items in the working directory. They will all be dropped during testing."
+    while true; do
+        echo "Do you want to exit early to commit your stash? (y/n)"
+        read -r response
+        case $response in
+            [Yy]* ) exit $FAIL;;
+            [Nn]* ) break;;
+            * ) echo "Please answer y or n.";;
+        esac
+    done
+    git stash clear
+fi
+
 # ==============================================================================================
 #                                          Get Binaries
 # ==============================================================================================
