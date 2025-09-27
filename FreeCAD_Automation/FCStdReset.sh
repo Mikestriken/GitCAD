@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: FCStdReset.sh triggered!" >&2
+echo "DEBUG: FCStdReset.sh trap-card triggered!" >&2
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
