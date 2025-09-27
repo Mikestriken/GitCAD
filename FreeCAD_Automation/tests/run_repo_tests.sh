@@ -587,11 +587,22 @@ test_post_merge_hook() {
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
     assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
 
-    echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
+    echo "TEST: git lock \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (git alias)" >&2
     assert_command_succeeds "git lock "$TEST_DIR/AssemblyExample.FCStd""; echo
+    assert_command_succeeds "git lock "$TEST_DIR/BIMExample.FCStd""; echo
 
-    echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
+
+    echo "TEST: git push origin active_test" >&2
+    assert_command_succeeds "git push origin active_test >/dev/null 2>&1"; echo
+
+    echo "TEST: git unlock \`BIMExample.FCStd\` (git alias)" >&2
+    assert_command_succeeds "git unlock "$TEST_DIR/BIMExample.FCStd""; echo
+
+    echo "TEST: Assert \`BIMExample.FCStd\` is now readonly" >&2
+    assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -625,9 +636,6 @@ test_post_merge_hook() {
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` is now readonly" >&2
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
-
-    echo "TEST: Assert no error from git unlock" >&2
-    # Assuming success if no error
 
     echo "TEST: git lock \`BIMExample.FCStd\` (git alias)" >&2
     assert_command_succeeds "git lock "$TEST_DIR/BIMExample.FCStd""; echo
@@ -714,7 +722,7 @@ test_post_merge_hook() {
 # test_FCStd_filter
 # test_pre_commit_hook
 # test_pre_push_hook
-test_post_checkout_hook # ! File checkout failed to revert .FCStd file
+# test_post_checkout_hook
 # test_stashing
 test_post_merge_hook
 
