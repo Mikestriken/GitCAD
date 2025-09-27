@@ -154,8 +154,10 @@ await_user_modification() {
     local file="$1"
     while true; do
         echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
+        start $file
         read -r dummy
         if git status --porcelain | grep -q "^.M $file$"; then
+            taskkill //IM freecad.exe //F
             break
         else
             echo "No changes detected in '$file'. Please make sure to save your modifications."
