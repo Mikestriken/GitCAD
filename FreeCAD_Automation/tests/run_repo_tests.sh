@@ -168,9 +168,12 @@ await_user_modification() {
 confirm_user() {
     local message="$1"
     local test_name="$2"
+    local file="$3"
     while true; do
         echo "$message (y/n)"
+        start $file
         read -r response
+        taskkill //IM freecad.exe //F
         case $response in
             [Yy]* ) return;;
             [Nn]* ) tearDown "$test_name"; exit $FAIL;;
@@ -462,7 +465,7 @@ test_post_checkout_hook() {
     assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
-    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook"
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
     echo "TEST: git coFCStdFiles active_test_branch1 \`*.FCStd\` -- should fail because regex isn't supported" >&2
     assert_command_fails "git coFCStdFiles active_test_branch1 \"*.FCStd\""; echo
@@ -471,7 +474,7 @@ test_post_checkout_hook() {
     assert_command_succeeds "git coFCStdFiles active_test_branch1 "$TEST_DIR/AssemblyExample.FCStd""; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
-    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook"
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
     echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -527,7 +530,7 @@ test_stashing() {
     assert_command_succeeds "git FCStdStash"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
-    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_stashing"
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
 
     echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias) -- should fail because changes haven't been pushed" >&2
     assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
@@ -557,7 +560,7 @@ test_stashing() {
     assert_command_succeeds "git FCStdStash pop"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
-    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_stashing"
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
 
     tearDown "test_stashing" || exit $FAIL
 
@@ -631,7 +634,7 @@ test_post_merge_hook() {
     assert_command_succeeds "git update-ref refs/remotes/origin/active_test active_test"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
-    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook"
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
     echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias)" >&2
     assert_command_succeeds "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
@@ -670,7 +673,7 @@ test_post_merge_hook() {
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
-    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook"
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
     echo "TEST: git reset --soft active_test^" >&2
     assert_command_succeeds "git reset --soft active_test^ >/dev/null 2>&1"; echo
@@ -682,10 +685,10 @@ test_post_merge_hook() {
     assert_command_succeeds "git reset --hard active_test^ >/dev/null 2>&1"; echo
 
     echo "TEST: Ask user to confirm \`BIMExample.FCStd\` changes reverted" >&2
-    confirm_user "Please confirm that 'BIMExample.FCStd' changes have been reverted." "test_post_merge_hook"
+    confirm_user "Please confirm that 'BIMExample.FCStd' changes have been reverted." "test_post_merge_hook" "$TEST_DIR/BIMExample.FCStd"
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
-    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook"
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
     echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
     assert_command_succeeds "git update-ref refs/remotes/origin/active_test active_test"; echo
@@ -697,7 +700,7 @@ test_post_merge_hook() {
     assert_command_succeeds "git commit -m \"active_test commit 1b\" >/dev/null"; echo
 
     echo "TEST: Ask user to confirm \`BIMExample.FCStd\` changes are back" >&2
-    confirm_user "Please confirm that 'BIMExample.FCStd' changes are back." "test_post_merge_hook"
+    confirm_user "Please confirm that 'BIMExample.FCStd' changes are back." "test_post_merge_hook" "$TEST_DIR/BIMExample.FCStd"
 
     echo "TEST: git pull origin active_test" >&2
     assert_command_succeeds "git pull origin active_test >/dev/null 2>&1"; echo
@@ -709,7 +712,7 @@ test_post_merge_hook() {
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
-    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook"
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
     tearDown "test_post_merge_hook" || exit $FAIL
 
