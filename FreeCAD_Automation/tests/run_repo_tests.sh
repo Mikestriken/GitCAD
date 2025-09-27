@@ -642,8 +642,8 @@ test_post_merge_hook() {
     echo "TEST: git push origin active_test" >&2
     assert_command_succeeds "git push origin active_test >/dev/null 2>&1"; echo
 
-    echo "TEST: git reset --hard active_test^" >&2
-    assert_command_succeeds "git reset --hard active_test^"; echo
+    echo "TEST: git freset --hard active_test^" >&2
+    assert_command_succeeds "git freset --hard active_test^"; echo
 
     echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
     assert_command_succeeds "git update-ref refs/remotes/origin/active_test active_test"; echo
@@ -690,14 +690,14 @@ test_post_merge_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
-    echo "TEST: git reset --soft active_test^" >&2
-    assert_command_succeeds "git reset --soft active_test^"; echo
+    echo "TEST: git freset --soft active_test^" >&2
+    assert_command_succeeds "git freset --soft active_test^"; echo
 
     echo "TEST: git FCStdStash" >&2
     assert_command_succeeds "git FCStdStash"; echo
 
-    echo "TEST: git reset --hard active_test^" >&2
-    assert_command_succeeds "git reset --hard active_test^"; echo
+    echo "TEST: git freset --hard active_test^" >&2
+    assert_command_succeeds "git freset --hard active_test^"; echo
 
     echo "TEST: Ask user to confirm \`BIMExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'BIMExample.FCStd' changes have been reverted." "test_post_merge_hook" "$TEST_DIR/BIMExample.FCStd"
