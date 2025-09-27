@@ -675,8 +675,8 @@ test_post_merge_hook() {
     echo "TEST: git reset --soft active_test^" >&2
     assert_command_succeeds "git reset --soft active_test^ >/dev/null 2>&1"; echo
 
-    echo "TEST: git stash" >&2
-    assert_command_succeeds "git stash"; echo
+    echo "TEST: git FCStdStash" >&2
+    assert_command_succeeds "git FCStdStash"; echo
 
     echo "TEST: git reset --hard active_test^" >&2
     assert_command_succeeds "git reset --hard active_test^ >/dev/null 2>&1"; echo
@@ -690,8 +690,8 @@ test_post_merge_hook() {
     echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
     assert_command_succeeds "git update-ref refs/remotes/origin/active_test active_test"; echo
 
-    echo "TEST: git stash pop" >&2
-    assert_command_succeeds "git stash pop"; echo
+    echo "TEST: git FCStdStash pop" >&2
+    assert_command_succeeds "git FCStdStash pop"; echo
 
     echo "TEST: git commit -m \"active_test commit 1b\"" >&2
     assert_command_succeeds "git commit -m \"active_test commit 1b\" >/dev/null"; echo
