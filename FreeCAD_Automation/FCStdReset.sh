@@ -15,6 +15,12 @@ fi
 # ==============================================================================================
 #                                      Execute Git Reset
 # ==============================================================================================
+# Get modified .FCStd files before reset
+BEFORE_RESET_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+
+# Get modified .lockfiles before reset
+BEFORE_RESET_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+
 # Get original HEAD before reset
 ORIGINAL_HEAD=$(git rev-parse HEAD) || {
     echo "Error: Failed to get original HEAD" >&2
@@ -57,27 +63,95 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     }
 fi
 
-echo "DEBUG: diffing <original head>='$ORIGINAL_HEAD'..'$NEW_HEAD'=<new head>" >&2
-changed_files=$(git diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
+# Determine files to process based on whether HEAD changed
+if [ "$ORIGINAL_HEAD" = "$NEW_HEAD" ]; then
+    # HEAD didn't change, use before and after lists
+    AFTER_RESET_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+    previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_FCSTD") <(echo "$AFTER_RESET_FCSTD"))
 
-# Get changed .lockfiles
-changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
+    AFTER_RESET_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+    previously_modified_lockfiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_LOCKFILES") <(echo "$AFTER_RESET_LOCKFILES"))
 
-echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
+    # Deconflict: skip FCStd if corresponding lockfile is being processed
+    FCStd_files_to_process=""
+    for fcstd in $previously_modified_FCStd_files_currently_shows_no_modification; do
+        lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || continue
+        if echo "$previously_modified_lockfiles_currently_shows_no_modification" | grep -q "^$lockfile_path$"; then
+            continue  # Skip, lockfile will handle it
+        fi
+        FCStd_files_to_process="$FCStd_files_to_process $fcstd"
+    done
 
-# Get modified lockfiles after reset
-after_reset_modified_lockfiles=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+    lockfiles_to_process="$previously_modified_lockfiles_currently_shows_no_modification"
+else
+    # HEAD did change, use git diff-tree
+    changed_files=$(git diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
 
-# Sort changed lockfiles
-changed_lockfiles_sorted=$(echo "$changed_lockfiles" | sort)
+    changed_fcstd=$(echo "$changed_files" | grep -i '\.fcstd$')
+    changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
 
-# Find lockfiles that were changed but are no longer modified after reset
-lockfiles_changed_between_commits_currently_shows_no_modification=$(comm -23 <(echo "$changed_lockfiles_sorted") <(echo "$after_reset_modified_lockfiles"))
+    after_reset_modified_lockfiles=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+    changed_lockfiles_sorted=$(echo "$changed_lockfiles" | sort)
+    lockfiles_changed_between_commits_currently_shows_no_modification=$(comm -23 <(echo "$changed_lockfiles_sorted") <(echo "$after_reset_modified_lockfiles"))
 
-echo -e "\nDEBUG: Importing lockfiles that are no longer modified: '$(echo $lockfiles_changed_between_commits_currently_shows_no_modification | xargs)'" >&2
+    after_reset_fcstd=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+    changed_fcstd_sorted=$(echo "$changed_fcstd" | sort)
+    fcstd_changed_between_commits_currently_shows_no_modification=$(comm -23 <(echo "$changed_fcstd_sorted") <(echo "$after_reset_fcstd"))
 
-for lockfile in $lockfiles_changed_between_commits_currently_shows_no_modification; do
-    echo -e "\nDEBUG: processing '$lockfile'...." >&2
+    # Deconflict: skip FCStd if corresponding lockfile is being processed
+    FCStd_files_to_process=""
+    for fcstd in $fcstd_changed_between_commits_currently_shows_no_modification; do
+        lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || continue
+        if echo "$lockfiles_changed_between_commits_currently_shows_no_modification" | grep -q "^$lockfile_path$"; then
+            continue  # Skip, lockfile will handle it
+        fi
+        FCStd_files_to_process="$FCStd_files_to_process $fcstd"
+    done
+
+    lockfiles_to_process="$lockfiles_changed_between_commits_currently_shows_no_modification"
+fi
+
+echo -e "\nDEBUG: Importing FCStd files: '$(echo $FCStd_files_to_process | xargs)'" >&2
+echo -e "DEBUG: Importing lockfiles: '$(echo $lockfiles_to_process | xargs)'" >&2
+
+# Process FCStd files
+for FCStd_file_path in $FCStd_files_to_process; do
+    echo -e "\nDEBUG: processing FCStd '$FCStd_file_path'...." >&2
+
+    # Get lockfile path
+    lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
+        echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
+        continue
+    }
+
+    echo -n "IMPORTING: '$FCStd_file_path'...." >&2
+
+    # Import data to FCStd file
+    "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+        echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+        continue
+    }
+
+    echo "SUCCESS" >&2
+
+    git clearFCStdMod "$FCStd_file_path"
+
+    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+        if echo "$CURRENT_LOCKS" | grep -q "$lockfile_path"; then
+            # User has lock, set .FCStd file to writable
+            make_writable "$FCStd_file_path"
+            echo "DEBUG: set '$FCStd_file_path' writable." >&2
+        else
+            # User doesn't have lock, set .FCStd file to readonly
+            make_readonly "$FCStd_file_path"
+            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+        fi
+    fi
+done
+
+# Process lockfiles
+for lockfile in $lockfiles_to_process; do
+    echo -e "\nDEBUG: processing lockfile '$lockfile'...." >&2
 
     FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
 
