@@ -217,6 +217,12 @@ test_sandbox() {
 
     assert_command_succeeds "git commit -m \"initial test commit\" > /dev/null"; echo
 
+    assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+
+    assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
+    
+    assert_command_succeeds "git push origin active_test >/dev/null 2>&1"; echo
+
     echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
     
     tearDown "test_sandbox" || exit $FAIL
@@ -254,7 +260,7 @@ test_FCStd_filter() {
     assert_command_fails "git add $TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git lock "$TEST_DIR/AssemblyExample.FCStd""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -340,7 +346,7 @@ test_pre_push_hook() {
     assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git lock "$TEST_DIR/AssemblyExample.FCStd""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -369,13 +375,13 @@ test_pre_push_hook() {
     assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: git unlock --force \`AssemblyExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git unlock --force "$TEST_DIR/AssemblyExample.FCStd""; echo
+    assert_command_succeeds "git unlock --force \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: assert \`AssemblyExample.FCStd\` is now readonly" >&2
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git lock \`BIMExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git lock "$TEST_DIR/BIMExample.FCStd""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo "TEST: assert \`BIMExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
@@ -402,7 +408,7 @@ test_pre_push_hook() {
     assert_command_fails "git push origin active_test"; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` again (git alias)" >&2
-    assert_command_succeeds "git lock "$TEST_DIR/AssemblyExample.FCStd""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -444,7 +450,7 @@ test_post_checkout_hook() {
     assert_command_succeeds "git checkout -b active_test_branch1 >/dev/null"; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git lock "$TEST_DIR/AssemblyExample.FCStd""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -527,7 +533,7 @@ test_stashing() {
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git lock "$TEST_DIR/AssemblyExample.FCStd""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -557,7 +563,7 @@ test_stashing() {
     assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: git unlock --force \`AssemblyExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git unlock --force "$TEST_DIR/AssemblyExample.FCStd""; echo
+    assert_command_succeeds "git unlock --force \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -566,7 +572,7 @@ test_stashing() {
     assert_command_fails "git FCStdStash pop"; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git lock "$TEST_DIR/AssemblyExample.FCStd""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -608,8 +614,8 @@ test_post_merge_hook() {
     assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git lock "$TEST_DIR/AssemblyExample.FCStd""; echo
-    assert_command_succeeds "git lock "$TEST_DIR/BIMExample.FCStd""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -619,7 +625,7 @@ test_post_merge_hook() {
     assert_command_succeeds "git push origin active_test >/dev/null 2>&1"; echo
 
     echo "TEST: git unlock \`BIMExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git unlock "$TEST_DIR/BIMExample.FCStd""; echo
+    assert_command_succeeds "git unlock \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo "TEST: Assert \`BIMExample.FCStd\` is now readonly" >&2
     assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
@@ -658,7 +664,7 @@ test_post_merge_hook() {
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git lock \`BIMExample.FCStd\` (git alias)" >&2
-    assert_command_succeeds "git lock "$TEST_DIR/BIMExample.FCStd""; echo
+    assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo "TEST: Assert \`BIMExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
