@@ -77,10 +77,10 @@ if [ "$ORIGINAL_HEAD" = "$NEW_HEAD" ]; then
 
     # Deconflict: skip FCStd if corresponding lockfile is being processed
     FCStd_files_to_process=""
-    for fcstd in $previously_modified_FCStd_files_currently_shows_no_modification; do
+    for FCStd_file_path in $previously_modified_FCStd_files_currently_shows_no_modification; do
         lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || continue
         if echo "$previously_modified_lockfiles_currently_shows_no_modification" | grep -q "^$lockfile_path$"; then
-            echo "DEBUG: Removed duplicate '$fcstd'" >&2
+            echo "DEBUG: Removed duplicate '$FCStd_file_path'" >&2
             continue  # Skip, lockfile will handle it
         fi
         FCStd_files_to_process="$FCStd_files_to_process $fcstd"
@@ -108,10 +108,10 @@ else
 
     # Deconflict: skip FCStd if corresponding lockfile is being processed
     FCStd_files_to_process=""
-    for fcstd in $fcstd_changed_between_commits_currently_shows_no_modification; do
+    for FCStd_file_path in $fcstd_changed_between_commits_currently_shows_no_modification; do
         lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || continue
         if echo "$lockfiles_changed_between_commits_currently_shows_no_modification" | grep -q "^$lockfile_path$"; then
-            echo "DEBUG: Removed duplicate '$fcstd'" >&2
+            echo "DEBUG: Removed duplicate '$FCStd_file_path'" >&2
             continue  # Skip, lockfile will handle it
         fi
         FCStd_files_to_process="$FCStd_files_to_process $fcstd"
