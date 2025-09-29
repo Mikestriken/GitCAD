@@ -16,10 +16,10 @@ fi
 #                                      Execute Git Reset
 # ==============================================================================================
 # Get modified .FCStd files before reset
-BEFORE_RESET_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+BEFORE_RESET_MODIFIED_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
 
 # Get modified .lockfiles before reset
-BEFORE_RESET_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+BEFORE_RESET_MODIFIED_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
 
 # Get original HEAD before reset
 ORIGINAL_HEAD=$(git rev-parse HEAD) || {
@@ -63,16 +63,21 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     }
 fi
 
-# Determine files to process based on whether HEAD changed
-# if [ "$ORIGINAL_HEAD" = "$NEW_HEAD" ]; then
-echo "DEBUG: Reset HEAD detected" >&2
-# HEAD didn't change, use before and after lists
-AFTER_RESET_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
-previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_FCSTD") <(echo "$AFTER_RESET_FCSTD"))
+# Append files changed between commits to BEFORE_RESET lists
+files_changed_files_between_commits=$(git diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
+FCStd_files_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.fcstd$')
+lockfiles_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.lockfile$')
+
+BEFORE_RESET_MODIFIED_FCSTD=$(echo -e "$BEFORE_RESET_MODIFIED_FCSTD\n$FCStd_files_changed_between_commits" | sort | uniq)
+BEFORE_RESET_MODIFIED_LOCKFILES=$(echo -e "$BEFORE_RESET_MODIFIED_LOCKFILES\n$lockfiles_changed_between_commits" | sort | uniq)
+
+# Filter to list of valid files to process
+AFTER_RESET_MODIFIED_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
 echo "DEBUG: FULL FCStd files to import: '$(echo $previously_modified_FCStd_files_currently_shows_no_modification | xargs)'" >&2
 
-AFTER_RESET_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
-previously_modified_lockfiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_LOCKFILES") <(echo "$AFTER_RESET_LOCKFILES"))
+AFTER_RESET_MODIFIED_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+previously_modified_lockfiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_LOCKFILES") <(echo "$AFTER_RESET_MODIFIED_LOCKFILES"))
 echo "DEBUG: FULL .lockfile files to import: '$(echo $previously_modified_lockfiles_currently_shows_no_modification | xargs)'" >&2
 
 # Deconflict: skip FCStd if corresponding lockfile is being processed
@@ -87,42 +92,8 @@ for FCStd_file_path in $previously_modified_FCStd_files_currently_shows_no_modif
     echo "ADDED" >&2
     FCStd_files_to_process="$FCStd_files_to_process $FCStd_file_path"
 done
-
-
 lockfiles_to_process="$previously_modified_lockfiles_currently_shows_no_modification"
-# else
-#     echo "DEBUG: New commit reset detected" >&2
-#     # HEAD did change, use git diff-tree
-#     changed_files=$(git diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
 
-#     changed_fcstd=$(echo "$changed_files" | grep -i '\.fcstd$')
-#     changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
-
-#     after_reset_modified_lockfiles=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
-#     changed_lockfiles_sorted=$(echo "$changed_lockfiles" | sort)
-#     lockfiles_changed_between_commits_currently_shows_no_modification=$(comm -23 <(echo "$changed_lockfiles_sorted") <(echo "$after_reset_modified_lockfiles"))
-#     echo "DEBUG: .lockfile files to import: '$(echo $lockfiles_changed_between_commits_currently_shows_no_modification | xargs)'" >&2
-
-#     after_reset_fcstd=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
-#     changed_fcstd_sorted=$(echo "$changed_fcstd" | sort)
-#     fcstd_changed_between_commits_currently_shows_no_modification=$(comm -23 <(echo "$changed_fcstd_sorted") <(echo "$after_reset_fcstd"))
-#     echo "DEBUG: FCStd files to import: '$(echo $fcstd_changed_between_commits_currently_shows_no_modification | xargs)'" >&2
-
-#     # Deconflict: skip FCStd if corresponding lockfile is being processed
-#     FCStd_files_to_process=""
-#     for FCStd_file_path in $fcstd_changed_between_commits_currently_shows_no_modification; do
-#         echo -n "DECONFLICTING: '$FCStd_file_path'...." >&2
-#         lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || continue
-#         if echo "$lockfiles_changed_between_commits_currently_shows_no_modification" | grep -q "^$lockfile_path$"; then
-#             echo "REMOVED" >&2
-#             continue  # Skip, lockfile will handle it
-#         fi
-#         echo "ADDED" >&2
-#         FCStd_files_to_process="$FCStd_files_to_process $FCStd_file_path"
-#     done
-
-#     lockfiles_to_process="$lockfiles_changed_between_commits_currently_shows_no_modification"
-# fi
 echo "DEBUG: MERGED FCStd files to import: '$(echo $FCStd_files_to_process | xargs)'" >&2
 echo "DEBUG: MERGED .lockfile files to import: '$(echo $lockfiles_to_process | xargs)'" >&2
 
