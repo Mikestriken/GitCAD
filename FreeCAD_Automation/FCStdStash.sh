@@ -107,7 +107,7 @@ else
         }
         echo "SUCCESS" >&2
         
-        git cfmod "$FCStd_file_path"
+        git fcmod "$FCStd_file_path"
     done
 fi
 

@@ -62,7 +62,7 @@ for lockfile in $changed_lockfiles; do
 
     echo "SUCCESS" >&2
 
-    git cfmod "$FCStd_file_path"
+    git fcmod "$FCStd_file_path"
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
