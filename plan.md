@@ -31,16 +31,12 @@
 		- [x] If user doesn't have lock, error out specifying that the user doesn't have the lock
 		- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
 
-- [ ] Post-Checkout Hook => `git checkout branch` & `git checkout -- file.FCStd`
+- [x] Post-Checkout Hook => `git checkout branch` & `git checkout -- file.FCStd`
 	- [x] Run `git lfs` hook
     - [x] Pull LFS files
 		- [x] Make sure `FCStdFileTool.py` doesn't import pointer files
-	- [ ] Update changed `.FCStd` files with uncompressed files
+	- [x] Update changed `.FCStd` files with uncompressed files
 		- [x] Branch checkout => Iterates all `.FCStd` files and checks for changes in dir
-		- [ ] File Checkout
-			- [ ] Use git alias to provide commit hash and list of files being checked out.
-			- [ ] Redirect `.FCStd` checkout to the `.FCStd` file's dir
-			- [ ] Check for changes and update the `.FCStd` file if changes are present.
 
 - [x] Pre-Commit Hook => `git commit`
 	- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
@@ -88,27 +84,27 @@
 
 - [ ] Verify update (import) of .FCStd files with uncompressed files:
 	- [ ] When?:
-		- [ ] When checking out a branch / commit
-			- [ ] If file dir contents changed -> Update file
+		- [x] When checking out a branch / commit
+			- [x] If file dir contents changed -> Update file
 		- [ ] After cloning the repository
 			- [ ] Update all files
-		- [ ] When pulling/merging/rebasing changes
-			- [ ] If file dir contents changed -> Update file
-			- [ ] Locking should enforce fast forward only
-		- [ ] Creating a stash
-			- [ ] If file dir contents changed -> Update file
-		- [ ] Applying a stash
-			- [ ] If file dir contents changed -> Update file
-		- [ ] Checking out an individual file
-			- [ ] Redirect checkout to file dir instead of file itself
-			- [ ] If file dir contents changed -> Update file
-		- [ ] git reset --hard
-			- [ ] If file dir contents changed -> Update file
-		- [ ] git lfs pulls changes
-			- [ ] If file dir contents changed -> Update file
-	- [ ] After importing data to the .FCStd File:
-		- [ ] Check if `require-lock-to-modify-FreeCAD-files` is true
-			- [ ] if the .lockfile is not locked by the user, the .FCStd file is set to readonly, else writable
+		- [x] When pulling/merging/rebasing changes
+			- [x] If file dir contents changed -> Update file
+			- [x] Locking should enforce fast forward only
+		- [x] Creating a stash
+			- [x] If file dir contents changed -> Update file
+		- [x] Applying a stash
+			- [x] If file dir contents changed -> Update file
+		- [x] Checking out an individual file
+			- [x] Redirect checkout to file dir instead of file itself
+			- [x] If file dir contents changed -> Update file
+		- [x] git reset --hard
+			- [x] If file dir contents changed -> Update file
+		- [x] git lfs pulls changes
+			- [x] If file dir contents changed -> Update file
+	- [x] After importing data to the .FCStd File:
+		- [x] Check if `require-lock-to-modify-FreeCAD-files` is true
+			- [x] if the .lockfile is not locked by the user, the .FCStd file is set to readonly, else writable
 
 - [ ] Verify `Readme.md` is correct
 
