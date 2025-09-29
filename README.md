@@ -227,29 +227,6 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
 }
 ```
 ## Git Aliases
-
-### `git stat`
-SOMETIMES*** Running `git status` causes git to execute clean filters on any modified files (even if the file isn't `git add`(ed)).
-Using `git stat` adds an environment variable prior to running `git status`, this lets the filter scripts (namely clean) know that a `git status` command called the filter.
-This tells the clean filter to not extract any `.FCStd` files passed to the filter (only show git that the `.FCStd` file is empty).
-
-Post v1.0 I think this scenario will be very rare and can be ignored.
-
-The only scenario where I have this issue is when I'm using `git checkout` to checkout specific .FCStd files that are not empty for debugging/testing purposes.
-
-Post v1.0 ALL `.FCStd` files should be committed as empty files.
-
-Read more on `git status` running filters [here](https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters).
-
-Usage: `git stat`
-
-### `git fcmod`
-Manually tells git to observe a `.FCStd` file as empty (unmodified).
-
-*Behind the scenes all this does is call `RESET_MOD=1 git add`*
-
-Usage: `git fcmod path/to/file.FCStd
-
 ### `git lock`
 Locks a `.FCStd` file for editing by locking the associated `.lockfile` in the uncompressed directory using Git LFS. This prevents others from modifying the file and makes the `.FCStd` file writable for editing in FreeCAD. Supports `--force` to steal existing locks (if you have permission to do so according to GitHub).
 
@@ -265,6 +242,28 @@ A shorthand alias for `git lfs locks`.
 Provides a list of who has locks on files and which file they have a lock for.
 
 Usage: `git locks`
+
+### `git stat`
+SOMETIMES*** Running `git status` causes git to execute clean filters on any modified files (even if the file isn't `git add`(ed)).
+Using `git stat` adds an environment variable prior to running `git status`, this lets the filter scripts (namely clean) know that a `git status` command called the filter.
+This tells the clean filter to not extract any `.FCStd` files passed to the filter (only show git that the `.FCStd` file is empty).
+
+Post v1.0 I think this scenario will be very rare and can be ignored.
+
+The only scenario where I have this issue is when I'm using `git checkout` to checkout specific `.FCStd` files that are not empty for debugging/testing purposes.
+
+Post v1.0 ALL `.FCStd` files should be committed as empty files.
+
+Read more on `git status` running filters [here](https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters).
+
+Usage: `git stat`
+
+### `git fcmod`
+Manually tells git to observe a `.FCStd` file as empty (unmodified).
+
+*Behind the scenes all this does is call `RESET_MOD=1 git add`*
+
+Usage: `git fcmod path/to/file.FCStd`
 
 ### `git fco`
 Checks out specific `.FCStd` files from a given commit by retrieving their uncompressed directories and importing the data back into the `.FCStd` files. This allows reverting individual `.FCStd` files to a previous version without affecting other files.
