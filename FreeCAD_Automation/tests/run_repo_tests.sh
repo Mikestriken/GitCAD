@@ -744,13 +744,13 @@ test_post_merge_hook() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
-test_sandbox
+# test_sandbox
 # test_FCStd_filter
 # test_pre_commit_hook
 # test_pre_push_hook
 # test_post_checkout_hook
 # test_stashing
-# test_post_merge_hook
+test_post_merge_hook
 
 echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
 rm -rf FreeCAD_Automation/tests/uncompressed/
