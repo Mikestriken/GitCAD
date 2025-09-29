@@ -363,7 +363,9 @@ setup_git_alias "coFCStdFiles" "!sh FreeCAD_Automation/coFCStdFiles.sh \"\${GIT_
 setup_git_alias "lock" "!sh FreeCAD_Automation/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh"
 setup_git_alias "unlock" "!sh FreeCAD_Automation/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh"
 setup_git_alias "locks" "lfs locks" "1 to 1 alias for \`git lfs locks\`"
-setup_git_alias "FCStd" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\"" "Adds \`git FCStd\` as alias to run FCStdFileTool.py"
+setup_git_alias "ftool" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\"" "Adds \`git ftool\` as alias to run FCStdFileTool.py"
+setup_git_alias "fimport" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --import" "Adds \`git fimport\` as alias to run FCStdFileTool.py with preset import args"
+setup_git_alias "fexport" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --export" "Adds \`git fexport\` as alias to run FCStdFileTool.py with preset export args"
 setup_git_alias "FCStdStash" "!sh FreeCAD_Automation/FCStdStash.sh" "Adds \`git FCStdStash\` as alias to run FCStdStash.sh"
 setup_git_alias "freset" "!sh FreeCAD_Automation/FCStdReset.sh" "Adds \`git freset\` as alias to run FCStdReset.sh"
 

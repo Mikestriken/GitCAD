@@ -275,10 +275,20 @@ Usage: `git coFCStdFiles COMMIT_HASH FILE [FILE ...]`
 
 Note: Wildcards are not supported; specify exact file paths.
 
-### `git FCStd`
+### `git ftool`
 Runs the `FCStdFileTool.py` script for manual export or import of `.FCStd` files. Useful for advanced operations, troubleshooting, or direct manipulation of `.FCStd` files outside the normal Git workflow.
 
-Run: `git FCStd` (no args) to see usage details.
+Run: `git ftool` (no args) to see usage details.
+
+### `git fimport`
+Runs the `FCStdFileTool.py` script with preset args to manually import data to specified `.FCStd` file.
+
+Usage: `git fimport path/to/file.FCStd`
+
+### `git fexport`
+Runs the `FCStdFileTool.py` script with preset args to manually export data from specified `.FCStd` file.
+
+Usage: `git fexport path/to/file.FCStd`
 
 ### `git FCStdStash`
 A wrapper for `git stash` operations that ensures `.FCStd` files remain synchronized with their uncompressed directories. Automatically imports `.FCStd` files after popping or applying stashes, also imports them after stashing to keep the `.FCStd` files synchronized with uncompressed directories. For pop/apply operations, checks that the user owns locks for any `.lockfiles` in the stash before proceeding.
