@@ -111,7 +111,7 @@ for FCStd_file_path in $FCStd_files_to_process; do
 
     echo "SUCCESS" >&2
 
-    git clearFCStdMod "$FCStd_file_path"
+    git cfmod "$FCStd_file_path"
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile_path"; then
@@ -142,7 +142,7 @@ for lockfile in $lockfiles_to_process; do
 
     echo "SUCCESS" >&2
 
-    git clearFCStdMod "$FCStd_file_path"
+    git cfmod "$FCStd_file_path"
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
