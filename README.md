@@ -290,16 +290,16 @@ Runs the `FCStdFileTool.py` script with preset args to manually export data from
 
 Usage: `git fexport path/to/file.FCStd`
 
-### `git FCStdStash`
+### `git fstash`
 A wrapper for `git stash` operations that ensures `.FCStd` files remain synchronized with their uncompressed directories. Automatically imports `.FCStd` files after popping or applying stashes, also imports them after stashing to keep the `.FCStd` files synchronized with uncompressed directories. For pop/apply operations, checks that the user owns locks for any `.lockfiles` in the stash before proceeding.
 
 Usage:
-- `git FCStdStash` - Stash working directory changes (imports stashed uncompressed `.FCStd` directories after stash)
-- `git FCStdStash -- path/to/files/to/stash` - Stash specific working directory changes (imports stashed uncompressed `.FCStd` directories after stash)
-- `git FCStdStash pop [index]` - Pop a stash (imports `.FCStd` files after)
-- `git FCStdStash apply [index]` - Apply a stash without removing it (imports `.FCStd` files after)
+- `git fstash` - Stash working directory changes (imports stashed uncompressed `.FCStd` directories after stash)
+- `git fstash -- path/to/files/to/stash` - Stash specific working directory changes (imports stashed uncompressed `.FCStd` directories after stash)
+- `git fstash pop [index]` - Pop a stash (imports `.FCStd` files after)
+- `git fstash apply [index]` - Apply a stash without removing it (imports `.FCStd` files after)
 
-*Note: `git FCStdStash` is basically a hook wrapper for `git stash` so you can other normal `git stash` operations such as `git FCStdStash list` without consequence.*
+*Note: `git fstash` is basically a hook wrapper for `git stash` so you can other normal `git stash` operations such as `git fstash list` without consequence.*
 
 ## Flowchart
 A Mermaid diagram illustrating the Git workflow process will be added here in a future update.

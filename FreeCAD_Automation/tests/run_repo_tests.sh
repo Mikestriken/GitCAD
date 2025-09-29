@@ -544,8 +544,8 @@ test_stashing() {
     echo "TEST: Assert changes to get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     assert_dir_has_changes "$FCStd_dir_path"; echo
 
-    echo "TEST: git FCStdStash the changes" >&2
-    assert_command_succeeds "git FCStdStash"; echo
+    echo "TEST: git fstash the changes" >&2
+    assert_command_succeeds "git fstash"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
@@ -565,8 +565,8 @@ test_stashing() {
     echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    echo "TEST: git FCStdStash pop -- should fail need lock to modify AssemblyExample.FCStd" >&2
-    assert_command_fails "git FCStdStash pop"; echo
+    echo "TEST: git fstash pop -- should fail need lock to modify AssemblyExample.FCStd" >&2
+    assert_command_fails "git fstash pop"; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
     assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
@@ -574,8 +574,8 @@ test_stashing() {
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    echo "TEST: git FCStdStash pop" >&2
-    assert_command_succeeds "git FCStdStash pop"; echo
+    echo "TEST: git fstash pop" >&2
+    assert_command_succeeds "git fstash pop"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
@@ -696,8 +696,8 @@ test_post_merge_hook() {
     echo "TEST: git freset --soft active_test^" >&2
     assert_command_succeeds "git freset --soft active_test^"; echo
 
-    echo "TEST: git FCStdStash" >&2
-    assert_command_succeeds "git FCStdStash"; echo
+    echo "TEST: git fstash" >&2
+    assert_command_succeeds "git fstash"; echo
 
     echo "TEST: git freset --hard active_test^" >&2
     assert_command_succeeds "git freset --hard active_test^"; echo
@@ -711,8 +711,8 @@ test_post_merge_hook() {
     echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
     assert_command_succeeds "git update-ref refs/remotes/origin/active_test active_test"; echo
 
-    echo "TEST: git FCStdStash pop" >&2
-    assert_command_succeeds "git FCStdStash pop"; echo
+    echo "TEST: git fstash pop" >&2
+    assert_command_succeeds "git fstash pop"; echo
 
     echo "TEST: git add \`$TEST_DIR\`" >&2
     assert_command_succeeds "git add $TEST_DIR"; echo
