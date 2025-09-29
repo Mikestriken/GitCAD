@@ -83,7 +83,7 @@ if [ "$3" == "1" ]; then
 
 elif [ "$3" == "0" ]; then
     # Note: post-checkout hook isn't provided enough information to handle `.FCStd` file checkouts appropriately (what files where checked out and what commit was checked out)
-        # * Use coFCStdFiles.sh instead
+        # * Use fco.sh instead
     # echo "DEBUG: Processing File Checkout...." >&2
     :
 else

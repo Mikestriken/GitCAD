@@ -485,11 +485,11 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
-    echo "TEST: git coFCStdFiles active_test_branch1 \`*.FCStd\` -- should fail because regex isn't supported" >&2
-    assert_command_fails "git coFCStdFiles active_test_branch1 \"*.FCStd\""; echo
+    echo "TEST: git fco active_test_branch1 \`*.FCStd\` -- should fail because regex isn't supported" >&2
+    assert_command_fails "git fco active_test_branch1 \"*.FCStd\""; echo
 
-    echo "TEST: git coFCStdFiles active_test_branch1 \`AssemblyExample.FCStd\`" >&2
-    assert_command_succeeds "git coFCStdFiles active_test_branch1 "$TEST_DIR/AssemblyExample.FCStd""; echo
+    echo "TEST: git fco active_test_branch1 \`AssemblyExample.FCStd\`" >&2
+    assert_command_succeeds "git fco active_test_branch1 "$TEST_DIR/AssemblyExample.FCStd""; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"

@@ -23,7 +23,7 @@ shift
 
 # Parse arguments: COMMIT_HASH FILE [FILE ...]
 if [ $# -lt 2 ]; then
-    echo "Error: Invalid arguments. Usage: coFCStdFiles.sh COMMIT_HASH FILE [FILE ...]" >&2
+    echo "Error: Invalid arguments. Usage: fco.sh COMMIT_HASH FILE [FILE ...]" >&2
     exit $FAIL
 fi
 
