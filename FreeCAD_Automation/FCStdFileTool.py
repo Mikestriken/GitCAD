@@ -195,7 +195,7 @@ def add_thumbnail_to_FCStd_file(FCStd_dir_path:str, FCStd_file_path:str):
         with zipfile.ZipFile(FCStd_file_path, 'a', zipfile.ZIP_DEFLATED) as zf:
             zf.write(thumbnail_path, 'thumbnails/Thumbnail.png')
 
-def compress_binaries(FCStd_dir_path: str, config: dict):
+def compress_binaries(FCStd_dir_path:str, config:dict):
     """
     Compresses binary files and folders in the FCStd directory that match the configured patterns.
     Uses io.BytesIO buffers to manage and size limits. Files are removed after compression
@@ -324,7 +324,7 @@ def repackFCStd(FCStd_file_path:str):
             
             zf.writestr(file_name, file_data[file_name])
 
-def move_files_without_extension_to_subdir(FCStd_dir_path: str):
+def move_files_without_extension_to_subdir(FCStd_dir_path:str):
     """
     Moves files without extensions from FCStd_dir_path to a subdirectory named NO_EXTENSION_SUBDIR_NAME.
     
@@ -344,9 +344,12 @@ class ImportingContext:
     Context manager for importing data to .FCStd file.
     Extracts (compressed and in NO_EXTENSION_SUBDIR_NAME) files in __enter__ to self.FCStd_dir_path and removes them in __exit__.
     """
-    def __init__(self, FCStd_dir_path: str, config: dict):
+    def __init__(self, FCStd_dir_path:str, FCStd_file_path:str, config:dict):
         self.FCStd_dir_path:str = FCStd_dir_path
         self.no_extension_subdir_path:str = os.path.join(self.FCStd_dir_path, NO_EXTENSION_SUBDIR_NAME)
+        
+        self.FCStd_file_path:str = FCStd_file_path
+        self.FCStd_file_isReadonly:bool = os.access(self.FCStd_file_path, os.R_OK) and not os.access(self.FCStd_file_path, os.W_OK)
 
         self.config:dict = config
         self.no_config:bool = config is None
@@ -355,6 +358,9 @@ class ImportingContext:
 
     def __enter__(self):
         if self.no_config: return
+        # Temporarily make file writable
+        if self.FCStd_file_isReadonly:
+            os.chmod(self.FCStd_file_path, stat.S_IWRITE)
         
         # Decompress zip files into self.FCStd_dir_path
         if self.config['compress_binaries']['enabled']:
@@ -378,6 +384,10 @@ class ImportingContext:
                         
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.no_config: return
+        
+        # Restore file permissions
+        if self.FCStd_file_isReadonly:
+            os.chmod(self.FCStd_file_path, stat.S_IREAD)
         
         # Move files back to NO_EXTENSION_SUBDIR_NAME
         os.makedirs(self.no_extension_subdir_path, exist_ok=True)
@@ -526,7 +536,7 @@ def main():
         if not os.path.exists(FCStd_dir_path):
             raise FileNotFoundError(f"ERR: FCStd directory '{FCStd_dir_path}' does not exist.")
         
-        with ImportingContext(FCStd_dir_path, config):
+        with ImportingContext(FCStd_dir_path, FCStd_file_path, config):
             
             duplicate_warning:bool = False
             with warnings.catch_warnings(record=True) as caught:
