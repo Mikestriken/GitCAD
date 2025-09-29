@@ -714,6 +714,9 @@ test_post_merge_hook() {
     echo "TEST: git FCStdStash pop" >&2
     assert_command_succeeds "git FCStdStash pop"; echo
 
+    echo "TEST: git add \`$TEST_DIR\`" >&2
+    assert_command_succeeds "git add $TEST_DIR"; echo
+
     echo "TEST: git commit -m \"active_test commit 1b\"" >&2
     assert_command_succeeds "git commit -m \"active_test commit 1b\""; echo
 
