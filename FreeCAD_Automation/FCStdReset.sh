@@ -131,7 +131,7 @@ for FCStd_file_path in $FCStd_files_to_process; do
     echo -e "\nDEBUG: processing FCStd '$FCStd_file_path'...." >&2
 
     # Get lockfile path
-    lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
+    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
         echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
         continue
     }
