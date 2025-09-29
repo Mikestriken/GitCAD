@@ -85,7 +85,7 @@ if [ "$ORIGINAL_HEAD" = "$NEW_HEAD" ]; then
             continue  # Skip, lockfile will handle it
         fi
         echo "ADDED" >&2
-        FCStd_files_to_process="$FCStd_files_to_process $fcstd"
+        FCStd_files_to_process="$FCStd_files_to_process $FCStd_file_path"
     done
 
 
@@ -118,7 +118,7 @@ else
             continue  # Skip, lockfile will handle it
         fi
         echo "ADDED" >&2
-        FCStd_files_to_process="$FCStd_files_to_process $fcstd"
+        FCStd_files_to_process="$FCStd_files_to_process $FCStd_file_path"
     done
 
     lockfiles_to_process="$lockfiles_changed_between_commits_currently_shows_no_modification"
