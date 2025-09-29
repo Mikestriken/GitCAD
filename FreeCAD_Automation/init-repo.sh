@@ -158,6 +158,7 @@ git config lfs.locksverify true
 echo "Enabled git lfs locksverify for lockable files."
 
 git lfs track ".lockfile" --lockable
+git lfs track "*.zip"
 
 echo "=============================================================================================="
 echo "                                     Adding Filters"

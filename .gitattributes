@@ -1,3 +1,4 @@
 **/temp
 .lockfile filter=lfs diff=lfs merge=lfs -text lockable
 *.[Ff][Cc][Ss][Tt][Dd] filter=FCStd
+*.zip filter=lfs diff=lfs merge=lfs -text
