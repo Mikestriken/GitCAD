@@ -801,16 +801,19 @@ test_post_merge_hook() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
-rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
-
 if [ "$1" = "--sandbox" ]; then
+    echo -n ">>>> START SANDBOX TEST? <<<<"; read -r dummy; echo
+    rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
+    
     # test_sandbox
-    echo "Sandbox"
 
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
     exit $SUCCESS
+
 elif [ -z "$1" ]; then
-    echo "Standard testing"
+    echo -n ">>>> START STANDARD TEST? <<<<"; read -r dummy; echo
+    rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
+    
     # test_FCStd_filter
     # test_pre_commit_hook
     # test_pre_push_hook
