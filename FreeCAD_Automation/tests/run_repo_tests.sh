@@ -815,6 +815,8 @@ if [ "$1" = "--sandbox" ]; then
     test_sandbox
 
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
+
+    rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git checkout test_binaries
     exit $SUCCESS
 
 elif [ -z "$1" ]; then
@@ -828,6 +830,8 @@ elif [ -z "$1" ]; then
     test_post_merge_hook
 
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
+    
+    rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git checkout test_binaries
     exit $SUCCESS
 fi
 exit $FAIL
