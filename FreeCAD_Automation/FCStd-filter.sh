@@ -72,6 +72,7 @@ fi
 # ==============================================================================================
 if [[ "$BYPASS_LOCK" == "1" ]]; then
     # echo "DEBUG: BYPASS_LOCK=1, bypassing lock check." >&2
+    :
 else
     FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
 
