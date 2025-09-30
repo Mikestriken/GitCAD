@@ -24,9 +24,21 @@ fi
     # If the user uses the alias `git stat` the the STATUS_CALL env variable will be set during the git status call.
     # If the environment variable is detected then exit early without exporting FCStd files
 
-    # $RESET_MOD is an environment variable set by the alias `git fcmod``
-if [[ -n "$STATUS_CALL" || -n "$RESET_MOD" ]]; then
-    echo "DEBUG: Status or reset mod call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # $RESET_MOD is an environment variable set by the alias `git fcmod`
+
+    # $DIFF_INDEX is an environment variable manually set for `git diff-index` calls
+if [ -n "$STATUS_CALL" ]; then
+    echo "DEBUG: Status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat /dev/null
+    exit $SUCCESS
+
+elif [ -n "$RESET_MOD" ]; then
+    echo "DEBUG: Reset modification call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat /dev/null
+    exit $SUCCESS
+
+elif [ -n "$DIFF_INDEX" ]; then
+    echo "DEBUG: diff index call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
