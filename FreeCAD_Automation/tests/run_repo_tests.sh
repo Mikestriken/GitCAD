@@ -57,7 +57,8 @@ setup() {
 
     # Copies binaries into active_test dir (already done globally, but ensure)
     assert_command_succeeds "cp $TEST_DIR/../AssemblyExample.FCStd $TEST_DIR/../BIMExample.FCStd $TEST_DIR"
-    
+
+    rm -rf FreeCAD_Automation/tests/uncompressed/
     echo ">>>> Setup Complete <<<<"
     echo 
 
@@ -100,8 +101,7 @@ tearDown() {
         echo "Local active_test* branches: '$LOCAL_ACTIVE_TEST_BRANCHES'"
         echo "$LOCAL_ACTIVE_TEST_BRANCHES" | xargs -r git branch -D >/dev/null 2>&1 || true
     fi
-
-    rm -rf FreeCAD_Automation/tests/uncompressed/
+    
     echo ">>>> TearDown Complete <<<<"
     echo 
     
