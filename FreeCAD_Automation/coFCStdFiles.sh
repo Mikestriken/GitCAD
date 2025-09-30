@@ -31,7 +31,7 @@ COMMIT_HASH=$1
 shift
 FILES=("$@")
 
-changed_files=$(DIFF_INDEX=1 git diff-index --name-only HEAD)
+changed_files=$(git diff-index --name-only HEAD)
 echo "DEBUG: Changed files BEFORE checkout: '$changed_files'" >&2
 
 # Collect dirs to checkout
@@ -87,7 +87,7 @@ FILE_CHECKOUT=1 git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || {
 }
 
 # Get changed files after checkout
-changed_files=$(DIFF_INDEX=1 git diff-index --name-only HEAD)
+changed_files=$(git diff-index --name-only HEAD)
 echo "DEBUG: Changed files AFTER checkout: '$changed_files'" >&2
 
 # For each dir, check if it exists and import if it does

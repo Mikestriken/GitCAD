@@ -56,7 +56,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     fi
 
     # Execute git stash pop/apply
-    git stash "$@"
+    STASH_CALL=1 git stash "$@"
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
@@ -65,7 +65,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     fi
 
     # Check for changed lockfiles in the working dir (similar to post-checkout)
-    for lockfile in $(DIFF_INDEX=1 git diff-index --name-only HEAD | grep -i '\.lockfile$'); do
+    for lockfile in $(git diff-index --name-only HEAD | grep -i '\.lockfile$'); do
         FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
 
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
@@ -79,10 +79,12 @@ else
     echo "DEBUG: Stashing away or something else..." >&2
     
     # Get modified lockfiles before stash
-    BEFORE_STASH_LOCKFILES=$(DIFF_INDEX=1 git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+    BEFORE_STASH_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+    
+    echo "DEBUG: retrieved before stash lockfiles..." >&2
 
     # Execute git stash
-    git stash "$@"
+    STASH_CALL=1 git stash "$@"
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
@@ -91,7 +93,7 @@ else
     fi
 
     # Get modified lockfiles after stash
-    AFTER_STASH_LOCKFILES=$(DIFF_INDEX=1 git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+    AFTER_STASH_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
 
     # Find files present before stash but not after stash (files that were stashed)
     STASHED_LOCKFILES=$(comm -23 <(echo "$BEFORE_STASH_LOCKFILES") <(echo "$AFTER_STASH_LOCKFILES"))

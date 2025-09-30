@@ -16,10 +16,10 @@ fi
 #                                      Execute Git Reset
 # ==============================================================================================
 # Get modified .FCStd files before reset
-BEFORE_RESET_MODIFIED_FCSTD=$(DIFF_INDEX=1 git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+BEFORE_RESET_MODIFIED_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
 
 # Get modified .lockfiles before reset
-BEFORE_RESET_MODIFIED_LOCKFILES=$(DIFF_INDEX=1 git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+BEFORE_RESET_MODIFIED_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
 
 # Get original HEAD before reset
 ORIGINAL_HEAD=$(git rev-parse HEAD) || {
@@ -58,7 +58,7 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
 fi
 
 # Append files changed between commits to BEFORE_RESET lists
-files_changed_files_between_commits=$(DIFF_INDEX=1 git diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
+files_changed_files_between_commits=$(git diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
 FCStd_files_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.fcstd$')
 lockfiles_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.lockfile$')
 
@@ -66,11 +66,11 @@ BEFORE_RESET_MODIFIED_FCSTD=$(echo -e "$BEFORE_RESET_MODIFIED_FCSTD\n$FCStd_file
 BEFORE_RESET_MODIFIED_LOCKFILES=$(echo -e "$BEFORE_RESET_MODIFIED_LOCKFILES\n$lockfiles_changed_between_commits" | sort | uniq)
 
 # Filter to list of valid files to process
-AFTER_RESET_MODIFIED_FCSTD=$(DIFF_INDEX=1 git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+AFTER_RESET_MODIFIED_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
 previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
 echo "DEBUG: FULL FCStd files to import: '$(echo $previously_modified_FCStd_files_currently_shows_no_modification | xargs)'" >&2
 
-AFTER_RESET_MODIFIED_LOCKFILES=$(DIFF_INDEX=1 git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+AFTER_RESET_MODIFIED_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
 previously_modified_lockfiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_LOCKFILES") <(echo "$AFTER_RESET_MODIFIED_LOCKFILES"))
 echo "DEBUG: FULL .lockfile files to import: '$(echo $previously_modified_lockfiles_currently_shows_no_modification | xargs)'" >&2
 

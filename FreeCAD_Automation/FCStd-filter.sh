@@ -28,7 +28,7 @@ fi
 
     # $DIFF_INDEX is an environment variable manually set for `git diff-index` calls
 if [ -n "$STATUS_CALL" ]; then
-    echo "DEBUG: Status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: git status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
@@ -37,13 +37,13 @@ elif [ -n "$RESET_MOD" ]; then
     cat /dev/null
     exit $SUCCESS
 
-elif [ -n "$DIFF_INDEX" ]; then
-    echo "DEBUG: diff index call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+elif [ -n "$STASH_CALL" ]; then
+    echo "DEBUG: git stash call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 elif [ -n "$FILE_CHECKOUT" ]; then
-    echo "DEBUG: file checkout call from fco alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: file checkout -- file call from fco alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi

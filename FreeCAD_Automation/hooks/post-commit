@@ -32,7 +32,7 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         exit $FAIL
     }
 
-    for lockfile in $(DIFF_INDEX=1 git diff-tree --no-commit-id --name-only -r HEAD | grep -i '\.lockfile$'); do
+    for lockfile in $(git diff-tree --no-commit-id --name-only -r HEAD | grep -i '\.lockfile$'); do
         FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
 
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then

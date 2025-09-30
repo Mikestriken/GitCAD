@@ -44,7 +44,7 @@ if [ "$3" == "1" ]; then
     fi
 
     echo "DEBUG: diffing <remote sha1>='$1'..'$2'=<local sha1>" >&2
-    changed_files=$(DIFF_INDEX=1 git diff-tree --no-commit-id --name-only -r "$1" "$2")
+    changed_files=$(git diff-tree --no-commit-id --name-only -r "$1" "$2")
 
     # Get changed .lockfiles
     changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
