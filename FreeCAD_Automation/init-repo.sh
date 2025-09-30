@@ -370,4 +370,23 @@ setup_git_alias "fexport" "!sh FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_
 setup_git_alias "fstash" "!sh FreeCAD_Automation/FCStdStash.sh" "Adds \`git fstash\` as alias to run FCStdStash.sh"
 setup_git_alias "freset" "!sh FreeCAD_Automation/FCStdReset.sh" "Adds \`git freset\` as alias to run FCStdReset.sh"
 
+echo "=============================================================================================="
+echo "                               Synchronizing \`.FCStd\` Files"
+echo "=============================================================================================="
+echo "Do you want to import data from all uncompressed FreeCAD dirs their respective \`.FCStd\` files?: " -n 1 -r
+read -p "(( initialize \`.FCStd\` file ↔ uncompressed dir synchronization ))  (y/n): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    for FCStd_file_path in $(git ls-files | grep -i '\.fcstd$'); do
+        echo -n "IMPORTING: '$FCStd_file_path'...."
+        # Import data to FCStd file
+        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+            echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+            continue
+        }
+        echo "SUCCESS"
+        git fcmod "$FCStd_file_path"
+    done
+fi
+
 exit $SUCCESS
