@@ -812,7 +812,7 @@ test_post_merge_hook() {
 if [ "$1" = "--sandbox" ]; then
     echo -n ">>>> START SANDBOX TEST? <<<<"; read -r dummy; echo
     
-    # test_sandbox
+    test_sandbox
 
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
     exit $SUCCESS
@@ -820,17 +820,14 @@ if [ "$1" = "--sandbox" ]; then
 elif [ -z "$1" ]; then
     echo -n ">>>> START STANDARD TEST? <<<<"; read -r dummy; echo
     
-    # test_FCStd_filter
-    # test_pre_commit_hook
-    # test_pre_push_hook
-    # test_post_checkout_hook
-    # test_stashing
-    # test_post_merge_hook
+    test_FCStd_filter
+    test_pre_commit_hook
+    test_pre_push_hook
+    test_post_checkout_hook
+    test_stashing
+    test_post_merge_hook
 
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
     exit $SUCCESS
 fi
-
-
-
 exit $FAIL
