@@ -137,7 +137,7 @@ assert_writable() {
 
 assert_dir_has_changes() {
     local dir="$1"
-    if ! git diff-index --name-only HEAD | grep -q "^$dir/"; then
+    if ! DIFF_INDEX=1 git diff-index --name-only HEAD | grep -q "^$dir/"; then
         echo "Assertion failed: Directory '$dir' has no changes" >&2
         echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
         tearDown
