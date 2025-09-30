@@ -373,20 +373,26 @@ setup_git_alias "freset" "!sh FreeCAD_Automation/FCStdReset.sh" "Adds \`git fres
 echo "=============================================================================================="
 echo "                               Synchronizing \`.FCStd\` Files"
 echo "=============================================================================================="
-echo "Do you want to import data from all uncompressed FreeCAD dirs their respective \`.FCStd\` files?: " -n 1 -r
-read -p "(( initialize \`.FCStd\` file ↔ uncompressed dir synchronization ))  (y/n): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    for FCStd_file_path in $(git ls-files | grep -i '\.fcstd$'); do
-        echo -n "IMPORTING: '$FCStd_file_path'...."
-        # Import data to FCStd file
-        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
-            echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
-            continue
-        }
-        echo "SUCCESS"
-        git fcmod "$FCStd_file_path"
-    done
-fi
+FCStd_file_paths=$(git ls-files | grep -i '\.fcstd$')
 
+if [ -n "$FCStd_file_paths" ]; then
+    echo "Do you want to import data from all uncompressed FreeCAD dirs to their respective \`.FCStd\` files?: " -n 1 -r
+    read -p "(( initialize \`.FCStd\` file ↔ uncompressed dir synchronization ))  (y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        for FCStd_file_path in $FCStd_file_paths; do
+            echo -n "IMPORTING: '$FCStd_file_path'...."
+            # Import data to FCStd file
+            "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+                echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+                continue
+            }
+            echo "SUCCESS"
+            git fcmod "$FCStd_file_path"
+        done
+    fi
+    
+else
+    echo "Nothing to synchronize."
+fi
 exit $SUCCESS

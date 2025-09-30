@@ -4,13 +4,9 @@
 This repository contains tools and scripts to automate the git workflow for committing uncompressed `.FCStd` files. Binary/other non-human-unreadable files such as `.brp` files are stored using git LFS (optionally they are compressed before storing them as LFS objects). Also supports locking `.FCStd` files to enable multi file collaboration.
 
 ### Key Features
-- **Git Clean Filter**: Treats `.FCStd` files as empty in Git to avoid large binary commits.
+- **Git Clean Filter**: Tricks git into thinking `.FCStd` files are empty and exports `git add`(ed) `.FCStd` files to their uncompressed directories.
   
-- **Post-Checkout Hook**: Updates `.FCStd` files with uncompressed content and sets the `.FCStd` file to readonly if not locked by the user.
-  
-- **Pre-Commit Hook**: Extracts non-locked `.FCStd` files and adds them to the commit.
-  
-- **Pre-Push Hook**: Cancels push if commits being pushed contains modifications to directories the user don't have the lock for.
+- **Various Hooks**: Updates `.FCStd` files with uncompressed when git commands cause changes. Sets `.FCStd` files to readonly if not locked by the user. Prevents user from committing / pushing changes for `.FCStd` files (and their dirs) that they don't own the lock for.
   
 - **Locking Mechanism**: Users use the git aliases `git lock path/to/file.FCStd` and `git unlock path/to/file.FCStd` lock a `.lockfile` inside the uncompressed directory instead of the `.FCStd` file itself.  
    **NOTE: THE COMMAND IS NOT `git lfs lock`/`git lfs unlock`**
@@ -31,51 +27,59 @@ This repository contains tools and scripts to automate the git workflow for comm
    - This prevents FreeCAD overwritting readonly (locked) files.  
    - Git is your new backup policy lol  
 
-3. Download and extract this repository into the root of your FreeCAD project's git repository.
+3. Download and extract release into the root of your FreeCAD project's git repository.
+
+4. Run the initialization script:
+   ```bash
+   ./FreeCAD_Automation/init-repo.sh
+   ```
    
-4. Configure the settings in `FreeCAD_Automation/config.json` as needed.  
+4. Configure the settings in newly added `FreeCAD_Automation/config.json` (from initialization script) as needed.  
     Make sure to configure:
     - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
       *IE: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*
     
-5. ****Test your configurations on python script:
+5. Test your configurations:
+    - To see how your `.FCStd` files will export use:
+      `"C:/Path/To/FreeCAD 1.0/bin/python.exe" "FreeCAD_Automation/FCStdFileTool.py" --CONFIG-FILE --export path/to/file.FCStd`  
+      *Note: If using powershell prepend `&` to the above command. IE: `& "C:/Path/To/FreeCAD 1.0/bin/python.exe"`*
 
-6. Run the initialization script:
+6. Run the initialization script one last time:
    ```bash
-   ./FreeCAD_Automation/freecad-repo-init.sh
+   ./FreeCAD_Automation/init-repo.sh
    ```
    *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
 7. Update your `.gitattributes` with LFS files you want to track.  
-   - `git lfs track "*.zip"`
+   __Recommendations if `compress-non-human-readable-FreeCAD-files` is disabled in config:__
    - `git lfs track "**/no_extension/*"` -- folder created by this script to track files without extension
    - `git lfs track "*.brp"`
    - `git lfs track "*.Map.*"`
    - `git lfs track "*.png"` -- thumbnail pictures
 
-8. Verify `.gitattributes` tracking files you want to track:  
+8. Verify `.gitattributes` is tracking files you want to track:  
    `git check-attr --all /path/to/file/to/check`
 
-9.  Update your `README.md` documentation for collaboration.  
-   *Template available in [Template Readme](#template-readmemd).*
+9. Update your `README.md` documentation for collaboration.  
+   *Template available in [Template.md](template.md).*
 
 ## Updating
 1. Backup `FreeCAD_Automation/config.json`.
    
-2. Download, extract and overwrite this repository into the root of your FreeCAD project's git repository.
+2. Download and extract release into the root of your FreeCAD project's git repository.
    
 3. Manually merge (if required) your backup of `FreeCAD_Automation/config.json` into the new (updated?) `FreeCAD_Automation/config.json`.
    
 4. Run the initialization script:
    ```bash
-   ./FreeCAD_Automation/freecad-repo-init.sh
+   ./FreeCAD_Automation/init-repo.sh
    ```
    *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
 ## Quick Guide
-### Adding a new FreeCAD file
+### Committing FreeCAD files (and their uncompressed directories)
 1. `git add` your file.  
    *`*.FCStd` file filter will extract the contents*
 
@@ -86,13 +90,15 @@ This repository contains tools and scripts to automate the git workflow for comm
 ### Cloning and Initializing Your Git Repository
 1. Clone your repository.
    
-2. Run `./FreeCAD_Automation/freecad-repo-init.sh`
+2. Run `./FreeCAD_Automation/init-repo.sh`
 
-### Switching Branches (Checking Out Files)
+4. Press `y` to `Do you want to import data from all uncompressed FreeCAD dirs to their respective '.FCStd' files?`
+
+### Switching Branches (Checking Out Files) <!-- ToDo: file checkout + what if didn't use alias -->
 1. `git checkout` branches/files as usual.  
     *Everything will be handled automatically.*
 
-### Pushing Changes
+### Committing/Pushing Changes
 1. To lock a FreeCAD file for editing:  
    *Only mandatory if `require-lock-to-modify-FreeCAD-files` is configured to `true`.*
    ```bash
@@ -109,8 +115,13 @@ This repository contains tools and scripts to automate the git workflow for comm
    git unlock path/to/file.FCStd
    ```
 
+## [Git Aliases](FreeCAD_Automation/added-aliases.md)
+It is important to read the linked alias documentation. These aliases help ensure the `.FCStd` files in your working directory are correctly synced with their corresponding uncompressed directories.
+
+They are also important for manually resynchronizing them in case you forgot to use an alias.
+
 ## Changing Things
-Some configurations in `FreeCAD_Automation/config.json` cannot be changed by simply changing its value in the JSON file. After you have already initialized the repository with the `freecad-repo-init.sh` script.
+Some configurations in `FreeCAD_Automation/config.json` cannot be changed by simply changing its value in the JSON file. After you have already initialized the repository with the `init-repo.sh` script.
 
 This section will cover how you can change certain configurations, post-initialization.
 
@@ -131,7 +142,7 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
 - [ ] `git commit` changes.
 
 ### Changing `require-lock-to-modify-FreeCAD-files`
-If you change this value, you will need to re-run the `freecad-repo-init.sh` script.
+If you change this value, you will need to re-run the `init-repo.sh` script.
 
 ## Configuration Options
 ```jsonc
@@ -149,7 +160,7 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
     // TL;DR: It simulates the --lockable git lfs attribute.
 
     // If you change this post-initialization, 
-    // make sure to re-run the `freecad-repo-init.sh` script.
+    // make sure to re-run the `init-repo.sh` script.
     "require-lock-to-modify-FreeCAD-files": true,
 
     // ------------------------------------------------------------------
@@ -225,90 +236,4 @@ If you change this value, you will need to re-run the `freecad-repo-init.sh` scr
         "zip-file-prefix": "compressed_binaries_"
     }
 }
-```
-## Git Aliases
-### `git lock`
-Locks a `.FCStd` file for editing by locking the associated `.lockfile` in the uncompressed directory using Git LFS. This prevents others from modifying the file and makes the `.FCStd` file writable for editing in FreeCAD. Supports `--force` to steal existing locks (if you have permission to do so according to GitHub).
-
-Usage: `git lock path/to/file.FCStd [--force]`
-
-### `git unlock`
-Unlocks a previously locked `.FCStd` file by unlocking the associated `.lockfile` in Git LFS. Checks for unpushed changes in the uncompressed directory and prevents unlocking if changes exist (unless `--force` is used). Makes the `.FCStd` file readonly after unlocking.
-
-Usage: `git unlock path/to/file.FCStd [--force]`
-
-### `git locks`
-A shorthand alias for `git lfs locks`.
-Provides a list of who has locks on files and which file they have a lock for.
-
-Usage: `git locks`
-
-### `git freset`
-A wrapper for `git reset` that ensures `.FCStd` files remain synchronized with their uncompressed directories after resetting. Wrapper observes the commit and working directory before and after the reset action to make changes. This should command should be used as a replacement for `git reset`.
-
-Usage: `git freset [reset options]` (same as `git reset`)
-
-### `git fstash`
-A wrapper for `git stash` operations that ensures `.FCStd` files remain synchronized with their uncompressed directories. Automatically imports `.FCStd` files after popping or applying stashes, also imports them after stashing to keep the `.FCStd` files synchronized with uncompressed directories. For pop/apply operations, checks that the user owns locks for any `.lockfiles` in the stash before proceeding.
-
-Usage:
-- `git fstash` - Stash working directory changes (imports stashed uncompressed `.FCStd` directories after stash)
-- `git fstash -- path/to/files/to/stash` - Stash specific working directory changes (imports stashed uncompressed `.FCStd` directories after stash)
-- `git fstash pop [index]` - Pop a stash (imports `.FCStd` files after)
-- `git fstash apply [index]` - Apply a stash without removing it (imports `.FCStd` files after)
-
-*Note: `git fstash` is basically a hook wrapper for `git stash` so you can other normal `git stash` operations such as `git fstash list` without consequence.*
-
-### `git fco`
-Checks out specific `.FCStd` files from a given commit by retrieving their uncompressed directories and importing the data back into the `.FCStd` files. This allows reverting individual `.FCStd` files to a previous version without affecting other files.
-
-This is basically how you `git checkout COMMIT_HASH -- FILE [FILE ...]` `.FCStd` files. The purpose of this alias is to redirect `FILE` from the empty `.FCStd` file to the directory containing the data for the `.FCStd` file.
-
-Usage: `git fco COMMIT_HASH FILE [FILE ...]`
-
-Note: Wildcards are not supported; specify exact file paths.
-
-### `git fcmod`
-Manually tells git to observe a `.FCStd` file as empty (unmodified).
-
-*Behind the scenes all this does is call `RESET_MOD=1 git add`*
-
-Usage: `git fcmod path/to/file.FCStd`
-
-### `git ftool`
-Runs the `FCStdFileTool.py` script for manual export or import of `.FCStd` files. Useful for advanced operations, troubleshooting, or direct manipulation of `.FCStd` files outside the normal Git workflow.
-
-Run: `git ftool` (no args) to see usage details.
-
-### `git fimport`
-Runs the `FCStdFileTool.py` script with preset args to manually import data to specified `.FCStd` file.
-
-Usage: `git fimport path/to/file.FCStd`
-
-### `git fexport`
-Runs the `FCStdFileTool.py` script with preset args to manually export data from specified `.FCStd` file.
-
-Usage: `git fexport path/to/file.FCStd`
-
-### `git stat`
-SOMETIMES*** Running `git status` causes git to execute clean filters on any modified files (even if the file isn't `git add`(ed)).
-Using `git stat` adds an environment variable prior to running `git status`, this lets the filter scripts (namely clean) know that a `git status` command called the filter.
-This tells the clean filter to not extract any `.FCStd` files passed to the filter (only show git that the `.FCStd` file is empty).
-
-Post v1.0 I think this scenario will be very rare and can be ignored.
-
-The only scenario where I have this issue is when I'm using `git checkout` to checkout specific `.FCStd` files that are not empty for debugging/testing purposes.
-
-Post v1.0 ALL `.FCStd` files should be committed as empty files.
-
-Read more on `git status` running filters [here](https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters).
-
-Usage: `git stat`
-
-## Flowchart
-A Mermaid diagram illustrating the Git workflow process will be added here in a future update.
-
-## Template README.MD
-```md
-
 ```
