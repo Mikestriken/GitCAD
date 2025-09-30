@@ -58,7 +58,6 @@ setup() {
     # Copies binaries into active_test dir (already done globally, but ensure)
     assert_command_succeeds "cp $TEST_DIR/../AssemblyExample.FCStd $TEST_DIR/../BIMExample.FCStd $TEST_DIR"
 
-    rm -rf FreeCAD_Automation/tests/uncompressed/
     echo ">>>> Setup Complete <<<<"
     echo 
 
@@ -802,6 +801,8 @@ test_post_merge_hook() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
+rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
+
 if [ "$1" = "--sandbox" ]; then
     # test_sandbox
     echo "Sandbox"
