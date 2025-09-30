@@ -232,6 +232,8 @@ test_sandbox() {
     assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
     
     assert_command_succeeds "git push origin active_test >/dev/null 2>&1"; echo
+    
+    explorer.exe "$TEST_DIR"; echo
 
     echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
     
@@ -800,13 +802,16 @@ test_post_merge_hook() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
-# test_sandbox
-test_FCStd_filter
-test_pre_commit_hook
-test_pre_push_hook
-test_post_checkout_hook
-test_stashing
-test_post_merge_hook
+if [ "$1" = "--sandbox" ]; then
+    test_sandbox
+else
+    test_FCStd_filter
+    test_pre_commit_hook
+    test_pre_push_hook
+    test_post_checkout_hook
+    test_stashing
+    test_post_merge_hook
+fi
 
 echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
 rm -rf FreeCAD_Automation/tests/uncompressed/
