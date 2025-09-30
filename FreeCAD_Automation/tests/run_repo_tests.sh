@@ -801,6 +801,8 @@ test_post_merge_hook() {
 # ==============================================================================================
 #                                          Run Tests
 # ==============================================================================================
+# Note: Expect user to press Ctrl + C to opt out of test
+
 if [ "$1" = "--sandbox" ]; then
     echo -n ">>>> START SANDBOX TEST? <<<<"; read -r dummy; echo
     rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
@@ -824,5 +826,7 @@ elif [ -z "$1" ]; then
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
     exit $SUCCESS
 fi
+
+rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
 
 exit $FAIL
