@@ -12,7 +12,9 @@ source "$FUNCTIONS_FILE"
 
 # Check for uncommitted work in working directory, exit early if so with error message
 if [ -n "$(git status --porcelain)" ]; then
-    rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
+    while ! rm -rf FreeCAD_Automation/tests/uncompressed/; do
+        sleep 10
+    done # Note: Dir spontaneously appears after git checkout test_binaries
 
     if [ -n "$(git status --porcelain)" ]; then
         echo "Error: There are uncommitted changes in the working directory. Please commit or stash them before running tests."
