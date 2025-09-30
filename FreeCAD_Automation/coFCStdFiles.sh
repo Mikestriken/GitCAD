@@ -81,7 +81,8 @@ fi
 # Checkout the uncompressed dirs from the commit
 echo "DEBUG: Checking out dirs from commit '$COMMIT_HASH': ${dirs_to_checkout[*]}" >&2
 echo "DEBUG: \`git checkout "$COMMIT_HASH" -- \"${dirs_to_checkout[@]}\"\`" >&2
-FILE_CHECKOUT=1 git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || {
+
+FILE_CHECKOUT=1 git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || { # Note: sometimes calls clean filter, sometimes calls post-checkout... really weird
     echo "Error: Failed to checkout dirs from commit '$COMMIT_HASH'" >&2
     exit $FAIL
 }

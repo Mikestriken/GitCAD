@@ -84,7 +84,7 @@ else
     echo "DEBUG: retrieved before stash lockfiles..." >&2
 
     # Execute git stash
-    STASH_CALL=1 git stash "$@"
+    STASH_CALL=1 git stash "$@" # Note: Sometimes calls clean filter... other times not... really weird....
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
