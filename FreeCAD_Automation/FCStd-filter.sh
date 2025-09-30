@@ -1,6 +1,13 @@
 #!/bin/bash
 echo "DEBUG: Clean filter trap-card triggered!" >&2
 # ==============================================================================================
+#                                       Script Overview
+# ==============================================================================================
+# Git clean filter for .FCStd files. Makes .FCStd files appear empty to Git by outputting empty content to stdout.
+# Checks if the user has a valid lock if locking is required, and exports the .FCStd file contents to the uncompressed directory.
+# Handles special cases like git status calls, reset mod calls, stash calls, and file checkout calls to avoid unnecessary exports.
+
+# ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
 # Import code used in this script

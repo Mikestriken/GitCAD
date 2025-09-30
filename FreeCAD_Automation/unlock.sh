@@ -1,5 +1,11 @@
 #!/bin/bash
 # ==============================================================================================
+#                                       Script Overview
+# ==============================================================================================
+# Script to unlock a previously locked .FCStd file. Unlocks the associated .lockfile using Git LFS and makes the .FCStd file readonly.
+# Checks for unpushed changes and warns if unlocking before changes are pushed. Supports force unlocking.
+
+# ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
 # Import code used in this script

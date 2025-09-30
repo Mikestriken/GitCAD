@@ -1,6 +1,12 @@
 #!/bin/bash
 echo "DEBUG: post-merge hook trap-card triggered!" >&2
 # ==============================================================================================
+#                                       Script Overview
+# ==============================================================================================
+# Post-merge hook for Git. Runs Git LFS post-merge, pulls LFS files, and updates/synchronizes changed .FCStd files with uncompressed data.
+# Ensures .FCStd files are set to readonly or writable based on lock status if locking is required.
+
+# ==============================================================================================
 #                                         GIT LFS Hooks
 # ==============================================================================================
 command -v git-lfs >/dev/null 2>&1 || { echo >&2 "\nThis repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting the 'post-merge' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks').\n"; exit 2; }

@@ -1,5 +1,11 @@
 #!/bin/bash
 # ==============================================================================================
+#                                       Script Overview
+# ==============================================================================================
+# Script to lock a .FCStd file for editing. Locks the associated .lockfile using Git LFS and makes the .FCStd file writable.
+# Supports force locking to steal existing locks if user has perms to do so.
+
+# ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
 # Import code used in this script

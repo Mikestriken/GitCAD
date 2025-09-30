@@ -1,6 +1,12 @@
 #!/bin/sh
 echo "DEBUG: post-rewrite hook trap-card triggered!" >&2
 # ==============================================================================================
+#                                       Script Overview
+# ==============================================================================================
+# Post-rewrite hook for Git. Runs after operations like git pull --rebase, git rebase, or git commit --amend.
+# Pulls LFS files and updates/synchronizes changed .FCStd files with uncompressed data, setting readonly/writable based on locks.
+
+# ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
 # Import code used in this script

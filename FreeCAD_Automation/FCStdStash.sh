@@ -1,5 +1,12 @@
 #!/bin/bash
 # ==============================================================================================
+#                                       Script Overview
+# ==============================================================================================
+# Wrapper script to handle Git stash operations for .FCStd files. Ensures .FCStd files remain synchronized with their uncompressed directories.
+# For stash pop/apply, checks that the user owns locks for stashed .lockfiles. Imports .FCStd files after pop/apply.
+# For stashing, re-imports .FCStd files after stashing to keep them synchronized to with the working directory.
+
+# ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
 # Import code used in this script

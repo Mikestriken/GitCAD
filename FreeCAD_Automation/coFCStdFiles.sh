@@ -1,6 +1,13 @@
 #!/bin/bash
 echo "DEBUG: FCStd file checkout trap-card triggered!" >&2
 # ==============================================================================================
+#                                       Script Overview
+# ==============================================================================================
+# Script to checkout specific .FCStd files from a given commit. 
+# Handles resynchronization by reimporting data back into the .FCStd files that were checked out
+# Ensures .FCStd file is readonly/writable per lock permissions after resynchronization.
+
+# ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
 # Import code used in this script

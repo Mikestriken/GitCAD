@@ -1,8 +1,14 @@
 #!/bin/bash
+echo "DEBUG: pre-push hook trap-card triggered!" >&2
+# ==============================================================================================
+#                                       Script Overview
+# ==============================================================================================
+# Pre-push hook for Git. Runs Git LFS pre-push and checks if the user has locks for all .lockfiles changed in the commits being pushed.
+# Cancels the push if locking is required and the user lacks locks for modified directories.
+
 # ==============================================================================================
 #                                         Capture Stdin
 # ==============================================================================================
-echo "DEBUG: pre-push hook trap-card triggered!" >&2
 TEMP_DIR=".git/tempfiles"
 mkdir -p "$TEMP_DIR"
 stdin_tempfile=$(mktemp $TEMP_DIR/pre-push.XXXXXX)

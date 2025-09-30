@@ -1,6 +1,12 @@
 #!/bin/bash
 echo "DEBUG: FCStdReset.sh trap-card triggered!" >&2
 # ==============================================================================================
+#                                       Script Overview
+# ==============================================================================================
+# Wrapper script to handle Git reset operations for .FCStd files. Ensures .FCStd files remain synchronized with their uncompressed directories after reset.
+# Observes files before and after reset, imports data into .FCStd files that were affected, and sets readonly/writable based on locks.
+
+# ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
 # Import code used in this script
