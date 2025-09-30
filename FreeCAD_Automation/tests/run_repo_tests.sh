@@ -73,6 +73,10 @@ tearDown() {
     git lfs locks | grep "^$TEST_DIR" | awk '{print $3}' | sed 's/ID://' | xargs -r -I {} git lfs unlock --id {} --force || true
     
     git reset --hard >/dev/null 2>&1
+
+    git fstash
+
+    git fstash drop
     
     git checkout main > /dev/null
 
