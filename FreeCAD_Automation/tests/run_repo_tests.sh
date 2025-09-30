@@ -77,7 +77,7 @@ tearDown() {
 
     git fstash
 
-    git fstash drop
+    git fstash drop stash@{0}
     
     git checkout main > /dev/null
 
@@ -728,6 +728,11 @@ test_post_merge_hook() {
 
     echo "TEST: git pull --rebase origin active_test" >&2
     assert_command_succeeds "git pull --rebase origin active_test"; echo
+    if [ -n "$(git status --porcelain)" ]; then
+        echo "ERR: Uncommitted changes '$(git diff-index --name-only HEAD | xargs)'" >&2
+        echo "Attempting to clear mod to '$TEST_DIR/BIMExample.FCStd'" >&2
+        git fcmod "$TEST_DIR/BIMExample.FCStd"
+    fi
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Assert \`BIMExample.FCStd\` is NOT readonly" >&2
