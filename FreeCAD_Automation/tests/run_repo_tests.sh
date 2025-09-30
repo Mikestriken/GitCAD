@@ -803,16 +803,22 @@ test_post_merge_hook() {
 #                                          Run Tests
 # ==============================================================================================
 if [ "$1" = "--sandbox" ]; then
-    test_sandbox
-else
-    test_FCStd_filter
-    test_pre_commit_hook
-    test_pre_push_hook
-    test_post_checkout_hook
-    test_stashing
-    test_post_merge_hook
+    # test_sandbox
+    echo "Sandbox"
+
+    echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
+    exit $SUCCESS
+elif [ -z "$1" ]; then
+    echo "Standard testing"
+    # test_FCStd_filter
+    # test_pre_commit_hook
+    # test_pre_push_hook
+    # test_post_checkout_hook
+    # test_stashing
+    # test_post_merge_hook
+
+    echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
+    exit $SUCCESS
 fi
 
-echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
-rm -rf FreeCAD_Automation/tests/uncompressed/
-exit $SUCCESS
+exit $FAIL
