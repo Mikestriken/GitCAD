@@ -75,9 +75,9 @@ tearDown() {
     
     git reset --hard >/dev/null 2>&1
 
-    git fstash
-
-    git fstash drop stash@{0}
+    if ! git fstash | grep -q "No local changes to save"; then
+        git fstash drop stash@{0}
+    fi
     
     git checkout main > /dev/null
 
