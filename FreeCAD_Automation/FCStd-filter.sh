@@ -33,12 +33,17 @@ if [ -n "$STATUS_CALL" ]; then
     exit $SUCCESS
 
 elif [ -n "$RESET_MOD" ]; then
-    echo "DEBUG: Reset modification call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: Reset modification call from fcmod alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 elif [ -n "$DIFF_INDEX" ]; then
     echo "DEBUG: diff index call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat /dev/null
+    exit $SUCCESS
+
+elif [ -n "$FILE_CHECKOUT" ]; then
+    echo "DEBUG: file checkout call from fco alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
