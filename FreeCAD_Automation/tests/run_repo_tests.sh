@@ -12,8 +12,12 @@ source "$FUNCTIONS_FILE"
 
 # Check for uncommitted work in working directory, exit early if so with error message
 if [ -n "$(git status --porcelain)" ]; then
-    echo "Error: There are uncommitted changes in the working directory. Please commit or stash them before running tests."
-    exit $FAIL
+    rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
+
+    if [ -n "$(git status --porcelain)" ]; then
+        echo "Error: There are uncommitted changes in the working directory. Please commit or stash them before running tests."
+        exit $FAIL
+    fi
 fi
 
 # Check for stashed items, warn user they will be dropped and ask if they want to exit early
@@ -805,7 +809,6 @@ test_post_merge_hook() {
 
 if [ "$1" = "--sandbox" ]; then
     echo -n ">>>> START SANDBOX TEST? <<<<"; read -r dummy; echo
-    rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
     
     # test_sandbox
 
@@ -814,7 +817,6 @@ if [ "$1" = "--sandbox" ]; then
 
 elif [ -z "$1" ]; then
     echo -n ">>>> START STANDARD TEST? <<<<"; read -r dummy; echo
-    rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
     
     # test_FCStd_filter
     # test_pre_commit_hook
@@ -827,8 +829,6 @@ elif [ -z "$1" ]; then
     exit $SUCCESS
 fi
 
-# Note: Tried using sleep but it takes longer than just having the user press enter.
-echo -n ">>>> PRESS ENTER <<<<"; read -r dummy; echo 
-rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
+
 
 exit $FAIL
