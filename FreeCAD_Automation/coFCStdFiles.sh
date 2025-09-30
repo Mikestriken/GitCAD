@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: FCStd file checkout trap-card triggered!" >&2
+# echo "DEBUG: FCStd file checkout trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -39,7 +39,7 @@ shift
 FILES=("$@")
 
 changed_files=$(git diff-index --name-only HEAD)
-echo "DEBUG: Changed files BEFORE checkout: '$changed_files'" >&2
+# echo "DEBUG: Changed files BEFORE checkout: '$changed_files'" >&2
 
 # Collect dirs to checkout
 declare -A dir_to_file
@@ -86,8 +86,8 @@ fi
 # ==============================================================================================
 
 # Checkout the uncompressed dirs from the commit
-echo "DEBUG: Checking out dirs from commit '$COMMIT_HASH': ${dirs_to_checkout[*]}" >&2
-echo "DEBUG: \`git checkout "$COMMIT_HASH" -- \"${dirs_to_checkout[@]}\"\`" >&2
+# echo "DEBUG: Checking out dirs from commit '$COMMIT_HASH': ${dirs_to_checkout[*]}" >&2
+# echo "DEBUG: \`git checkout "$COMMIT_HASH" -- \"${dirs_to_checkout[@]}\"\`" >&2
 
 FILE_CHECKOUT=1 git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || { # Note: sometimes calls clean filter, sometimes calls post-checkout... really weird
     echo "Error: Failed to checkout dirs from commit '$COMMIT_HASH'" >&2
@@ -96,14 +96,14 @@ FILE_CHECKOUT=1 git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || { # N
 
 # Get changed files after checkout
 changed_files=$(git diff-index --name-only HEAD)
-echo "DEBUG: Changed files AFTER checkout: '$changed_files'" >&2
+# echo "DEBUG: Changed files AFTER checkout: '$changed_files'" >&2
 
 # For each dir, check if it exists and import if it does
 for dir in "${dirs_to_checkout[@]}"; do
     FCStd_file_path="${dir_to_file[$dir]}"
     FCStd_dir_path="$dir"
 
-    echo "DEBUG: Checking '$FCStd_file_path' & '$FCStd_dir_path'" >&2
+    # echo "DEBUG: Checking '$FCStd_file_path' & '$FCStd_dir_path'" >&2
 
     if [ -d "$FCStd_dir_path" ] && echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
@@ -114,7 +114,7 @@ for dir in "${dirs_to_checkout[@]}"; do
         }
         echo "SUCCESS" >&2
     else
-        echo "DEBUG: Dir '$FCStd_dir_path' does not exist or has no changes, skipping import for '$FCStd_file_path'" >&2
+        # echo "DEBUG: Dir '$FCStd_dir_path' does not exist or has no changes, skipping import for '$FCStd_file_path'" >&2
         continue
     fi
 
@@ -125,11 +125,11 @@ for dir in "${dirs_to_checkout[@]}"; do
         if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "$FALSE" ]; then
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
-            echo "DEBUG: Set '$FCStd_file_path' readonly." >&2
+            # echo "DEBUG: Set '$FCStd_file_path' readonly." >&2
         else
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
-            echo "DEBUG: Set '$FCStd_file_path' writable." >&2
+            # echo "DEBUG: Set '$FCStd_file_path' writable." >&2
         fi
     fi
 done

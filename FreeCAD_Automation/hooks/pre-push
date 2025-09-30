@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: pre-push hook trap-card triggered!" >&2
+# echo "DEBUG: pre-push hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -12,15 +12,15 @@ echo "DEBUG: pre-push hook trap-card triggered!" >&2
 TEMP_DIR=".git/tempfiles"
 mkdir -p "$TEMP_DIR"
 stdin_tempfile=$(mktemp $TEMP_DIR/pre-push.XXXXXX)
-echo "DEBUG: Created Tempfile: '$stdin_tempfile'" >&2
+# echo "DEBUG: Created Tempfile: '$stdin_tempfile'" >&2
 cat >"$stdin_tempfile"
-echo "DEBUG: stdin='$(cat $stdin_tempfile)'" >&2
+# echo "DEBUG: stdin='$(cat $stdin_tempfile)'" >&2
 
 read -r local_ref local_sha remote_ref remote_sha < <(tail -n1 "$stdin_tempfile")
-echo "DEBUG: Local ref:   $local_ref" >&2
-echo "DEBUG: Local SHA:   $local_sha" >&2
-echo "DEBUG: Remote ref:  $remote_ref" >&2
-echo "DEBUG: Remote SHA:  $remote_sha" >&2
+# echo "DEBUG: Local ref:   $local_ref" >&2
+# echo "DEBUG: Local SHA:   $local_sha" >&2
+# echo "DEBUG: Remote ref:  $remote_ref" >&2
+# echo "DEBUG: Remote SHA:  $remote_sha" >&2
 
 # ==============================================================================================
 #                                         GIT LFS Hooks
@@ -40,7 +40,7 @@ source "$FUNCTIONS_FILE"
 # ==============================================================================================
 #                       Check if user allowed to push local commits
 # ==============================================================================================
-echo "DEBUG: args='$@'" >&2
+# echo "DEBUG: args='$@'" >&2
 
 if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     CURRENT_USER=$(git config --get user.name) || {
@@ -53,19 +53,19 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         exit $FAIL
     }
 
-    echo "DEBUG: diffing <remote sha1>='$remote_sha'..'$local_sha'=<local sha1>" >&2
+    # echo "DEBUG: diffing <remote sha1>='$remote_sha'..'$local_sha'=<local sha1>" >&2
     changed_files=$(git diff-tree --no-commit-id --name-only -r "$remote_sha" "$local_sha")
 
     # Get changed .lockfiles
     changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
 
-    echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
+    # echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
 
     for lockfile in $changed_lockfiles; do
-        echo -e "\nDEBUG: checking '$lockfile'...." >&2
+        # echo -e "\nDEBUG: checking '$lockfile'...." >&2
 
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
-            echo "DEBUG: User has valid lock for '$lockfile'" >&2
+            # echo "DEBUG: User has valid lock for '$lockfile'" >&2
             :
         else
             echo "ERROR: User doesn't have lock for '$lockfile'... Aborting push operation..." >&2

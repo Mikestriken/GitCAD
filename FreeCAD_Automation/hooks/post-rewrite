@@ -1,5 +1,5 @@
 #!/bin/sh
-echo "DEBUG: post-rewrite hook trap-card triggered!" >&2
+# echo "DEBUG: post-rewrite hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -22,7 +22,7 @@ fi
 #                                     Pull LFS files
 # ==============================================================================================
 git lfs pull
-echo "DEBUG: Pulled lfs files" >&2
+# echo "DEBUG: Pulled lfs files" >&2
 
 # ==============================================================================================
 #                         Update .FCStd files with uncompressed files
@@ -39,16 +39,16 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     }
 fi
 
-echo "DEBUG: diffing <remote sha1>='ORIG_HEAD'..'HEAD'=<local sha1>" >&2
+# echo "DEBUG: diffing <remote sha1>='ORIG_HEAD'..'HEAD'=<local sha1>" >&2
 changed_files=$(git diff-tree --no-commit-id --name-only -r "ORIG_HEAD" "HEAD")
 
 # Get changed .lockfiles
 changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
 
-echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
+# echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
 
 for lockfile in $changed_lockfiles; do
-    echo -e "\nDEBUG: checking '$lockfile'...." >&2
+    # echo -e "\nDEBUG: checking '$lockfile'...." >&2
 
     FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
 
@@ -68,11 +68,11 @@ for lockfile in $changed_lockfiles; do
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
-            echo "DEBUG: set '$FCStd_file_path' writable." >&2
+            # echo "DEBUG: set '$FCStd_file_path' writable." >&2
         else
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
-            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+            # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
         fi
     fi
 done

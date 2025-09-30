@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: post-commit hook trap-card triggered!" >&2
+# echo "DEBUG: post-commit hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                         GIT LFS Hooks
 # ==============================================================================================
@@ -38,11 +38,11 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
-            echo "DEBUG: set '$FCStd_file_path' writable." >&2
+            # echo "DEBUG: set '$FCStd_file_path' writable." >&2
         else
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
-            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+            # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
         fi
     done
 fi

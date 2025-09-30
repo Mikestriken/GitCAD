@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: pre-commit hook trap-card triggered!" >&2
+# echo "DEBUG: pre-commit hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                 Verify and Retrieve Dependencies
 # ==============================================================================================
@@ -24,13 +24,13 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     # Get staged .lockfiles
     # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
     STAGED_LOCKFILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i '\.lockfile$')
-    echo -e "\nDEBUG: checking staged lockfiles: '$(echo $STAGED_LOCKFILES | xargs)'" >&2
+    # echo -e "\nDEBUG: checking staged lockfiles: '$(echo $STAGED_LOCKFILES | xargs)'" >&2
 
     for lockfile in $STAGED_LOCKFILES; do
-        echo -e "\nDEBUG: checking '$lockfile'...." >&2
+        # echo -e "\nDEBUG: checking '$lockfile'...." >&2
 
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
-            echo "DEBUG: valid lock found for '$lockfile'" >&2
+            # echo "DEBUG: valid lock found for '$lockfile'" >&2
             :
         else
             echo "ERROR: User doesn't have lock for '$lockfile'... Aborting commit operation..." >&2

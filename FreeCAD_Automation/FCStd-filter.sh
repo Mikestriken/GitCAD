@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: Clean filter trap-card triggered!" >&2
+# echo "DEBUG: Clean filter trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -35,22 +35,22 @@ fi
 
     # $DIFF_INDEX is an environment variable manually set for `git diff-index` calls
 if [ -n "$STATUS_CALL" ]; then
-    echo "DEBUG: git status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # echo "DEBUG: git status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 elif [ -n "$RESET_MOD" ]; then
-    echo "DEBUG: Reset modification call from fcmod alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # echo "DEBUG: Reset modification call from fcmod alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 elif [ -n "$STASH_CALL" ]; then
-    echo "DEBUG: git stash call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # echo "DEBUG: git stash call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 elif [ -n "$FILE_CHECKOUT" ]; then
-    echo "DEBUG: file checkout -- file call from fco alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # echo "DEBUG: file checkout -- file call from fco alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
@@ -62,7 +62,7 @@ fi
 
     # Solution: If file is empty don't export and exit early with success
 if [ ! -s "$1" ]; then
-    echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
@@ -71,7 +71,7 @@ fi
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
 if [[ "$BYPASS_LOCK" == "1" ]]; then
-    echo "DEBUG: BYPASS_LOCK=1, bypassing lock check." >&2
+    # echo "DEBUG: BYPASS_LOCK=1, bypassing lock check." >&2
 else
     FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
 
