@@ -238,8 +238,6 @@ test_sandbox() {
     
     assert_command_succeeds "git push origin active_test >/dev/null 2>&1"; echo
     
-    explorer.exe "$TEST_DIR"; echo
-
     echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
     
     tearDown "test_sandbox" || exit $FAIL
@@ -830,7 +828,7 @@ elif [ -z "$1" ]; then
     test_post_merge_hook
 
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
-    
+
     rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git checkout test_binaries
     exit $SUCCESS
 fi

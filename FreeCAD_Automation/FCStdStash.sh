@@ -83,7 +83,12 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     done
 
 else
-    # ToDo: Cancel stash if .FCStd file to be stashed.
+    # Check for uncommitted .FCStd files
+    UNCOMMITTED_FCSTD_FILES=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
+    if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
+        echo "Error: Cannot stash .FCStd files, export them first with \`git add\`" >&2
+        exit $FAIL
+    fi
 
     echo "DEBUG: Stashing away or something else..." >&2
     
