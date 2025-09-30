@@ -76,6 +76,8 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     done
 
 else
+    # ToDo: Cancel stash if .FCStd file to be stashed.
+
     echo "DEBUG: Stashing away or something else..." >&2
     
     # Get modified lockfiles before stash
