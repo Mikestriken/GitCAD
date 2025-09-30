@@ -827,6 +827,7 @@ elif [ -z "$1" ]; then
     exit $SUCCESS
 fi
 
+sleep 4
 rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git lfs pull
 
 exit $FAIL
