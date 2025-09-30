@@ -75,13 +75,6 @@
 		- [x] Warn user if unlocking before changes have been pushed changes
 	- [x] To use `FCStdFileTool.py` manually
 
-- [ ] Random Bugs  
-	```
-	$ git unlock FreeCAD_Automation/tests/active_test/BIMExample.FCStdm
-	Unlocked FreeCAD_Automation/tests/active_test/uncompressed/FCStd_BIMExample_FCStd/.lockfile
-	Error: File 'FreeCAD_Automation/tests/active_test/BIMExample.FCStdm' does not exist
-	```
-
 - [ ] Verify update (import) of .FCStd files with uncompressed files:
 	- [ ] When?:
 		- [x] When checking out a branch / commit
