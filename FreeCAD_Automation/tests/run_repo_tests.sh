@@ -295,6 +295,7 @@ test_FCStd_filter() {
     assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: \`git add\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
+    sync; echo
     assert_command_succeeds "git add $TEST_DIR/AssemblyExample.FCStd > /dev/null"; echo
 
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
@@ -303,6 +304,7 @@ test_FCStd_filter() {
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
+    sync; echo
     assert_command_succeeds "git add \"$FCStd_dir_path\" > /dev/null"; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
@@ -326,6 +328,7 @@ test_FCStd_filter() {
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git add \`AssemblyExample.FCStd\`" >&2
+    sync; echo
     assert_command_succeeds "git add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git add\`(ed)" >&2
