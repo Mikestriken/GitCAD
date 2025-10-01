@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "=============================================================================================="
-echo "                             Make all bash scripts executable"
+echo "                                    Set Linux Permissions"
 echo "=============================================================================================="
 find ./FreeCAD_Automation -name "*.sh" -type f -exec chmod 755 {} \;
 
@@ -8,8 +8,10 @@ HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "p
 for hook in "${HOOKS[@]}"; do
     chmod 755 "FreeCAD_Automation/hooks/$hook"
 done
-
 echo "All bash scripts and hooks made executable."
+
+chown -R $(whoami):$(whoami) $(pwd)
+echo "Given ownership of all files to user."
 
 echo "=============================================================================================="
 echo "                                    Create Config File"
