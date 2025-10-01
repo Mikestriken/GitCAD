@@ -2,11 +2,11 @@
 echo "=============================================================================================="
 echo "                             Make all bash scripts executable"
 echo "=============================================================================================="
-find ./FreeCAD_Automation -name "*.sh" -type f -exec chmod +x {} \;
+find ./FreeCAD_Automation -name "*.sh" -type f -exec chmod 755 {} \;
 
 HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push") # Note: This array is used again in the `Setup Git Hooks` section
 for hook in "${HOOKS[@]}"; do
-    chmod +x "FreeCAD_Automation/hooks/$hook"
+    chmod 755 "FreeCAD_Automation/hooks/$hook"
 done
 
 echo "All bash scripts and hooks made executable."
