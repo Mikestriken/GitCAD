@@ -18,7 +18,7 @@ FREECAD_ROOT=$(dirname "$PYTHON_PATH")
 FREECAD_ROOT=$(realpath "$FREECAD_ROOT/..")
 
 export FREECAD_ROOT="$FREECAD_ROOT"
-export PYTHONPATH="$FREECAD_ROOT/usr/lib/python3.11/site-packages:$FREECAD_ROOT/usr/lib:$PYTHONPATH"
+export PYTHONPATH="$FREECAD_ROOT/lib/python3.11/site-packages:$FREECAD_ROOT/lib:$PYTHONPATH"
 
 # ==============================================================================================
 #                                       Execute Python
