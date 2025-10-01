@@ -1,5 +1,5 @@
 #!/bin/bash
-# echo "DEBUG: Clean filter trap-card triggered!" >&2
+echo "DEBUG: Clean filter trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -25,7 +25,7 @@ fi
 # Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
 # print all args to stderr
-# echo "DEBUG: All args: '$@'" >&2
+echo "DEBUG: All args: '$@'" >&2
 
 # Note: when running `git status` sometimes this clean filter will be called. Read more here: https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters
     # If the user uses the alias `git stat` the the STATUS_CALL env variable will be set during the git status call.
@@ -35,22 +35,22 @@ fi
 
     # $DIFF_INDEX is an environment variable manually set for `git diff-index` calls
 if [ -n "$STATUS_CALL" ]; then
-    # echo "DEBUG: git status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: git status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 elif [ -n "$RESET_MOD" ]; then
-    # echo "DEBUG: Reset modification call from fcmod alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: Reset modification call from fcmod alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 elif [ -n "$STASH_CALL" ]; then
-    # echo "DEBUG: git stash call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: git stash call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 elif [ -n "$FILE_CHECKOUT" ]; then
-    # echo "DEBUG: file checkout -- file call from fco alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: file checkout -- file call from fco alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
@@ -62,7 +62,7 @@ fi
 
     # Solution: If file is empty don't export and exit early with success
 if [ ! -s "$1" ]; then
-    # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
@@ -71,12 +71,12 @@ fi
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
 if [[ "$BYPASS_LOCK" == "1" ]]; then
-    # echo "DEBUG: BYPASS_LOCK=1, bypassing lock check." >&2
+    echo "DEBUG: BYPASS_LOCK=1, bypassing lock check." >&2
     :
 else
     FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
 
-    # echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
+    echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 
     # ToDo?: Figure out WTF I'm doing here.. aborting or just not exporting?
     if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "$FALSE" ]; then
