@@ -97,7 +97,7 @@ class TestFCStdFileTool(unittest.TestCase):
             
         # Test with subdir
         path:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, FCStdFileTool_Config)
-        expected:str = os.path.relpath(os.path.join(self.config_file.subdir_name, f"{self.config_file.dir_prefix}AssemblyExample{self.config_file.dir_suffix}"))
+        expected:str = os.path.relpath(os.path.join(self.temp_dir, self.config_file.subdir_name, f"{self.config_file.dir_prefix}AssemblyExample{self.config_file.dir_suffix}"))
         self.assertEqual(path, expected, msg=f"ERR: Expected path '{expected}', got '{path}'")
 
         # Test without subdir
@@ -105,7 +105,7 @@ class TestFCStdFileTool(unittest.TestCase):
         FCStdFileTool_Config:dict = self.config_file.createTestConfig()
         
         path:str = get_FCStd_dir_path(self.temp_AssemblyExample_path, FCStdFileTool_Config)
-        expected:str = os.path.relpath(os.path.join(f"{self.config_file.dir_prefix}AssemblyExample{self.config_file.dir_suffix}"))
+        expected:str = os.path.relpath(os.path.join(self.temp_dir, f"{self.config_file.dir_prefix}AssemblyExample{self.config_file.dir_suffix}"))
         self.assertEqual(path, expected, msg=f"ERR: Expected path '{expected}', got '{path}'")
 
     def test_no_config_export(self):
