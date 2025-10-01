@@ -248,8 +248,10 @@ get_FCStd_file_from_lockfile() {
     
     local FCStd_file_path=$(realpath "$FCStd_dir_path/$FCStd_file_relpath")
 
-    FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
-    
+    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
+    fi
+
     FCStd_file_path="$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$FCStd_file_path")"
 
     echo "$FCStd_file_path"
