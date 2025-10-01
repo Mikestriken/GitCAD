@@ -63,7 +63,7 @@ if [ -z "$FCStd_file_path" ]; then
     exit $FAIL
 fi
 
-lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
+lockfile_path=$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
     echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
     exit $FAIL
 }

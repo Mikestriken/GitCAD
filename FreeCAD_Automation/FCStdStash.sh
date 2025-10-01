@@ -76,7 +76,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
         FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
 
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
-        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+        "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
             echo "Failed to import $FCStd_file_path" >&2
         }
         echo "SUCCESS" >&2
@@ -118,7 +118,7 @@ else
     for lockfile in $STASHED_LOCKFILES; do
         FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
-        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+        "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
             echo "Failed to import $FCStd_file_path" >&2
         }
         echo "SUCCESS" >&2

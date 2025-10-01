@@ -14,6 +14,7 @@ FALSE=1
 
 CONFIG_FILE="FreeCAD_Automation/config.json"
 FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
+PYTHON_EXEC="FreeCAD_Automation/python.sh"
 
 # ==============================================================================================
 #                                           Functions
@@ -149,10 +150,6 @@ make_writable() {
 FCStd_file_has_valid_lock() {
     local FCStd_file_path="$1"
 
-    # Get required variables
-    local PYTHON_PATH
-    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || return $FAIL
-
     local REQUIRE_LOCKS
     REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || return $FAIL
 
@@ -172,7 +169,7 @@ FCStd_file_has_valid_lock() {
 
     # File is tracked, get the .lockfile path
     local lockfile_path # 
-    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
+    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
         echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
         return $FAIL
     }
@@ -213,13 +210,9 @@ FCStd_file_has_valid_lock() {
 get_FCStd_dir() {
     local FCStd_file_path="$1"
 
-    # Get Python path
-    local PYTHON_PATH
-    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || return $FAIL
-
     # Get the lockfile path (which gives us the directory structure)
     local lockfile_path
-    lockfile_path=$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
+    lockfile_path=$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
         echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
         return $FAIL
     }

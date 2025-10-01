@@ -1,5 +1,17 @@
 #!/bin/bash
 echo "=============================================================================================="
+echo "                             Make all bash scripts executable"
+echo "=============================================================================================="
+find ./FreeCAD_Automation -name "*.sh" -type f -exec chmod +x {} \;
+
+HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push") # Note: This array is used again in the `Setup Git Hooks` section
+for hook in "${HOOKS[@]}"; do
+    chmod +x "FreeCAD_Automation/hooks/$hook"
+done
+
+echo "All bash scripts and hooks made executable."
+
+echo "=============================================================================================="
 echo "                                    Create Config File"
 echo "=============================================================================================="
 DEFAULT_CONFIG='{
@@ -78,7 +90,7 @@ else
 fi
 
 # Check if the import works
-if "$PYTHON_PATH" -c "from freecad import project_utility as PU; print('Import successful')" > /dev/null; then
+if "$PYTHON_EXEC" -c "from freecad import project_utility as PU; print('Import successful')" > /dev/null; then
     echo "FreeCAD Python library import successful"
 else
     echo "Error: Import 'from freecad import project_utility as PU' failed" >&2
@@ -127,7 +139,7 @@ if [ ! -d "FreeCAD_Automation/hooks" ]; then
     exit $FAIL
 fi
 
-HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push")
+# Note: `HOOKS` array is defined in the `Make all bash scripts executable` section at the top of this script
 for hook in "${HOOKS[@]}"; do
     if [ -f "$HOOKS_DIR/$hook" ]; then
         echo "Hook $hook already exists in $HOOKS_DIR"
@@ -383,7 +395,7 @@ if [ -n "$FCStd_file_paths" ]; then
         for FCStd_file_path in $FCStd_file_paths; do
             echo -n "IMPORTING: '$FCStd_file_path'...."
             # Import data to FCStd file
-            "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+            "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
                 echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
                 continue
             }
@@ -391,7 +403,7 @@ if [ -n "$FCStd_file_paths" ]; then
             git fcmod "$FCStd_file_path"
         done
     fi
-    
+
 else
     echo "Nothing to synchronize."
 fi

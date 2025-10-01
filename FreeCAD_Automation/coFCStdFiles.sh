@@ -108,7 +108,7 @@ for dir in "${dirs_to_checkout[@]}"; do
     if [ -d "$FCStd_dir_path" ] && echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         # Import data to FCStd file
-        "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+        "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
             echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
             continue
         }

@@ -84,7 +84,7 @@ previously_modified_lockfiles_currently_shows_no_modification=$(comm -23 <(echo 
 FCStd_files_to_process=""
 for FCStd_file_path in $previously_modified_FCStd_files_currently_shows_no_modification; do
     echo -n "DECONFLICTING: '$FCStd_file_path'...." >&2
-    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || continue
+    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || continue
     if echo "$previously_modified_lockfiles_currently_shows_no_modification" | grep -q "^$lockfile_path$"; then
         echo "REMOVED" >&2
         continue  # Skip, lockfile will handle it
@@ -102,7 +102,7 @@ for FCStd_file_path in $FCStd_files_to_process; do
     # echo -e "\nDEBUG: processing FCStd '$FCStd_file_path'...." >&2
 
     # Get lockfile path
-    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_PATH" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
+    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
         echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
         continue
     }
@@ -110,7 +110,7 @@ for FCStd_file_path in $FCStd_files_to_process; do
     echo -n "IMPORTING: '$FCStd_file_path'...." >&2
 
     # Import data to FCStd file
-    "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+    "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
         echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
         continue
     }
@@ -141,7 +141,7 @@ for lockfile in $lockfiles_to_process; do
     echo -n "IMPORTING: '$FCStd_file_path'...." >&2
 
     # Import data to FCStd file
-    "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+    "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
         echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
         continue
     }

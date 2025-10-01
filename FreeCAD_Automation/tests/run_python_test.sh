@@ -30,6 +30,6 @@ git fcmod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/test
 # ==============================================================================================
 #                                           Run Tests
 # ==============================================================================================
-"$PYTHON_PATH" -m unittest --failfast FreeCAD_Automation.tests.test_FCStdFileTool
+"$PYTHON_EXEC" -m unittest --failfast FreeCAD_Automation.tests.test_FCStdFileTool
 
 exit $SUCCESS

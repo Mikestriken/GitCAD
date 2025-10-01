@@ -92,7 +92,7 @@ fi
 
 # Export the .FCStd file
 echo -n "EXPORTING: '$1'...." >&2
-if "$PYTHON_PATH" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
+if "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
     echo "SUCCESS" >&2
     cat /dev/null
     exit $SUCCESS

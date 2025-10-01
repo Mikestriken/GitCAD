@@ -47,6 +47,6 @@ fi
 #                                    Call FCStdFileTool.py
 # ==============================================================================================
 # Test to see how the args will be passed
-"$PYTHON_PATH" "$FCStdFileTool" "${parsed_args[@]}"
+"$PYTHON_EXEC" "$FCStdFileTool" "${parsed_args[@]}"
 
 exit $SUCCESS
