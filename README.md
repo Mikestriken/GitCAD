@@ -30,38 +30,40 @@ This repository contains tools and scripts to automate the git workflow for comm
 3. Download and extract release into the root of your FreeCAD project's git repository.
 
 4. Run the initialization script:
+   *Note: Linux users will need to make the script executable with `chmod`*
    ```bash
    ./FreeCAD_Automation/init-repo.sh
    ```
    
-4. Configure the settings in newly added `FreeCAD_Automation/config.json` (from initialization script) as needed.  
+5. Configure the settings in newly added `FreeCAD_Automation/config.json` (from initialization script) as needed.  
     Make sure to configure:
     - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
-      *IE: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*
+      *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*
+      *IE LINUX: `/path/to/FreeCAD/bin/python`* -- **LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**
     
-5. Test your configurations:
+6. Test your configurations:
     - To see how your `.FCStd` files will export use:
       `"C:/Path/To/FreeCAD 1.0/bin/python.exe" "FreeCAD_Automation/FCStdFileTool.py" --CONFIG-FILE --export path/to/file.FCStd`  
       *Note: If using powershell prepend `&` to the above command. IE: `& "C:/Path/To/FreeCAD 1.0/bin/python.exe"`*
 
-6. Run the initialization script one last time:
+7. Run the initialization script one last time:
    ```bash
    ./FreeCAD_Automation/init-repo.sh
    ```
    *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
-7. Update your `.gitattributes` with LFS files you want to track.  
+8. Update your `.gitattributes` with LFS files you want to track.  
    __Recommendations if `compress-non-human-readable-FreeCAD-files` is disabled in config:__
    - `git lfs track "**/no_extension/*"` -- folder created by this script to track files without extension
    - `git lfs track "*.brp"`
    - `git lfs track "*.Map.*"`
    - `git lfs track "*.png"` -- thumbnail pictures
 
-8. Verify `.gitattributes` is tracking files you want to track:  
+9.  Verify `.gitattributes` is tracking files you want to track:  
    `git check-attr --all /path/to/file/to/check`
 
-9. Update your `README.md` documentation for collaboration.  
+10. Update your `README.md` documentation for collaboration.  
    *Template available in [Template.md](template.md).*
 
 ## Updating
