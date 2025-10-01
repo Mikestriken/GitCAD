@@ -193,9 +193,11 @@ await_user_modification() {
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
             xdg-open "$file" > /dev/null &
+            disown
             read -r dummy
             if git status --porcelain | grep -q "^.M $file$"; then
-                pkill -f FreeCAD
+                freecad_pid=$(pgrep -n -i FreeCAD)
+                kill $freecad_pid
                 break
             else
                 echo "No changes detected in '$file'. Please make sure to save your modifications."
@@ -227,8 +229,11 @@ confirm_user() {
         if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             echo "$message (y/n)"
             xdg-open "$file" > /dev/null &
+            disown
             read -r response
-            pkill -f FreeCAD
+            freecad_pid=$(pgrep -n -i FreeCAD)
+            kill $freecad_pid
+            
             case $response in
                 [Yy]* ) return;;
                 [Nn]* ) tearDown "$test_name"; exit $FAIL;;
