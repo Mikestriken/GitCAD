@@ -120,6 +120,17 @@ It is important to read the linked alias documentation. These aliases help ensur
 
 They are also important for manually resynchronizing them in case you forgot to use an alias.
 
+### IMPORTANT ALIASES / TL;DR:
+1. Use `git freset` instead of `git reset`
+2. Use `git fstash` instead of `git stash`
+3. Use `git fco COMMIT FILE [FILE ...]` instead of `git checkout COMMIT -- FILE [FILE ...]`  
+   *Note: **ONLY** for `.FCStd` files (and their dirs), any other type of file can be checked out manually using the normal `git checkout COMMIT -- FILE [FILE ...]`.*
+4. `git lock path/to/file.FCStd` / `git unlock path/to/file.FCStd` / `git locks` -- Do what you expect
+
+### If you forgot to use one of the above commands instead:
+1. Use `git fimport` to manually import the contents of a dir to its `.FCStd` file.
+2. Use `git fcmod` to make git think your `.FCStd` file is empty, without exporting it.
+
 ## Changing Things
 Some configurations in `FreeCAD_Automation/config.json` cannot be changed by simply changing its value in the JSON file. After you have already initialized the repository with the `init-repo.sh` script.
 
@@ -140,9 +151,6 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
 - [ ] `git add FreeCAD_Automation/config.json` (**DO NOT `git add .`**)
 
 - [ ] `git commit` changes.
-
-### Changing `require-lock-to-modify-FreeCAD-files`
-If you change this value, you will need to re-run the `init-repo.sh` script.
 
 ## Configuration Options
 ```jsonc
