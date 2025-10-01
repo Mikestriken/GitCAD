@@ -54,10 +54,10 @@ setup() {
     echo ">>>> Setting Up '$1' <<<<"
 
     # Checkout -b active_test
-    assert_command_succeeds "git checkout -b \"$TEST_BRANCH\""
+    assert_command_succeeds "git checkout -b \"$TEST_BRANCH\" > /dev/null"
     
     # push active_test to remote
-    assert_command_succeeds "git push -u origin \"$TEST_BRANCH\""
+    assert_command_succeeds "git push -u origin \"$TEST_BRANCH\" > /dev/null 2>&1"
 
     assert_command_succeeds "mkdir -p $TEST_DIR"
 
