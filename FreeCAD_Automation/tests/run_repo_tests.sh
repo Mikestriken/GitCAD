@@ -11,12 +11,12 @@ FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
 # Check for uncommitted work in working directory, exit early if so with error message
-if [ -n "$(git status --porcelain)" ]; then
+if [ -n "$(git stat --porcelain)" ]; then
     while ! rm -rf FreeCAD_Automation/tests/uncompressed/; do
         sleep 10
     done # Note: Dir spontaneously appears after git checkout test_binaries
 
-    if [ -n "$(git status --porcelain)" ]; then
+    if [ -n "$(git stat --porcelain)" ]; then
         echo "Error: There are uncommitted changes in the working directory. Please commit or stash them before running tests."
         exit $FAIL
     fi
@@ -175,10 +175,10 @@ assert_command_succeeds() {
 }
 
 assert_no_uncommitted_changes() {
-    if [ -n "$(git status --porcelain)" ]; then
+    if [ -n "$(git stat --porcelain)" ]; then
         rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git checkout test_binaries
 
-        if [ -n "$(git status --porcelain)" ]; then
+        if [ -n "$(git stat --porcelain)" ]; then
             echo "Assertion failed: There are uncommitted changes" >&2
             echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
             tearDown
@@ -195,7 +195,7 @@ await_user_modification() {
             xdg-open "$file" > /dev/null &
             disown
             read -r dummy
-            if git status --porcelain | grep -q "^.M $file$"; then
+            if git stat --porcelain | grep -q "^.M $file$"; then
                 freecad_pid=$(pgrep -n -i FreeCAD)
                 kill $freecad_pid
                 break
@@ -207,7 +207,7 @@ await_user_modification() {
             echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
             start "$file"
             read -r dummy
-            if git status --porcelain | grep -q "^.M $file$"; then
+            if git stat --porcelain | grep -q "^.M $file$"; then
                 taskkill //IM freecad.exe //F
                 break
             else
@@ -233,7 +233,7 @@ confirm_user() {
             read -r response
             freecad_pid=$(pgrep -n -i FreeCAD)
             kill $freecad_pid
-            
+
             case $response in
                 [Yy]* ) return;;
                 [Nn]* ) tearDown "$test_name"; exit $FAIL;;
@@ -776,7 +776,7 @@ test_post_merge_hook() {
 
     echo "TEST: git pull --rebase origin active_test" >&2
     assert_command_succeeds "git pull --rebase origin active_test"; echo
-    if [ -n "$(git status --porcelain)" ]; then
+    if [ -n "$(git stat --porcelain)" ]; then
         echo "ERR: Uncommitted changes '$(git diff-index --name-only HEAD | xargs)'" >&2
         echo "Attempting to clear mod to '$TEST_DIR/BIMExample.FCStd'" >&2
         git fcmod "$TEST_DIR/BIMExample.FCStd"
