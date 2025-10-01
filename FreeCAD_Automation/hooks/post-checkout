@@ -1,5 +1,5 @@
 #!/bin/bash
-# echo "DEBUG: post-checkout hook trap-card triggered!" >&2
+echo "DEBUG: post-checkout hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                         GIT LFS Hooks
 # ==============================================================================================
@@ -22,14 +22,14 @@ fi
 #                                     Pull LFS files
 # ==============================================================================================
 git lfs pull
-# echo "DEBUG: Pulled lfs files" >&2
+echo "DEBUG: Pulled lfs files" >&2
 
 # ==============================================================================================
 #                         Update .FCStd files with uncompressed files
 # ==============================================================================================
 # Note, Args: $1=old-head-sha $2=new-head-sha $3=checkout-type (1=branch, 0=file)
 if [ "$3" == "1" ]; then
-    # echo "DEBUG: Processing Branch Checkout...." >&2
+    echo "DEBUG: Processing Branch Checkout...." >&2
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         CURRENT_USER=$(git config --get user.name) || {
@@ -43,16 +43,16 @@ if [ "$3" == "1" ]; then
         }
     fi
 
-    # echo "DEBUG: diffing <remote sha1>='$1'..'$2'=<local sha1>" >&2
+    echo "DEBUG: diffing <remote sha1>='$1'..'$2'=<local sha1>" >&2
     changed_files=$(git diff-tree --no-commit-id --name-only -r "$1" "$2")
 
     # Get changed .lockfiles
     changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
 
-    # echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
+    echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
 
     for lockfile in $changed_lockfiles; do
-        # echo -e "\nDEBUG: checking '$lockfile'...." >&2
+        echo -e "\nDEBUG: checking '$lockfile'...." >&2
 
         FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
 
@@ -72,11 +72,11 @@ if [ "$3" == "1" ]; then
             if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
                 # User has lock, set .FCStd file to writable
                 make_writable "$FCStd_file_path"
-                # echo "DEBUG: set '$FCStd_file_path' writable." >&2
+                echo "DEBUG: set '$FCStd_file_path' writable." >&2
             else
                 # User doesn't have lock, set .FCStd file to readonly
                 make_readonly "$FCStd_file_path"
-                # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+                echo "DEBUG: set '$FCStd_file_path' readonly." >&2
             fi
         fi
     done
@@ -84,7 +84,7 @@ if [ "$3" == "1" ]; then
 elif [ "$3" == "0" ]; then
     # Note: post-checkout hook isn't provided enough information to handle `.FCStd` file checkouts appropriately (what files where checked out and what commit was checked out)
         # * Use fco.sh instead
-    # echo "DEBUG: Processing File Checkout...." >&2
+    echo "DEBUG: Processing File Checkout...." >&2
     :
 else
     # Unknown checkout type
