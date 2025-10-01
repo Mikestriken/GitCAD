@@ -176,10 +176,14 @@ assert_command_succeeds() {
 
 assert_no_uncommitted_changes() {
     if [ -n "$(git status --porcelain)" ]; then
-        echo "Assertion failed: There are uncommitted changes" >&2
-        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
-        tearDown
-        exit $FAIL
+        rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git checkout test_binaries
+
+        if [ -n "$(git status --porcelain)" ]; then
+            echo "Assertion failed: There are uncommitted changes" >&2
+            echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+            tearDown
+            exit $FAIL
+        fi
     fi
 }
 
