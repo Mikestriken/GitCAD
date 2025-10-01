@@ -190,14 +190,31 @@ assert_no_uncommitted_changes() {
 await_user_modification() {
     local file="$1"
     while true; do
-        echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
-        start $file
-        read -r dummy
-        if git status --porcelain | grep -q "^.M $file$"; then
-            taskkill //IM freecad.exe //F
-            break
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
+            xdg-open "$file" > /dev/null &
+            read -r dummy
+            if git status --porcelain | grep -q "^.M $file$"; then
+                pkill -f FreeCAD
+                break
+            else
+                echo "No changes detected in '$file'. Please make sure to save your modifications."
+            fi
+        
+        elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+            echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
+            start "$file"
+            read -r dummy
+            if git status --porcelain | grep -q "^.M $file$"; then
+                taskkill //IM freecad.exe //F
+                break
+            else
+                echo "No changes detected in '$file'. Please make sure to save your modifications."
+            fi
+        
         else
-            echo "No changes detected in '$file'. Please make sure to save your modifications."
+            echo "Error: Unsupported operating system: $OSTYPE"  >&2
+            exit $FAIL
         fi
     done
 }
@@ -207,15 +224,32 @@ confirm_user() {
     local test_name="$2"
     local file="$3"
     while true; do
-        echo "$message (y/n)"
-        start $file
-        read -r response
-        taskkill //IM freecad.exe //F
-        case $response in
-            [Yy]* ) return;;
-            [Nn]* ) tearDown "$test_name"; exit $FAIL;;
-            * ) echo "Please answer y or n.";;
-        esac
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            echo "$message (y/n)"
+            xdg-open "$file" > /dev/null &
+            read -r response
+            pkill -f FreeCAD
+            case $response in
+                [Yy]* ) return;;
+                [Nn]* ) tearDown "$test_name"; exit $FAIL;;
+                * ) echo "Please answer y or n.";;
+            esac
+        
+        elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+            echo "$message (y/n)"
+            start "$file"
+            read -r response
+            taskkill //IM freecad.exe //F
+            case $response in
+                [Yy]* ) return;;
+                [Nn]* ) tearDown "$test_name"; exit $FAIL;;
+                * ) echo "Please answer y or n.";;
+            esac
+        
+        else
+            echo "Error: Unsupported operating system: $OSTYPE"  >&2
+            exit $FAIL
+        fi
     done
 }
 
