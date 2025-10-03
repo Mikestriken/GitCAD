@@ -372,6 +372,7 @@ setup_git_alias() {
     fi
 }
 
+# ToDo: Remove script shebangs since we're calling the bash exe directly
 setup_git_alias "stat" "!STATUS_CALL=1 git status" "Stops clean filter from running on \`git status\`"
 setup_git_alias "fcmod" "!RESET_MOD=1 git add" "Forcefully adds files (bypass clean filter valid lock checks)"
 setup_git_alias "fco" "!bash FreeCAD_Automation/coFCStdFiles.sh \"\${GIT_PREFIX}\"" "Adds \`git fco\` as alias to run coFCStdFiles.sh"
