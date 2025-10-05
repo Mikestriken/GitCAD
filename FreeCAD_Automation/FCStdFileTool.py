@@ -45,7 +45,6 @@ import shutil
 import io
 import warnings
 from pathlib import PurePosixPath
-import stat
 
 CONFIG_PATH:str = 'FreeCAD_Automation/config.json'
 
@@ -53,6 +52,9 @@ NO_EXTENSION_SUBDIR_NAME:str = 'no_extension'
 
 INPUT_ARG:int = 0
 OUTPUT_ARG:int = 1
+
+WRITABLE:int = 0o644
+READONLY:int = 0o444
 
 DEBUG:bool = True
 def print_debug(message:str, endswith:str='\n'):
@@ -364,7 +366,7 @@ class ImportingContext:
         if self.no_config: return
         # Temporarily make file writable
         if self.FCStd_file_isReadonly:
-            os.chmod(self.FCStd_file_path, stat.S_IWRITE)
+            os.chmod(self.FCStd_file_path, WRITABLE)
         
         # Decompress zip files into self.FCStd_dir_path
         if self.config['compress_binaries']['enabled']:
@@ -391,7 +393,7 @@ class ImportingContext:
         
         # Restore file permissions
         if self.FCStd_file_isReadonly:
-            os.chmod(self.FCStd_file_path, stat.S_IREAD)
+            os.chmod(self.FCStd_file_path, READONLY)
         
         # Move files back to NO_EXTENSION_SUBDIR_NAME
         os.makedirs(self.no_extension_subdir_path, exist_ok=True)
@@ -502,7 +504,7 @@ def main():
         if os.path.exists(FCStd_dir_path):
             lockfile_path = os.path.join(FCStd_dir_path, '.lockfile')
             if os.path.exists(lockfile_path):
-                os.chmod(lockfile_path, stat.S_IWRITE) # Note: os.remove and rmtree will err if lockfile is readonly.
+                os.chmod(lockfile_path, WRITABLE) # Note: os.remove and rmtree will err if lockfile is readonly.
                 os.remove(lockfile_path)
             
             shutil.rmtree(FCStd_dir_path)
