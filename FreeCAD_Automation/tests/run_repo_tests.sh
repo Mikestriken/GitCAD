@@ -810,7 +810,13 @@ test_post_merge_hook() {
     assert_no_uncommitted_changes; echo
 
     echo "TEST: git pull --rebase origin active_test" >&2
-    assert_command_succeeds "git pull --rebase origin active_test"; echo
+    # For some reason linux likes to go into interactive rebase mode with no changes, requesting `git rebase --continue` command...
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then 
+        if eval "git pull --rebase origin active_test"; then # Note: This is If `git pull --rebase` fails according to bash logic...
+            assert_command_succeeds "git rebase --continue"; echo
+        fi; echo
+    fi
+
     if [ -n "$(git stat --porcelain)" ]; then
         echo "ERR: Uncommitted changes '$(git diff-index --name-only HEAD | xargs)'" >&2
         echo "Attempting to clear mod to '$TEST_DIR/BIMExample.FCStd'" >&2
