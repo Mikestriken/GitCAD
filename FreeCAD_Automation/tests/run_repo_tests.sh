@@ -78,9 +78,10 @@ tearDown() {
     # remove any locks in test dir
     git lfs locks | grep "^$TEST_DIR" | awk '{print $3}' | sed 's/ID://' | xargs -r -I {} git lfs unlock --id {} --force || true
     
+    # Clear working dir changes
     git reset --hard >/dev/null 2>&1
 
-    if ! git fstash | grep -q "No local changes to save"; then
+    if ! git fstash | grep -q "No local changes to save"; then # Stash any leftover changes, if stash successful, drop the stashed changes
         git fstash drop stash@{0}
     fi
     
