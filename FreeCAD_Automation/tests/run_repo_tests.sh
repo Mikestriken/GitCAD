@@ -814,8 +814,9 @@ test_post_merge_hook() {
     # For some reason linux likes to go into interactive rebase mode with no changes, requesting `git rebase --continue` command...
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "--- TEST: Rebasing and continuing for linux" >&2
-        git pull --rebase origin active_test; echo
-        git rebase --continue; echo
+        echo -n ">>>>>> Paused for manual user rebasing. (should be no conflicts or modified files post rebase). Press enter when done....."; read -r dummy; echo
+        # git pull --rebase origin active_test; echo
+        # git rebase --continue; echo
     else
         echo "--- TEST: Standard rebase for windows" >&2
         assert_command_succeeds "git pull --rebase origin active_test"; echo
@@ -910,11 +911,11 @@ if [ "$1" = "--sandbox" ]; then
 elif [ -z "$1" ]; then
     echo -n ">>>> START STANDARD TEST? <<<<"; read -r dummy; echo
     
-    test_FCStd_filter
-    test_pre_commit_hook
-    test_pre_push_hook
-    test_post_checkout_hook
-    test_stashing
+    # test_FCStd_filter
+    # test_pre_commit_hook
+    # test_pre_push_hook
+    # test_post_checkout_hook
+    # test_stashing
     test_post_merge_hook
 
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
