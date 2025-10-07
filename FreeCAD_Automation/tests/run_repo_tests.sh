@@ -812,10 +812,13 @@ test_post_merge_hook() {
 
     echo "TEST: git pull --rebase origin active_test" >&2
     # For some reason linux likes to go into interactive rebase mode with no changes, requesting `git rebase --continue` command...
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then 
-        if eval "git pull --rebase origin active_test"; then # Note: This is If `git pull --rebase` fails according to bash logic...
-            assert_command_succeeds "git rebase --continue"; echo
-        fi; echo
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "--- TEST: Rebasing and continuing for linux" >&2
+        git pull --rebase origin active_test; echo
+        git rebase --continue; echo
+    else
+        echo "--- TEST: Standard rebase for windows" >&2
+        assert_command_succeeds "git pull --rebase origin active_test"; echo
     fi
 
     if [ -n "$(git stat --porcelain)" ]; then
