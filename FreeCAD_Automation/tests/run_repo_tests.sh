@@ -273,20 +273,25 @@ test_sandbox() {
     echo "TEST: \`git add\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; echo; fi
     assert_command_succeeds "git add \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\" > /dev/null"; echo
+    git stat
 
     echo "TEST: git add get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; echo; fi
     assert_command_succeeds "git add \"$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)\" \"$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)\" > /dev/null"; echo
+    git stat
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial test commit\" > /dev/null"; echo
+    git stat
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (git alias)" >&2
     assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
+    git stat
     
     echo "TEST: git push origin active_test" >&2
     assert_command_succeeds "git push origin active_test >/dev/null 2>&1"; echo
+    git stat
     
     echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
     
