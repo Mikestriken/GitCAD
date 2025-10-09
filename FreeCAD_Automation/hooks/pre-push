@@ -74,4 +74,11 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     done
 fi
 
+# Note: For some reason on linux after pushing changes files turn up as changed again...
+#       AND for SOME reason, adding a git stat call at the end resolves the issue....
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then 
+    echo "DEBUG: Calling \`git stat\`" >&2
+    git stat
+fi
+
 exit $SUCCESS
