@@ -844,6 +844,9 @@ test_post_merge_hook() {
     echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
+    echo "TEST: Ask user to confirm \`BIMExample.FCStd\` changes are still present" >&2
+    confirm_user "Please confirm that 'BIMExample.FCStd' changes are still present." "test_post_merge_hook" "$TEST_DIR/BIMExample.FCStd"
+
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
@@ -892,6 +895,9 @@ test_post_merge_hook() {
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo "TEST: Ask user to confirm \`BIMExample.FCStd\` changes are still present" >&2
+    confirm_user "Please confirm that 'BIMExample.FCStd' changes are still present." "test_post_merge_hook" "$TEST_DIR/BIMExample.FCStd"
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
