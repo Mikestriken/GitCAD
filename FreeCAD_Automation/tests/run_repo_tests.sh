@@ -290,7 +290,7 @@ test_sandbox() {
     git stat
     
     echo "TEST: git push origin active_test" >&2
-    assert_command_succeeds "git push origin active_test >/dev/null 2>&1"; echo
+    assert_command_succeeds "git push origin active_test"; echo
     git stat
     
     echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
