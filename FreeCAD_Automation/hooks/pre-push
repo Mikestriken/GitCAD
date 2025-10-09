@@ -28,8 +28,6 @@ echo "DEBUG: Remote SHA:  $remote_sha" >&2
 command -v git-lfs >/dev/null 2>&1 || { echo >&2 "\nThis repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting the 'pre-push' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks').\n"; exit 2; }
 
 git lfs pre-push "$@" <"$stdin_tempfile"
-
-# rm "$stdin_tempfile"
 # ==============================================================================================
 #                              Verify and Retrieve Dependencies
 # ==============================================================================================
@@ -44,11 +42,15 @@ echo "DEBUG: args='$@'" >&2
 
 if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     CURRENT_USER=$(git config --get user.name) || {
+        rm "$stdin_tempfile" &
+        disown
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
     }
 
     CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
+        rm "$stdin_tempfile" &
+        disown
         echo "Error: failed to list of active lock info." >&2
         exit $FAIL
     }
@@ -69,9 +71,14 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
             :
         else
             echo "ERROR: User doesn't have lock for '$lockfile'... Aborting push operation..." >&2
+            rm "$stdin_tempfile" &
+            disown
             exit $FAIL
         fi
     done
 fi
 
+# Note: Removing tempfile last because sometimes linux is too fast. Before the tempfile is passed to git lfs it gets deleted.
+rm "$stdin_tempfile" &
+disown
 exit $SUCCESS
