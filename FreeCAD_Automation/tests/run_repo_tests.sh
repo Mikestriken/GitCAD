@@ -820,6 +820,7 @@ test_post_merge_hook() {
     assert_no_uncommitted_changes; echo
 
     echo "TEST: git pull --rebase origin active_test" >&2
+    confirm_user ">>>>>> Paused for manual user rebasing." "test_post_merge_hook" ""
     # For some reason linux likes to go into interactive rebase mode with no changes, requesting `git rebase --continue` command...
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "--- TEST: Rebasing and continuing for linux" >&2
