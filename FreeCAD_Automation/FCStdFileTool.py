@@ -46,6 +46,8 @@ import io
 import warnings
 from pathlib import PurePosixPath
 
+USER_RUNNING_LINUX_OS:bool = sys.platform.startswith('linux')
+
 CONFIG_PATH:str = 'FreeCAD_Automation/config.json'
 
 NO_EXTENSION_SUBDIR_NAME:str = 'no_extension'
@@ -538,7 +540,7 @@ def main():
         if not args.silent_flag:
             print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
         
-        os.sync()
+        if USER_RUNNING_LINUX_OS: os.sync()
 
     elif args.import_flag:
         FCStd_dir_path:str = os.path.relpath(args.import_flag[INPUT_ARG])
@@ -578,7 +580,7 @@ def main():
         if not args.silent_flag:
             print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
         
-        os.sync()
+        if USER_RUNNING_LINUX_OS: os.sync()
 
     elif not args.silent_flag:
         print(HELP_MESSAGE)
