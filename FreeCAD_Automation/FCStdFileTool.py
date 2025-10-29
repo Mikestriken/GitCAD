@@ -301,6 +301,8 @@ def write_zip_to_disk(FCStd_dir_path:str, zip_file_prefix:str, zip_index:int, cu
     zip_path:str = os.path.join(FCStd_dir_path, zip_name)
     with open(zip_path, 'wb') as f:
         f.write(current_zip.getvalue())
+        f.flush()
+        os.fsync(f.fileno())
     zip_index += 1
     return zip_index
 
@@ -324,11 +326,14 @@ def repackFCStd(FCStd_file_path:str):
             with zf.open(file_name) as f:
                 file_data[file_name] = f.read()
     
-    with zipfile.ZipFile(FCStd_file_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for file_name in namelist:
-            if file_name == "./": continue
-            
-            zf.writestr(file_name, file_data[file_name])
+    with open(FCStd_file_path, 'wb') as f:
+        with zipfile.ZipFile(f, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for file_name in namelist:
+                if file_name == "./": continue
+                
+                zf.writestr(file_name, file_data[file_name])
+        f.flush()
+        os.fsync(f.fileno())
 
 def move_files_without_extension_to_subdir(FCStd_dir_path:str):
     """
@@ -459,6 +464,8 @@ def create_lockfile(FCStd_dir_path:str, FCStd_file_path:str):
     current_time:str = datetime.datetime.now().isoformat()
     with open(lock_file_path, 'w') as f:
         f.write(f"File Last Exported On: {current_time}\nFCStd_file_relpath='{FCStd_file_relpath}'\n")
+        f.flush()
+        os.fsync(f.fileno())
 
 def main():
     args:argparse.Namespace = parseArgs()
@@ -530,6 +537,8 @@ def main():
                 
         if not args.silent_flag:
             print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
+        
+        os.sync()
 
     elif args.import_flag:
         FCStd_dir_path:str = os.path.relpath(args.import_flag[INPUT_ARG])
@@ -568,6 +577,8 @@ def main():
         
         if not args.silent_flag:
             print(f"Created {FCStd_file_path} from {FCStd_dir_path}")
+        
+        os.sync()
 
     elif not args.silent_flag:
         print(HELP_MESSAGE)
