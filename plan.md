@@ -9,3 +9,5 @@
 - [ ] Test on linux
 
 - [ ] Test on a fresh install
+
+- [ ] Reference `.changefile` instead of `.lockfile`
