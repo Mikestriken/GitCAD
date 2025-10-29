@@ -723,22 +723,30 @@ test_post_merge_hook() {
     assert_command_succeeds "git add \"$Assembly_dir_path\" \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; echo; fi
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` are now readonly" >&2
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; echo; fi
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
     assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
+    assert_no_uncommitted_changes; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (git alias)" >&2
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; echo; fi
     assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
+    assert_no_uncommitted_changes; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` is NOT readonly" >&2
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; echo; fi
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
     assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
+    assert_no_uncommitted_changes; echo
 
     echo "TEST: git push origin active_test" >&2
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; echo; fi
     assert_command_succeeds "git push origin active_test"; echo
     assert_no_uncommitted_changes; echo
 
