@@ -2,15 +2,30 @@
 echo "=============================================================================================="
 echo "                                    Set Linux Permissions"
 echo "=============================================================================================="
-find ./FreeCAD_Automation -name "*.sh" -type f -exec chmod 755 {} \;
+if ! find ./FreeCAD_Automation -name "*.sh" -type f -exec chmod 755 {} \; 2>/dev/null; then
+    echo "Permission denied for chmod on scripts. Please run this script with sudo."
+    exit 1 # 1=$FAIL
+fi
 
 HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push") # Note: This array is used again in the `Setup Git Hooks` section
 for hook in "${HOOKS[@]}"; do
-    chmod 755 "FreeCAD_Automation/hooks/$hook"
+    if ! chmod 755 "FreeCAD_Automation/hooks/$hook" 2>/dev/null; then
+        echo "Permission denied for chmod on hooks. Please run this script with sudo."
+        exit 1 # 1=$FAIL
+    fi
 done
 echo "All bash scripts and hooks made executable."
 
-chown -R $(whoami):$(whoami) $(pwd)
+if [ -n "$SUDO_USER" ]; then
+    OWNER=$SUDO_USER
+else
+    OWNER=$(whoami)
+fi
+
+if ! chown -R $OWNER:$OWNER $(pwd); then
+    echo "Permission denied for chown. Please run this script with sudo."
+    exit 1 # 1=$FAIL
+fi
 echo "Given ownership of all files to user."
 
 echo "=============================================================================================="
@@ -168,7 +183,7 @@ echo "==========================================================================
 echo "                                   Initializing Git-LFS"
 echo "=============================================================================================="
 # Configure locksverify for .lockfile
-git config lfs.locksverify true
+sudo -u "$OWNER" git config lfs.locksverify true
 echo "Enabled git lfs locksverify for lockable files."
 
 git lfs track ".lockfile" --lockable
@@ -196,7 +211,7 @@ setup_git_FCStd_filter() {
             echo
             
             if [[ $REPLY =~ ^[Yy]$ ]]; then
-                git config "filter.FCStd.$filter_type" "$desired_value"
+                sudo -u "$OWNER" git config "filter.FCStd.$filter_type" "$desired_value"
                 echo "    Updated filter.FCStd.$filter_type"
                 echo
             else
@@ -205,7 +220,7 @@ setup_git_FCStd_filter() {
             fi
         fi
     else
-        git config "filter.FCStd.$filter_type" "$desired_value"
+        sudo -u "$OWNER" git config "filter.FCStd.$filter_type" "$desired_value"
         echo "Set filter.FCStd.$filter_type"
         echo
     fi
@@ -357,7 +372,7 @@ setup_git_alias() {
             echo
             
             if [[ $REPLY =~ ^[Yy]$ ]]; then
-                git config "alias.$alias" "$desired_value"
+                sudo -u "$OWNER" git config "alias.$alias" "$desired_value"
                 echo "    Updated alias.$alias"
                 echo
             else
@@ -366,7 +381,7 @@ setup_git_alias() {
             fi
         fi
     else
-        git config "alias.$alias" "$desired_value"
+        sudo -u "$OWNER" git config "alias.$alias" "$desired_value"
         echo "Set alias.$alias"
         echo
     fi
