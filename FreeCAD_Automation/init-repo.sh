@@ -1,5 +1,7 @@
 #!/bin/bash
 
+HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push") # Note: This array is used again in the `Setup Git Hooks` section
+
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "=============================================================================================="
     echo "                                    Set Linux Permissions"
@@ -10,7 +12,6 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         exit 1 # 1=$FAIL
     fi
 
-    HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push") # Note: This array is used again in the `Setup Git Hooks` section
     for hook in "${HOOKS[@]}"; do
         if ! chmod 755 "FreeCAD_Automation/hooks/$hook" 2>/dev/null; then
             echo "Permission denied for chmod on hooks. Please run this script with sudo."
