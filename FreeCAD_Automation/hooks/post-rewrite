@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 echo "DEBUG: post-rewrite hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
