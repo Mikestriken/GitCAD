@@ -30,23 +30,23 @@ shift
 parsed_args=()
 FORCE_FLAG=$FALSE
 for arg in "$@"; do
-    # echo "DEBUG: parsing '$arg'..." >&2
+    echo "DEBUG: parsing '$arg'..." >&2
     if [[ "$arg" == -* ]]; then
         if [ "$arg" == "--force" ]; then
             FORCE_FLAG=$TRUE
-            # echo "DEBUG: FORCE_FLAG set" >&2
+            echo "DEBUG: FORCE_FLAG set" >&2
         fi
     else
         if [ "$CALLER_SUBDIR" != "" ]; then
-            # echo "DEBUG: prepend '$arg'" >&2
+            echo "DEBUG: prepend '$arg'" >&2
             parsed_args+=("$CALLER_SUBDIR$arg")
         else
-            # echo "DEBUG: Don't prepend '$arg'" >&2
+            echo "DEBUG: Don't prepend '$arg'" >&2
             parsed_args+=("$arg")
         fi
     fi
 done
-# echo "DEBUG: Args='$parsed_args'" >&2
+echo "DEBUG: Args='$parsed_args'" >&2
 
 # ==============================================================================================
 #                                          Lock File
@@ -76,14 +76,14 @@ if [ "$FORCE_FLAG" == "$TRUE" ]; then
         exit $FAIL
     }
 
-    # echo "DEBUG: Stealing..." >&2
+    echo "DEBUG: Stealing..." >&2
     
     if echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
-        # echo "DEBUG: lock already owned, no need to steal." >&2
+        echo "DEBUG: lock already owned, no need to steal." >&2
         :
     
     elif [ -n "$LOCK_INFO" ]; then
-        # echo "DEBUG: Forcefully unlocking..." >&2
+        echo "DEBUG: Forcefully unlocking..." >&2
         git lfs unlock --force "$lockfile_path" || exit $FAIL
     fi
 fi
@@ -91,7 +91,6 @@ fi
 git lfs lock "$lockfile_path" || exit $FAIL
 
 make_writable "$FCStd_file_path" || exit $FAIL
-
-# echo "DEBUG: '$FCStd_file_path' now writable and locked" >&2
+echo "DEBUG: '$FCStd_file_path' now writable and locked" >&2
 
 exit $SUCCESS
