@@ -888,8 +888,8 @@ test_post_merge_hook() {
     echo "TEST: Ask user to confirm \`BIMExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'BIMExample.FCStd' changes are back." "test_post_merge_hook" "$TEST_DIR/BIMExample.FCStd"
 
-    echo "TEST: git pull origin active_test" >&2
-    assert_command_succeeds "git pull origin active_test"; echo
+    echo "TEST: git pull --merge origin active_test" >&2
+    assert_command_succeeds "git pull --merge origin active_test"; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Assert \`BIMExample.FCStd\` is NOT readonly" >&2
