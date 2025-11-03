@@ -169,11 +169,13 @@ FCStd_file_has_valid_lock() {
     fi
 
     # File is tracked, get the .lockfile path
-    local lockfile_path # 
-    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
-        echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
+    local FCStd_dir_path
+    local lockfile_path
+    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
+        echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
         return $FAIL
     }
+    lockfile_path="$FCStd_dir_path/.lockfile"
 
     # Lockfile not tracked by git (new export), no lock needed (valid lock)
     if ! git cat-file -e HEAD:"$lockfile_path" > /dev/null 2>&1; then
@@ -212,14 +214,14 @@ get_FCStd_dir() {
     local FCStd_file_path="$1"
 
     # Get the lockfile path (which gives us the directory structure)
-    local lockfile_path
-    lockfile_path=$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
-        echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
+    local FCStd_dir_path
+    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
+        echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
         return $FAIL
     }
 
     # Return the directory path (parent of lockfile)
-    realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$(dirname "$lockfile_path")" || return $FAIL
+    echo "$FCStd_dir_path" || return $FAIL
 
     return $SUCCESS
 }

@@ -63,10 +63,11 @@ if [ -z "$FCStd_file_path" ]; then
     exit $FAIL
 fi
 
-lockfile_path=$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
-    echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
+FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
+    echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
     exit $FAIL
 }
+lockfile_path="$FCStd_dir_path/.lockfile"
 
 if [ "$FORCE_FLAG" == "$TRUE" ]; then
     # Check if locked by someone else

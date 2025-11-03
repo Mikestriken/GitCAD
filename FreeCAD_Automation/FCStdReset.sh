@@ -96,8 +96,8 @@ echo "DEBUG: FULL .lockfile files to import: '$(echo $previously_modified_lockfi
 FCStd_files_to_process=""
 for FCStd_file_path in $previously_modified_FCStd_files_currently_shows_no_modification; do
     echo -n "DECONFLICTING: '$FCStd_file_path'...." >&2
-    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || continue
-    if echo "$previously_modified_lockfiles_currently_shows_no_modification" | grep -q "^$lockfile_path$"; then
+    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || continue
+    if echo "$previously_modified_lockfiles_currently_shows_no_modification" | grep -q "^$FCStd_dir_path/.lockfile$"; then
         echo "REMOVED" >&2
         continue  # Skip, lockfile will handle it
     fi
@@ -114,10 +114,11 @@ for FCStd_file_path in $FCStd_files_to_process; do
     echo -e "\nDEBUG: processing FCStd '$FCStd_file_path'...." >&2
 
     # Get lockfile path
-    lockfile_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path")") || {
-        echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
+    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
+        echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
         continue
     }
+    lockfile_path="$FCStd_dir_path/.lockfile"
 
     echo -n "IMPORTING: '$FCStd_file_path'...." >&2
 

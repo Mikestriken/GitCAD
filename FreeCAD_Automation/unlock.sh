@@ -65,12 +65,11 @@ if [ -z "$FCStd_file_path" ]; then
     exit $FAIL
 fi
 
-lockfile_path=$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --lockfile "$FCStd_file_path") || {
-    echo "Error: Failed to get lockfile path for '$FCStd_file_path'" >&2
+FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
+    echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
     exit $FAIL
 }
-
-FCStd_dir_path=$(realpath --relative-to="$(git rev-parse --show-toplevel)" "$(dirname "$lockfile_path")")
+lockfile_path="$FCStd_dir_path/.lockfile"
 
 # Check for unpushed changes if not force
 if [ "$FORCE_FLAG" == "$FALSE" ]; then
