@@ -786,10 +786,12 @@ test_post_merge_hook() {
 
     echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
     assert_command_succeeds "git update-ref refs/remotes/origin/active_test active_test"; echo
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; echo; fi
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; echo; fi
     assert_no_uncommitted_changes; echo
 
     echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias)" >&2
