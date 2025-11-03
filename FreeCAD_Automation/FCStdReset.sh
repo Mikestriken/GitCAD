@@ -48,6 +48,8 @@ NEW_HEAD=$(git rev-parse HEAD) || {
     exit $FAIL
 }
 
+echo "DEBUG: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 1" >&2
+
 # ==============================================================================================
 #                           Update .FCStd files with uncompressed files
 # ==============================================================================================
@@ -63,16 +65,26 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     }
 fi
 
+echo "DEBUG: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 2" >&2
+
 # Append files changed between commits to BEFORE_RESET lists
 files_changed_files_between_commits=$(git diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
+
+echo "DEBUG: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 3" >&2
+
 FCStd_files_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.fcstd$')
 lockfiles_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.lockfile$')
 
 BEFORE_RESET_MODIFIED_FCSTD=$(echo -e "$BEFORE_RESET_MODIFIED_FCSTD\n$FCStd_files_changed_between_commits" | sort | uniq)
 BEFORE_RESET_MODIFIED_LOCKFILES=$(echo -e "$BEFORE_RESET_MODIFIED_LOCKFILES\n$lockfiles_changed_between_commits" | sort | uniq)
 
+echo "DEBUG: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 4" >&2
+
 # Filter to list of valid files to process
 AFTER_RESET_MODIFIED_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+
+echo "DEBUG: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 5" >&2
+
 previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
 echo "DEBUG: FULL FCStd files to import: '$(echo $previously_modified_FCStd_files_currently_shows_no_modification | xargs)'" >&2
 
