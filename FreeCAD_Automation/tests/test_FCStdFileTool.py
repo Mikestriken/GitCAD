@@ -639,22 +639,21 @@ class TestFCStdFileTool(unittest.TestCase):
         self.config_file.createTestConfig()
 
         with patch('sys.stdout', new_callable=StringIO) as mock_stdout:
-            with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--lockfile', self.temp_AssemblyExample_path]):
+            with patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', self.config_file.config_path, '--dir', self.temp_AssemblyExample_path]):
                 main()
 
         FCStd_dir_name:str = os.path.splitext(os.path.basename(self.temp_AssemblyExample_path))[0]
         expected_dir:str = os.path.join(self.temp_dir, "uncompressed", f"FCStd_{FCStd_dir_name}_FCStd")
-        lockfile_path:str = os.path.join(expected_dir, '.lockfile')
 
         output:str = mock_stdout.getvalue().strip()
-        self.assertEqual(output, lockfile_path, f"ERR: output doesn't match expected lockfile path\noutput={output}, lockfile_path={lockfile_path}")
+        self.assertEqual(output, expected_dir, f"ERR: output doesn't match expected dir path\noutput={output}, dir_path={expected_dir}")
 
-    @patch('sys.argv', [FILE_NAME, '--lockfile', 'dummy.FCStd'])
+    @patch('sys.argv', [FILE_NAME, '--dir', 'dummy.FCStd'])
     def test_lockfile_without_config(self):
         # Should print help due to bad args
         main()
 
-    @patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', 'dummy.json', '--lockfile', 'dummy.FCStd', '--export', 'dummy.FCStd'])
+    @patch('sys.argv', [FILE_NAME, '--CONFIG-FILE', 'dummy.json', '--dir', 'dummy.FCStd', '--export', 'dummy.FCStd'])
     def test_lockfile_with_export(self):
         # Should print help due to multiple modes
         main()

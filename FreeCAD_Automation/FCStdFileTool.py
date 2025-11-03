@@ -2,9 +2,9 @@ EXPORT_FLAG:str = '--export'
 IMPORT_FLAG:str = '--import'
 SILENT_FLAG:str = '--SILENT'
 CONFIG_FILE_FLAG:str = '--CONFIG-FILE' # Uses config file to determine configurations. Optionally provide path to config file. Args interpreted differently from what's listed in help()
-LOCKFILE_FLAG:str = '--lockfile'
+DIR_FLAG:str = '--dir'
 HELP_MESSAGE:str =f"""
-usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {IMPORT_FLAG} FCSTD_FILE] [{LOCKFILE_FLAG} FCStd_file_path]
+usage: FCStdFileTool.py [{EXPORT_FLAG} INPUT_FCSTD_FILE OUTPUT_FCSTD_DIR] [{IMPORT_FLAG} INPUT_FCSTD_DIR OUTPUT_FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {EXPORT_FLAG} FCSTD_FILE] [{CONFIG_FILE_FLAG} [CONFIG_PATH] {IMPORT_FLAG} FCSTD_FILE] [{DIR_FLAG} FCStd_file_path]
 
 FreeCAD .FCStd file tool. Used to automate the process of importing and exporting .FCStd files.
 
@@ -28,8 +28,8 @@ options:
                             {EXPORT_FLAG} INPUT_FCSTD_FILE, OUTPUT_FCSTD_DIR -> {EXPORT_FLAG} FCSTD_FILE
                             {IMPORT_FLAG} INPUT_FCSTD_DIR, OUTPUT_FCSTD_FILE -> {IMPORT_FLAG} FCSTD_FILE
 
-    {LOCKFILE_FLAG} FCStd_file_path
-                        Print path to .lockfile for the given FCStd file. Requires {CONFIG_FILE_FLAG}. Does not guarantee .lockfile exists.
+    {DIR_FLAG} FCStd_file_path
+                        Print path to directory containing contents for the given FCStd file. Requires {CONFIG_FILE_FLAG}. Does not guarantee directory exists.
 
     {SILENT_FLAG}
                         Suppress all print statements. Nothing will be printed to console
@@ -112,7 +112,7 @@ def parseArgs() -> argparse.Namespace:
     parser.add_argument(EXPORT_FLAG, dest='export_flag', nargs='+')
     parser.add_argument(IMPORT_FLAG, dest='import_flag', nargs='+')
     parser.add_argument(CONFIG_FILE_FLAG, dest="config_file_path", nargs='?', const=CONFIG_PATH, default=None)
-    parser.add_argument(LOCKFILE_FLAG, dest='lockfile_flag', nargs=1)
+    parser.add_argument(DIR_FLAG, dest='dir_flag', nargs=1)
     parser.add_argument(SILENT_FLAG, dest="silent_flag", action='store_true')
     parser.add_argument("-h", "--help", dest="help_flag", action="store_true")
     
@@ -430,7 +430,7 @@ def bad_args(args:argparse.Namespace) -> bool:
     Returns:
         bool: True if invalid, else False.
     """
-    mode_flags:list = [bool(args.export_flag), bool(args.import_flag), bool(args.lockfile_flag)]
+    mode_flags:list = [bool(args.export_flag), bool(args.import_flag), bool(args.dir_flag)]
     no_mode_specified:bool = sum(mode_flags) < 1
     if no_mode_specified: return True
 
@@ -444,10 +444,10 @@ def bad_args(args:argparse.Namespace) -> bool:
     no_config:bool = args.config_file_path is None
     if missing_output_arg and no_config: return True
 
-    mode_requires_config:bool = no_config and (args.lockfile_flag)
+    mode_requires_config:bool = no_config and (args.dir_flag)
     if mode_requires_config: return True
     
-    mode_cannot_be_silent:bool = args.silent_flag and (args.lockfile_flag)
+    mode_cannot_be_silent:bool = args.silent_flag and (args.dir_flag)
     if mode_cannot_be_silent: return True
     
     return False
@@ -489,15 +489,15 @@ def main():
     INCLUDE_THUMBNAIL:bool = not config_provided or config['include_thumbnails'] # Thumbnails should be included (by default) if config isn't provided.
     
     # Main Logic
-    if args.lockfile_flag:
-        FCStd_file_path:str = os.path.relpath(args.lockfile_flag[INPUT_ARG])
+    if args.dir_flag:
+        FCStd_file_path:str = os.path.relpath(args.dir_flag[INPUT_ARG])
 
         FCStd_dir_path:str = get_FCStd_dir_path(FCStd_file_path, config)
 
-        lockfile_path:str = os.path.abspath(os.path.join(FCStd_dir_path, '.lockfile'))
+        dir_path:str = os.path.abspath(FCStd_dir_path)
             
         if not args.silent_flag:
-            print(lockfile_path)
+            print(dir_path)
         
     elif args.export_flag:
         FCStd_file_path:str = os.path.relpath(args.export_flag[INPUT_ARG])
