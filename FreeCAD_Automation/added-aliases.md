@@ -29,7 +29,7 @@ The `.FCStd` files in your working directory may not be synchronized with their 
 
 ### `git fstash`
 #### __Description:__
-A wrapper for `git stash` operations that ensures `.FCStd` files remain synchronized with their uncompressed directories. Automatically imports `.FCStd` files after popping or applying stashes, also imports them after stashing to keep the `.FCStd` files synchronized with uncompressed directories. For pop/apply operations, checks that the user owns locks for any `.lockfiles` in the stash before proceeding.
+A wrapper for `git stash` operations that ensures `.FCStd` files remain synchronized with their uncompressed directories. Automatically imports `.FCStd` files after popping or applying stashes, also imports them after stashing to keep the `.FCStd` files synchronized with uncompressed directories. For pop/apply operations, checks that the user owns locks for any associated `.lockfile`s in the stash before proceeding.
 
 Usage:
 - `git fstash` - Stash working directory changes (imports stashed uncompressed `.FCStd` directories after stash)

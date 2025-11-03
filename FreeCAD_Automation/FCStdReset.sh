@@ -24,8 +24,8 @@ fi
 # Get modified .FCStd files before reset
 BEFORE_RESET_MODIFIED_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
 
-# Get modified .lockfiles before reset
-BEFORE_RESET_MODIFIED_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
+# Get modified `.changefile`s before reset
+BEFORE_RESET_MODIFIED_CHANGEFILES=$(git diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
 
 # Get original HEAD before reset
 ORIGINAL_HEAD=$(git rev-parse HEAD) || {
@@ -73,10 +73,10 @@ files_changed_files_between_commits=$(git diff-tree --no-commit-id --name-only -
 echo "DEBUG: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 3" >&2
 
 FCStd_files_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.fcstd$')
-lockfiles_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.lockfile$')
+changefiles_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.changefile$')
 
 BEFORE_RESET_MODIFIED_FCSTD=$(echo -e "$BEFORE_RESET_MODIFIED_FCSTD\n$FCStd_files_changed_between_commits" | sort | uniq)
-BEFORE_RESET_MODIFIED_LOCKFILES=$(echo -e "$BEFORE_RESET_MODIFIED_LOCKFILES\n$lockfiles_changed_between_commits" | sort | uniq)
+BEFORE_RESET_MODIFIED_CHANGEFILES=$(echo -e "$BEFORE_RESET_MODIFIED_CHANGEFILES\n$changefiles_changed_between_commits" | sort | uniq)
 
 echo "DEBUG: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 4" >&2
 
@@ -88,26 +88,26 @@ echo "DEBUG: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 5" >&2
 previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
 echo "DEBUG: FULL FCStd files to import: '$(echo $previously_modified_FCStd_files_currently_shows_no_modification | xargs)'" >&2
 
-AFTER_RESET_MODIFIED_LOCKFILES=$(git diff-index --name-only HEAD | grep -i '\.lockfile$' | sort)
-previously_modified_lockfiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_LOCKFILES") <(echo "$AFTER_RESET_MODIFIED_LOCKFILES"))
-echo "DEBUG: FULL .lockfile files to import: '$(echo $previously_modified_lockfiles_currently_shows_no_modification | xargs)'" >&2
+AFTER_RESET_MODIFIED_CHANGEFILES=$(git diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
+previously_modified_changefiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_CHANGEFILES") <(echo "$AFTER_RESET_MODIFIED_CHANGEFILES"))
+echo "DEBUG: FULL .changefile files to import: '$(echo $previously_modified_changefiles_currently_shows_no_modification | xargs)'" >&2
 
-# Deconflict: skip FCStd if corresponding lockfile is being processed
+# Deconflict: skip FCStd if corresponding changefile is being processed
 FCStd_files_to_process=""
 for FCStd_file_path in $previously_modified_FCStd_files_currently_shows_no_modification; do
     echo -n "DECONFLICTING: '$FCStd_file_path'...." >&2
     FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || continue
-    if echo "$previously_modified_lockfiles_currently_shows_no_modification" | grep -q "^$FCStd_dir_path/.lockfile$"; then
+    if echo "$previously_modified_changefiles_currently_shows_no_modification" | grep -q "^$FCStd_dir_path/.changefile$"; then
         echo "REMOVED" >&2
-        continue  # Skip, lockfile will handle it
+        continue  # Skip, changefile will handle it
     fi
     echo "ADDED" >&2
     FCStd_files_to_process="$FCStd_files_to_process $FCStd_file_path"
 done
-lockfiles_to_process="$previously_modified_lockfiles_currently_shows_no_modification"
+changefiles_to_process="$previously_modified_changefiles_currently_shows_no_modification"
 
 echo "DEBUG: MERGED FCStd files to import: '$(echo $FCStd_files_to_process | xargs)'" >&2
-echo "DEBUG: MERGED .lockfile files to import: '$(echo $lockfiles_to_process | xargs)'" >&2
+echo "DEBUG: MERGED .changefile files to import: '$(echo $changefiles_to_process | xargs)'" >&2
 
 # Process FCStd files
 for FCStd_file_path in $FCStd_files_to_process; do
@@ -145,11 +145,11 @@ for FCStd_file_path in $FCStd_files_to_process; do
     fi
 done
 
-# Process lockfiles
-for lockfile in $lockfiles_to_process; do
-    echo -e "\nDEBUG: processing lockfile '$lockfile'...." >&2
+# Process changefiles
+for changefile in $changefiles_to_process; do
+    echo -e "\nDEBUG: processing changefile '$changefile'...." >&2
 
-    FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
+    FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
     echo -n "IMPORTING: '$FCStd_file_path'...." >&2
 
@@ -162,6 +162,9 @@ for lockfile in $lockfiles_to_process; do
     echo "SUCCESS" >&2
 
     git fcmod "$FCStd_file_path"
+
+    FCStd_dir_path=$(dirname "$changefile")
+    lockfile="$FCStd_dir_path/.lockfile"
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then

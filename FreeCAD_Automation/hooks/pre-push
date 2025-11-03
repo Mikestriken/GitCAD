@@ -3,7 +3,7 @@ echo "DEBUG: pre-push hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
-# Pre-push hook for Git. Runs Git LFS pre-push and checks if the user has locks for all .lockfiles changed in the commits being pushed.
+# Pre-push hook for Git. Runs Git LFS pre-push and checks if the user has locks for all `.changefile`s associated `.lockfile` in the commits being pushed.
 # Cancels the push if locking is required and the user lacks locks for modified directories.
 
 # ==============================================================================================
@@ -56,13 +56,16 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     echo "DEBUG: diffing <remote sha1>='$remote_sha'..'$local_sha'=<local sha1>" >&2
     changed_files=$(git diff-tree --no-commit-id --name-only -r "$remote_sha" "$local_sha")
 
-    # Get changed .lockfiles
-    changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
+    # Get changed `.changefile`s
+    changed_changefiles=$(echo "$changed_files" | grep -i '\.changefile$')
 
-    echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
+    echo -e "\nDEBUG: checking changed changefiles: '$(echo $changed_changefiles | xargs)'" >&2
 
-    for lockfile in $changed_lockfiles; do
-        echo -e "\nDEBUG: checking '$lockfile'...." >&2
+    for changefile in $changed_changefiles; do
+        echo -e "\nDEBUG: checking '$changefile'...." >&2
+
+        FCStd_dir_path=$(dirname $changefile)
+        lockfile="$FCStd_dir_path/.lockfile"
 
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
             echo "DEBUG: User has valid lock for '$lockfile'" >&2

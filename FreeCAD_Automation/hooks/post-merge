@@ -48,15 +48,15 @@ fi
 echo "DEBUG: diffing <remote sha1>='ORIG_HEAD'..'HEAD'=<local sha1>" >&2
 changed_files=$(git diff-tree --no-commit-id --name-only -r "ORIG_HEAD" "HEAD")
 
-# Get changed .lockfiles
-changed_lockfiles=$(echo "$changed_files" | grep -i '\.lockfile$')
+# Get changed `.changefile`s
+changed_changefiles=$(echo "$changed_files" | grep -i '\.changefile$')
 
-echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_lockfiles | xargs)'" >&2
+echo -e "\nDEBUG: checking changed changefiles: '$(echo $changed_changefiles | xargs)'" >&2
 
-for lockfile in $changed_lockfiles; do
-    echo -e "\nDEBUG: checking '$lockfile'...." >&2
+for changefile in $changed_changefiles; do
+    echo -e "\nDEBUG: checking '$changefile'...." >&2
 
-    FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
+    FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
     echo -n "IMPORTING: '$FCStd_file_path'...." >&2
 
@@ -69,6 +69,9 @@ for lockfile in $changed_lockfiles; do
     echo "SUCCESS" >&2
 
     git fcmod "$FCStd_file_path"
+
+    FCStd_dir_path=$(dirname $changefile)
+    lockfile="$FCStd_dir_path/.lockfile"
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then

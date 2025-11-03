@@ -32,8 +32,11 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         exit $FAIL
     }
 
-    for lockfile in $(git diff-tree --no-commit-id --name-only -r HEAD | grep -i '\.lockfile$'); do
-        FCStd_file_path=$(get_FCStd_file_from_lockfile "$lockfile") || continue
+    for changefile in $(git diff-tree --no-commit-id --name-only -r HEAD | grep -i '\.changefile$'); do
+        FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
+
+        FCStd_dir_path=$(dirname $changefile)
+        lockfile="$FCStd_dir_path/.lockfile"
 
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
             # User has lock, set .FCStd file to writable

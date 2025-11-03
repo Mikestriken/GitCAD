@@ -226,28 +226,28 @@ get_FCStd_dir() {
     return $SUCCESS
 }
 
-# DESCRIPTION: Function to get the .FCStd file path from a .lockfile, relative to repo root
-# USAGE: `FCStd_file_path=$(get_FCStd_file_from_lockfile "path/to/.lockfile") || exit $FAIL`
-get_FCStd_file_from_lockfile() {
-    local lockfile_path="$1"
+# DESCRIPTION: Function to get the .FCStd file path from its uncompressed directory's .changefile, relative to repo root
+# USAGE: `FCStd_file_path=$(get_FCStd_file_from_changefile "path/to/.changefile") || exit $FAIL`
+get_FCStd_file_from_changefile() {
+    local changefile_path="$1"
 
-    if [ ! -f "$lockfile_path" ]; then
-        echo "Error: Lockfile '$lockfile_path' does not exist" >&2
+    if [ ! -f "$changefile_path" ]; then
+        echo "Error: Lockfile '$changefile_path' does not exist" >&2
         return $FAIL
     fi
 
     # Read the line with FCStd_file_relpath
-    local FCStd_file_relpath_line_in_lockfile=$(grep "FCStd_file_relpath=" "$lockfile_path")
-    if [ -z "$FCStd_file_relpath_line_in_lockfile" ]; then
-        echo "Error: FCStd_file_relpath not found in '$lockfile_path'" >&2
+    local FCStd_file_relpath_line_in_changefile=$(grep "FCStd_file_relpath=" "$changefile_path")
+    if [ -z "$FCStd_file_relpath_line_in_changefile" ]; then
+        echo "Error: FCStd_file_relpath not found in '$changefile_path'" >&2
         return $FAIL
     fi
 
     # Extract the FCStd_file_relpath value
-    local FCStd_file_relpath=$(echo "$FCStd_file_relpath_line_in_lockfile" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")
+    local FCStd_file_relpath=$(echo "$FCStd_file_relpath_line_in_changefile" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")
 
     # Derive the FCStd_file_path from the FCStd_file_relpath
-    local FCStd_dir_path=$(dirname "$lockfile_path")
+    local FCStd_dir_path=$(dirname "$changefile_path")
     
     local FCStd_file_path=$(realpath "$FCStd_dir_path/$FCStd_file_relpath")
 
