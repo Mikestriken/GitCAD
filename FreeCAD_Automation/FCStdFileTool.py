@@ -452,20 +452,29 @@ def bad_args(args:argparse.Namespace) -> bool:
     
     return False
 
-def create_lockfile(FCStd_dir_path:str, FCStd_file_path:str):
+def create_lockfile_and_changefile(FCStd_dir_path:str, FCStd_file_path:str):
     """
-    Creates a file called `.lockfile`in FCStd_dir_path with current timestamp and path to FCStd file from FCStd_dir_path.
+    Creates a `.changefile` in FCStd_dir_path with current timestamp and path to FCStd file from FCStd_dir_path.
+    Creates an empty `.lockfile` in FCStd_dir_path.
 
     Args:
         FCStd_dir_path (str): Path to FCStd directory.
         FCStd_file_path (str): Path to .FCStd file.
     """
     lock_file_path:str = os.path.join(FCStd_dir_path, '.lockfile')
+    change_file_path:str = os.path.join(FCStd_dir_path, '.changefile')
     FCStd_file_relpath:str = os.path.relpath(FCStd_file_path, start=FCStd_dir_path)
     
     current_time:str = datetime.datetime.now().isoformat()
-    with open(lock_file_path, 'w') as f:
+    
+    # Create .changefile with FCStd_file_relpath and timestamp file was created
+    with open(change_file_path, 'w') as f:
         f.write(f"File Last Exported On: {current_time}\nFCStd_file_relpath='{FCStd_file_relpath}'\n")
+        f.flush()
+        os.fsync(f.fileno())
+    
+    # Create an empty .lockfile
+    with open(lock_file_path, 'w') as f:
         f.flush()
         os.fsync(f.fileno())
 
@@ -535,7 +544,7 @@ def main():
             if config['compress_binaries']['enabled']:
                 compress_binaries(FCStd_dir_path, config)
 
-            create_lockfile(FCStd_dir_path, FCStd_file_path)
+            create_lockfile_and_changefile(FCStd_dir_path, FCStd_file_path)
                 
         if not args.silent_flag:
             print(f"Exported {FCStd_file_path} to {FCStd_dir_path}")
