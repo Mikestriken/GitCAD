@@ -34,7 +34,8 @@ ORIGINAL_HEAD=$(git rev-parse HEAD) || {
 }
 
 # Execute git reset with all arguments
-git reset "$@"
+    # Note: Sometimes calls clean filter on linux os. `RESET_CALL=1` is an environment variable for the clean filter to detect and prevent it from triggering.
+RESET_CALL=1 git reset "$@"
 RESET_RESULT=$?
 
 if [ $RESET_RESULT -ne 0 ]; then

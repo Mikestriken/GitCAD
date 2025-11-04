@@ -31,11 +31,22 @@ echo "DEBUG: All args: '$@'" >&2
     # If the user uses the alias `git stat` the the STATUS_CALL env variable will be set during the git status call.
     # If the environment variable is detected then exit early without exporting FCStd files
 
+    # $RESET_CALL is an environment variable set by the alias `git freset`
+
     # $RESET_MOD is an environment variable set by the alias `git fcmod`
+
+    # $STASH_CALL is an environment variable set by the alias `git fstash`
+
+    # $FILE_CHECKOUT is an environment variable set by the alias `git fco`
 
     # $DIFF_INDEX is an environment variable manually set for `git diff-index` calls
 if [ -n "$STATUS_CALL" ]; then
     echo "DEBUG: git status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat /dev/null
+    exit $SUCCESS
+
+elif [ -n "$RESET_CALL" ]; then
+    echo "DEBUG: git reset call from freset alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
