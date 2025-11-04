@@ -91,9 +91,20 @@ fi
 # Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
 # Export the .FCStd file
+echo "DEBUG: START@'$(date +"%Y-%m-%dT%H:%M:%S.%6N")'" >&2
 echo -n "EXPORTING: '$1'...." >&2
 if "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
     echo "SUCCESS" >&2
+    echo "DEBUG: END@'$(date +"%Y-%m-%dT%H:%M:%S.%6N")'" >&2
+
+    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$1")") || {
+        echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
+        exit $FAIL
+    }
+    changefile_path="$FCStd_dir_path/.changefile"
+
+    echo "DEBUG: $(grep 'File Last Exported On:' "$changefile_path")" >&2
+
     cat /dev/null
     exit $SUCCESS
     
