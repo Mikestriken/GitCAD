@@ -147,7 +147,7 @@ done
 
 # Process changefiles
 for changefile in $changefiles_to_process; do
-    echo -e "\nDEBUG: processing changefile '$changefile'...." >&2
+    echo -e "\nDEBUG: processing changefile '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
     FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 

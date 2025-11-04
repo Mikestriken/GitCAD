@@ -33,6 +33,7 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     }
 
     for changefile in $(git diff-tree --no-commit-id --name-only -r HEAD | grep -i '\.changefile$'); do
+        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
         FCStd_dir_path=$(dirname $changefile)

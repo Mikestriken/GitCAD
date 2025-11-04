@@ -27,7 +27,7 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     echo -e "\nDEBUG: checking staged changefiles: '$(echo $STAGED_CHANGEFILES | xargs)'" >&2
 
     for changefile in $STAGED_CHANGEFILES; do
-        echo -e "\nDEBUG: checking '$changefile'...." >&2
+        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
         FCStd_dir_path=$(dirname $changefile)
         lockfile="$FCStd_dir_path/.lockfile"

@@ -55,6 +55,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
         echo -e "\nDEBUG: checking stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
 
         for changefile in $STASHED_CHANGEFILES; do
+            echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
             FCStd_dir_path=$(dirname $changefile)
             lockfile="$FCStd_dir_path/.lockfile"
 
@@ -76,6 +77,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
 
     # Check for changed lockfiles in the working dir (similar to post-checkout)
     for changefile in $(git diff-index --name-only HEAD | grep -i '\.changefile$'); do
+        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
@@ -119,6 +121,7 @@ else
 
     # Import the files that are no longer modified (those that were stashed)
     for changefile in $STASHED_CHANGEFILES; do
+        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
