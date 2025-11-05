@@ -1,5 +1,38 @@
 #!/bin/bash
 echo "DEBUG: Clean filter trap-card triggered!" >&2
+
+# === TEMPORARY DEBUG LOGGING ===
+
+# some git commands trigger this clean filter script silently (Stderr doesn't get printed), namely `git checkout` (see issue #8).
+
+# This commented out log file printing can be used to help debug those cases.
+
+# Note: I only tested this commented out logging code on linux, not windows.
+# {
+#     echo "=========================================="
+#     echo "FILTER CALLED: $(date '+%Y-%m-%d %H:%M:%S.%N')"
+#     echo "FILE: $1"
+#     echo "PWD: $(pwd)"
+#     echo "PPID: $PPID"
+#     echo "Parent process: $(ps -p $PPID -o comm= 2>/dev/null || echo 'unknown')"
+#     echo "Parent command: $(ps -p $PPID -o args= 2>/dev/null || echo 'unknown')"
+#     echo "Environment variables:"
+#     echo "  STATUS_CALL=$STATUS_CALL"
+#     echo "  RESET_CALL=$RESET_CALL"
+#     echo "  RESET_MOD=$RESET_MOD"
+#     echo "  STASH_CALL=$STASH_CALL"
+#     echo "  FILE_CHECKOUT=$FILE_CHECKOUT"
+#     echo "Active git directories:"
+#     echo "  CHECKOUT_HEAD=$([ -f "$(git rev-parse --git-path CHECKOUT_HEAD)" ] && echo 1)"
+#     if [ -f "$1" ]; then
+#         echo "File size: $(stat -c%s "$1" 2>/dev/null || stat -f%z "$1" 2>/dev/null || echo "N/A")"
+#         echo "File empty: $([ -s "$1" ] && echo "NO" || echo "YES")"
+#     fi
+#     echo "Call stack:"
+#     pstree -p $PPID 2>/dev/null || echo "pstree not available"
+# } >> /tmp/fcstd_filter_debug.log 2>&1
+# === END TEMPORARY DEBUG LOGGING ===
+
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================

@@ -40,7 +40,7 @@ fi
 # ==============================================================================================
 #                                          Get Binaries
 # ==============================================================================================
-git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
+FILE_CHECKOUT=1 git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 git fcmod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 
 # ==============================================================================================
