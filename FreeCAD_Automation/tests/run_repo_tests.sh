@@ -270,6 +270,9 @@ confirm_user() {
 test_sandbox() {
     setup "test_sandbox" || exit $FAIL
 
+    echo "TEST: rm -rf FreeCAD_Automation/tests/uncompressed" >&2
+    assert_command_succeeds "rm -rf FreeCAD_Automation/tests/uncompressed/"; echo
+
     echo "TEST: \`git add\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; echo; fi
     assert_command_succeeds "git add \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\" > /dev/null"; echo
