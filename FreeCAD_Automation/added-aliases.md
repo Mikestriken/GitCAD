@@ -89,22 +89,3 @@ Usage: `git fimport path/to/file.FCStd`
 Runs the `FCStdFileTool.py` script with preset args to manually export data from specified `.FCStd` file.
 
 Usage: `git fexport path/to/file.FCStd`
-
-### `git stat`
-#### __Description:__
-SOMETIMES*** Running `git status` causes git to execute clean filters on any modified files (even if the file isn't `git add`(ed)).
-Using `git stat` adds an environment variable prior to running `git status`, this lets the filter scripts (namely clean) know that a `git status` command called the filter.
-This tells the clean filter to not extract any `.FCStd` files passed to the filter (only show git that the `.FCStd` file is empty).
-
-Post v1.0 I think this scenario will be very rare and can be ignored.
-
-The only scenario where I have this issue is when I'm using `git checkout` to checkout specific `.FCStd` files that are not empty for debugging/testing purposes.
-
-Post v1.0 ALL `.FCStd` files should be committed as empty files.
-
-Read more on `git status` running filters [here](https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters).
-
-Usage: `git stat`
-
-#### __If used `git status` instead on accident:__
-If the clean filter ran, the `.FCStd` files may have been exported to their uncompressed directories (this will be evident on the console it will tell you which files are being exported). To manually fix this. You can use `git fco HEAD path/to/file.FCStd` to reset the individual `.FCStd` file dir(s) to the head commit or `git freset --hard` to restore the entire working directory to head.
