@@ -1,6 +1,4 @@
 ### Workflow / ToDo List:
-- [ ] Test on linux
-
 - [ ] Test on a fresh install
 
 - [ ] Verify `Readme.md` is correct

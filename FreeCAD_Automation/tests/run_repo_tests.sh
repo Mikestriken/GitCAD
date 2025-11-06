@@ -267,27 +267,20 @@ test_sandbox() {
     assert_command_succeeds "rm -rf FreeCAD_Automation/tests/uncompressed/"; echo
 
     echo "TEST: \`git fadd\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\" > /dev/null"; echo
-    git status
 
     echo "TEST: git fadd get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)\" \"$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)\" > /dev/null"; echo
-    git status
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial test commit\" > /dev/null"; echo
-    git status
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (git alias)" >&2
     assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
-    git status
     
     echo "TEST: git push origin active_test" >&2
     assert_command_succeeds "git push origin active_test"; echo
-    git status
     
     echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
     
@@ -303,7 +296,6 @@ test_FCStd_filter() {
     assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: \`git fadd\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd > /dev/null"; echo
 
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
@@ -313,7 +305,6 @@ test_FCStd_filter() {
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$FCStd_dir_path\" > /dev/null"; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
@@ -337,7 +328,6 @@ test_FCStd_filter() {
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git fadd \`AssemblyExample.FCStd\`" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git fadd\`(ed)" >&2
@@ -356,7 +346,6 @@ test_pre_commit_hook() {
     assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: \`git fadd\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
@@ -366,7 +355,6 @@ test_pre_commit_hook() {
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$FCStd_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
@@ -387,7 +375,6 @@ test_pre_commit_hook() {
     assert_dir_has_changes "$FCStd_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$FCStd_dir_path\""; echo
 
     echo "TEST: git commit -m \"active_test commit that should error, no lock\" (expect error)" >&2
@@ -403,7 +390,6 @@ test_pre_push_hook() {
     setup "test_pre_push_hook" || exit $FAIL
 
     echo "TEST: \`git fadd\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
@@ -417,7 +403,6 @@ test_pre_push_hook() {
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$Assembly_dir_path\" \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
@@ -440,14 +425,12 @@ test_pre_push_hook() {
         await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
         echo "TEST: 2x git fadd \`AssemblyExample.FCStd\` ($i)" >&2
-        # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
         assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
 
         echo "TEST: 2x Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git fadd\`(ed) ($i)" >&2
         assert_dir_has_changes "$Assembly_dir_path"; echo
 
         echo "TEST: 2x git fadd get_FCStd_dir for \`AssemblyExample.FCStd\` ($i)" >&2
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
         assert_command_succeeds "git fadd \"$Assembly_dir_path\""; echo
 
         echo "TEST: 2x git commit -m \"active_test commit $i\" ($i)" >&2
@@ -478,14 +461,12 @@ test_pre_push_hook() {
     await_user_modification "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: git fadd \`BIMExample.FCStd\`" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: Assert \`BIMExample.FCStd\` dir has changes that can be \`git fadd\`(ed)" >&2
     assert_dir_has_changes "$BIM_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`BIMExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"active_test commit 3\"" >&2
@@ -518,7 +499,6 @@ test_post_checkout_hook() {
     setup "test_post_checkout_hook" || exit $FAIL
 
     echo "TEST: \`git fadd\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
@@ -532,7 +512,6 @@ test_post_checkout_hook() {
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$Assembly_dir_path\" \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
@@ -557,14 +536,12 @@ test_post_checkout_hook() {
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git fadd \`AssemblyExample.FCStd\`" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git fadd\`(ed)" >&2
     assert_dir_has_changes "$Assembly_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$Assembly_dir_path\""; echo
 
     echo "TEST: git commit -m \"active_test_branch1 commit 1\"" >&2
@@ -618,7 +595,6 @@ test_stashing() {
     assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: \`git fadd\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
@@ -628,7 +604,6 @@ test_stashing() {
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$FCStd_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
@@ -649,14 +624,12 @@ test_stashing() {
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git fadd \`AssemblyExample.FCStd\`" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: Assert changes to get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     assert_dir_has_changes "$FCStd_dir_path"; echo
 
     echo "TEST: git fstash the changes" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fstash"; echo
     assert_no_uncommitted_changes; echo
 
@@ -710,7 +683,6 @@ test_post_merge_hook() {
     setup "test_post_merge_hook" || exit $FAIL
 
     echo "TEST: \`git fadd\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
@@ -724,34 +696,28 @@ test_post_merge_hook() {
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$Assembly_dir_path\" \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` are now readonly" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
     assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: git lock \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (git alias)" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` is NOT readonly" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
     assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: git push origin active_test" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git push origin active_test"; echo
     assert_no_uncommitted_changes; echo
 
@@ -766,14 +732,12 @@ test_post_merge_hook() {
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git fadd \`AssemblyExample.FCStd\`" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git fadd\`(ed)" >&2
     assert_dir_has_changes "$Assembly_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$Assembly_dir_path\""; echo
 
     echo "TEST: git commit -m \"active_test commit 1\"" >&2
@@ -786,17 +750,14 @@ test_post_merge_hook() {
 
     echo "TEST: git freset --hard active_test^" >&2
     assert_command_succeeds "git freset --hard active_test^"; echo
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_no_uncommitted_changes; echo
 
     echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
     assert_command_succeeds "git update-ref refs/remotes/origin/active_test active_test"; echo
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_no_uncommitted_changes; echo
 
     echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias)" >&2
@@ -820,14 +781,12 @@ test_post_merge_hook() {
     await_user_modification "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: git fadd \`BIMExample.FCStd\`" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: Assert \`BIMExample.FCStd\` dir has changes that can be \`git fadd\`(ed)" >&2
     assert_dir_has_changes "$BIM_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`BIMExample.FCStd\`" >&2
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"active_test commit 1b\"" >&2
@@ -854,7 +813,6 @@ test_post_merge_hook() {
     assert_command_succeeds "git freset --soft active_test^"; echo
 
     echo "TEST: git fstash" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fstash"; echo
     assert_no_uncommitted_changes; echo
 
@@ -876,7 +834,6 @@ test_post_merge_hook() {
     assert_command_succeeds "git fstash pop"; echo
 
     echo "TEST: git fadd \`$TEST_DIR\`" >&2
-    # if [[ "$OSTYPE" == "linux-gnu"* ]]; then sleep 1; sync; sync; sleep 1; echo; fi
     assert_command_succeeds "git fadd $TEST_DIR"; echo
 
     echo "TEST: git commit -m \"active_test commit 1b\"" >&2

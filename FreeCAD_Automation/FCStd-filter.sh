@@ -5,7 +5,6 @@ echo "DEBUG: Clean filter trap-card triggered!" >&2
 # ==============================================================================================
 # Git clean filter for .FCStd files. Makes .FCStd files appear empty to Git by outputting empty content to stdout.
 # Checks if the user has a valid lock if locking is required, and exports the .FCStd file contents to the uncompressed directory.
-# Handles special cases like git statusus calls, reset mod calls, stash calls, and file checkout calls to avoid unnecessary exports.
 
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
@@ -40,11 +39,19 @@ elif [ ! -s "$1" ]; then
     cat /dev/null
     exit $SUCCESS
 
+# Check if this `.FCStd` file is already staged
+# Note: This prevents issue #11 where previously, newly added (empty from git POV) `.FCStd` files still in the staging area get recleaned and exported a 2nd time.
+# Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
+elif git diff-index --cached --name-only --diff-filter=ACMRTUXB HEAD | grep -q "$1"; then
+    echo "WARNING: \`$1\` already exported, skipping export..." >&2
+    cat /dev/null
+    exit $SUCCESS
+
 # $EXPORT_ENABLED is an environment variable set by the alias `git fadd`
 elif [ -n "$EXPORT_ENABLED" ]; then
     :
 
-# If none of the above the clean filter should be disabled and simply show the original file contents.
+# If none of the above, the clean filter should be disabled and simply show the file as empty.
 else
     echo "WARNING: Export flag not set, use \`git fadd\` instead of \`git add\` to set the flag." >&2
     cat /dev/null
