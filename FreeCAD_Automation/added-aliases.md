@@ -69,11 +69,11 @@ The `.FCStd` file will be checked out as empty without importing from the uncomp
 *NOTE AGAIN: `git fco` is ONLY for `.FCStd` files (and their dirs), any other type of file can be checked out manually using the normal `git checkout COMMIT -- FILE [FILE ...]`.*
 
 ### `git fcmod`
-Manually tells git to observe a `.FCStd` file as empty (unmodified).
+Manually tells git to observe a `.FCStd` file as empty (unmodified). Unfortunately to do this it will first restore any currently staged (added) `.FCStd` files.
 
-*Behind the scenes all this does is call `RESET_MOD=1 git add`*
+*Behind the scenes all this does is call `git restore --staged $STAGED_FCSTD_FILES` then `RESET_MOD=1 git add [ARGS]`*
 
-Usage: `git fcmod path/to/file.FCStd`
+Usage: `git fcmod path/to/file.FCStd` (same as `git add`)
 
 ### `git ftool`
 Runs the `FCStdFileTool.py` script for manual export or import of `.FCStd` files. Useful for advanced operations, troubleshooting, or direct manipulation of `.FCStd` files outside the normal Git workflow.
