@@ -8,6 +8,23 @@ FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
 # ==============================================================================================
+#                      Prevent non-empty .FCStd files from being committed
+# ==============================================================================================
+# Get staged `.FCStd` files
+# Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
+STAGED_FCSTD_FILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i '\.fcstd$')
+echo -e "\nDEBUG: checking staged FCStd files: '$(echo $STAGED_FCSTD_FILES | xargs)'" >&2
+
+for FCStd_file_path in $STAGED_FCSTD_FILES; do
+    echo -e "\nDEBUG: checking '$FCStd_file_path'...." >&2
+
+    if [ -s "$FCStd_file_path" ]; then
+        echo "ERROR: $FCStd_file_path is not empty, export it using \`git fadd\` or clear it using \`git fcmod\`" >&2
+        exit $FAIL
+    fi
+done
+
+# ==============================================================================================
 #                         Check if user allowed to modify .FCStd files
 # ==============================================================================================
 if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
@@ -20,20 +37,6 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         echo "Error: failed to list of active lock info." >&2
         exit $FAIL
     }
-
-    # Get staged `.FCStd` files
-    # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
-    STAGED_FCSTD_FILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i '\.fcstd$')
-    echo -e "\nDEBUG: checking staged FCStd files: '$(echo $STAGED_FCSTD_FILES | xargs)'" >&2
-
-    for FCStd_file_path in $STAGED_FCSTD_FILES; do
-        echo -e "\nDEBUG: checking '$FCStd_file_path'...." >&2
-
-        if [ -s "$FCStd_file_path" ]; then
-            echo "ERROR: $FCStd_file_path is not empty, export it using \`git fadd\` or clear it using \`git fcmod\`" >&2
-            exit $FAIL
-        fi
-    done
 
     # Get staged `.changefile`s
     # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
