@@ -12,14 +12,7 @@ source "$FUNCTIONS_FILE"
 
 # Check for uncommitted work in working directory, exit early if so with error message
 if [ -n "$(git status --porcelain)" ]; then
-    while ! rm -rf FreeCAD_Automation/tests/uncompressed/; do
-        sleep 10
-    done # Note: Dir spontaneously appears after git checkout test_binaries
-
-    if [ -n "$(git status --porcelain)" ]; then
-        echo "Error: There are uncommitted changes in the working directory. Please commit or stash them before running tests."
-        exit $FAIL
-    fi
+    exit $FAIL
 fi
 
 # Check for stashed items, warn user they will be dropped and ask if they want to exit early
@@ -40,7 +33,7 @@ fi
 # ==============================================================================================
 #                                          Get Binaries
 # ==============================================================================================
-FILE_CHECKOUT=1 git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
+git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 git fcmod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 
 # ==============================================================================================

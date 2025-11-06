@@ -67,7 +67,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     fi
 
     # Execute git stash pop/apply
-    STASH_CALL=1 git stash "$@"
+    git stash "$@"
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
@@ -103,7 +103,7 @@ else
     echo "DEBUG: retrieved before stash changefiles..." >&2
 
     # Execute git stash
-    STASH_CALL=1 git stash "$@" # Note: Sometimes calls clean filter... other times not... really weird....
+    git stash "$@" # Note: Sometimes calls clean filter... other times not... really weird....
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
