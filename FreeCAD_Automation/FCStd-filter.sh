@@ -47,7 +47,7 @@ elif [ -n "$EXPORT_ENABLED" ]; then
 # If none of the above the clean filter should be disabled and simply show the original file contents.
 else
     echo "WARNING: Export flag not set, use \`git fadd\` instead of \`git add\` to set the flag." >&2
-    cat
+    cat /dev/null
     exit $SUCCESS
 fi
 
