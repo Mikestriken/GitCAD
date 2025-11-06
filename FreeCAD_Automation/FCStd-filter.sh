@@ -65,38 +65,38 @@ echo "DEBUG: All args: '$@'" >&2
     # If the user uses the alias `git stat` the the STATUS_CALL env variable will be set during the git status call.
     # If the environment variable is detected then exit early without exporting FCStd files
 if [ -n "$STATUS_CALL" ]; then
-    echo "DEBUG: git status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-    cat /dev/null
+    echo "DEBUG: git status call, outputting original file contents and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat
     exit $SUCCESS
 
 # $DIFF_INDEX is an environment variable manually set for `git diff-index` calls
 elif [ -n "$DIFF_INDEX" ]; then
-    echo "DEBUG: git diff-index call, outputting original file contents.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: git diff-index call, outputting original file contents and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat
     exit $SUCCESS
 
 # $RESET_CALL is an environment variable set by the alias `git freset`
 elif [ -n "$RESET_CALL" ]; then
-    echo "DEBUG: git reset call from freset alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-    cat /dev/null
+    echo "DEBUG: git reset call from freset alias, outputting original file contents and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat
     exit $SUCCESS
 
 # $RESET_MOD is an environment variable set by the alias `git fcmod`
 elif [ -n "$RESET_MOD" ]; then
-    echo "DEBUG: Reset modification call from fcmod alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: Reset modification call from fcmod alias, showing empty file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 # $STASH_CALL is an environment variable set by the alias `git fstash`
 elif [ -n "$STASH_CALL" ]; then
-    echo "DEBUG: git stash call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-    cat /dev/null
+    echo "DEBUG: git stash call, outputting original file contents and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat
     exit $SUCCESS
 
 # $FILE_CHECKOUT is an environment variable set by the alias `git fco`
 elif [ -n "$FILE_CHECKOUT" ]; then
-    echo "DEBUG: file checkout -- file call from fco alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-    cat /dev/null
+    echo "DEBUG: file checkout -- file call from fco alias, outputting original file contents and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat
     exit $SUCCESS
 fi
 
