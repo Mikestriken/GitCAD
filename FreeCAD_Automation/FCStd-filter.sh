@@ -60,39 +60,40 @@ fi
 # print all args to stderr
 echo "DEBUG: All args: '$@'" >&2
 
-# Note: when running `git status` sometimes this clean filter will be called. Read more here: https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters
+# $STATUS_CALL is an environment variable set by the alias `git stat`
+    # Note: when running `git status` sometimes this clean filter will be called. Read more here: https://stackoverflow.com/questions/41934945/why-does-git-status-run-filters
     # If the user uses the alias `git stat` the the STATUS_CALL env variable will be set during the git status call.
     # If the environment variable is detected then exit early without exporting FCStd files
-
-    # $RESET_CALL is an environment variable set by the alias `git freset`
-
-    # $RESET_MOD is an environment variable set by the alias `git fcmod`
-
-    # $STASH_CALL is an environment variable set by the alias `git fstash`
-
-    # $FILE_CHECKOUT is an environment variable set by the alias `git fco`
-
-    # $DIFF_INDEX is an environment variable manually set for `git diff-index` calls
 if [ -n "$STATUS_CALL" ]; then
     echo "DEBUG: git status call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
+# $DIFF_INDEX is an environment variable manually set for `git diff-index` calls
+elif [ -n "$DIFF_INDEX" ]; then
+    echo "DEBUG: git diff-index call, outputting original file contents.... EXIT SUCCESS (Clean Filter)" >&2
+    cat
+    exit $SUCCESS
+
+# $RESET_CALL is an environment variable set by the alias `git freset`
 elif [ -n "$RESET_CALL" ]; then
     echo "DEBUG: git reset call from freset alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
+# $RESET_MOD is an environment variable set by the alias `git fcmod`
 elif [ -n "$RESET_MOD" ]; then
     echo "DEBUG: Reset modification call from fcmod alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
+# $STASH_CALL is an environment variable set by the alias `git fstash`
 elif [ -n "$STASH_CALL" ]; then
     echo "DEBUG: git stash call, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
+# $FILE_CHECKOUT is an environment variable set by the alias `git fco`
 elif [ -n "$FILE_CHECKOUT" ]; then
     echo "DEBUG: file checkout -- file call from fco alias, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
@@ -111,6 +112,7 @@ if [ ! -s "$1" ]; then
     exit $SUCCESS
 fi
 
+# $EXPORT_ENABLED is an environment variable set by the alias `git fadd`
 if [ -z "$EXPORT_ENABLED" ]; then
     echo "ERR: Export flag not set, use \`git fadd\` instead of \`git add\` to set the flag." >&2
     exit $FAIL
