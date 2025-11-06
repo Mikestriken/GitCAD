@@ -4,7 +4,7 @@
 This repository contains tools and scripts to automate the git workflow for committing uncompressed `.FCStd` files. Binary/other non-human-unreadable files such as `.brp` files are stored using git LFS (optionally they are compressed before storing them as LFS objects). Also supports locking `.FCStd` files to enable multi file collaboration.
 
 ### Key Features
-- **Git Clean Filter**: Tricks git into thinking `.FCStd` files are empty and exports `git add`(ed) `.FCStd` files to their uncompressed directories.
+- **Git Clean Filter**: Tricks git into thinking `.FCStd` files are empty and exports `git fadd`(ed) `.FCStd` files to their uncompressed directories.
   
 - **Various Hooks**: Updates `.FCStd` files with uncompressed when git commands cause changes. Sets `.FCStd` files to readonly if not locked by the user. Prevents user from committing / pushing changes for `.FCStd` files (and their dirs) that they don't own the lock for.
   
@@ -82,10 +82,10 @@ This repository contains tools and scripts to automate the git workflow for comm
 
 ## Quick Guide
 ### Committing FreeCAD files (and their uncompressed directories)
-1. `git add` your file.  
+1. `git fadd` your file.  
    *`*.FCStd` file filter will extract the contents*
 
-2. `git add` the uncompressed directory.
+2. `git add` (`git fadd` works as well) the uncompressed directory.
 
 3. `git commit` the uncompressed directory and empty (from git's POV) `.FCStd` file.
 
@@ -123,11 +123,12 @@ It is important to read the linked alias documentation. These aliases help ensur
 They are also important for manually resynchronizing them in case you forgot to use an alias.
 
 ### IMPORTANT ALIASES / TL;DR:
-1. Use `git freset` instead of `git reset`
-2. Use `git fstash` instead of `git stash`
-3. Use `git fco COMMIT FILE [FILE ...]` instead of `git checkout COMMIT -- FILE [FILE ...]`  
+1. Use `git fadd` instead of `git add` to export `.FCStd` files.
+2. Use `git freset` instead of `git reset`
+3. Use `git fstash` instead of `git stash`
+4. Use `git fco COMMIT FILE [FILE ...]` instead of `git checkout COMMIT -- FILE [FILE ...]`  
    *Note: **ONLY** for `.FCStd` files (and their dirs), any other type of file can be checked out manually using the normal `git checkout COMMIT -- FILE [FILE ...]`.*
-4. `git lock path/to/file.FCStd` / `git unlock path/to/file.FCStd` / `git locks` -- Do what you expect
+5. `git lock path/to/file.FCStd` / `git unlock path/to/file.FCStd` / `git locks` -- Do what you expect
 
 ### If you forgot to use one of the above commands instead:
 1. Use `git fimport` to manually import the contents of a dir to its `.FCStd` file.

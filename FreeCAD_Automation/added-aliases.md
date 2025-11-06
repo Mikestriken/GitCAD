@@ -1,4 +1,12 @@
 ## Git Aliases
+### `git fadd`
+Sets the `EXPORT_ENABLED=1` environment variable flag when calling `git add`. This allows the FCStd clean filter to export `.FCStd` files.
+Git sometimes sneakily calls the clean filter when exporting is not intended, this is a guard to make sure `.FCStd` files are ONLY exported when the user explicitly expects it.
+
+*Behind the scenes all this does is call `EXPORT_ENABLED=1 git add`*
+
+Usage: `git fadd path/to/file.FCStd` (same as `git add`)
+
 ### `git lock`
 Locks a `.FCStd` file for editing by locking the associated `.lockfile` in the uncompressed directory using Git LFS. This prevents others from modifying the file and makes the `.FCStd` file writable for editing in FreeCAD. Supports `--force` to steal existing locks (if you have permission to do so according to GitHub).
 

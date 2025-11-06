@@ -91,7 +91,7 @@ else
     # Check for uncommitted .FCStd files
     UNCOMMITTED_FCSTD_FILES=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
     if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
-        echo "Error: Cannot stash .FCStd files, export them first with \`git add\`" >&2
+        echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\`" >&2
         exit $FAIL
     fi
 

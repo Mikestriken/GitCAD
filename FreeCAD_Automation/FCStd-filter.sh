@@ -111,6 +111,11 @@ if [ ! -s "$1" ]; then
     exit $SUCCESS
 fi
 
+if [ -z "$EXPORT_ENABLED" ]; then
+    echo "ERR: Export flag not set, use \`git fadd\` instead of \`git add\` to set the flag." >&2
+    exit $FAIL
+fi
+
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
