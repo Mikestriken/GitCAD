@@ -309,6 +309,7 @@ test_FCStd_filter() {
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
     FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_FCStd_filter"; exit $FAIL; }
+    echo "TEST: FCStd_dir_path=$FCStd_dir_path" >&2
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
@@ -361,6 +362,7 @@ test_pre_commit_hook() {
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
     FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_pre_commit_hook"; exit $FAIL; }
+    echo "TEST: FCStd_dir_path=$FCStd_dir_path" >&2
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
@@ -407,9 +409,11 @@ test_pre_push_hook() {
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
     Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    echo "TEST: Assembly_dir_path=$Assembly_dir_path" >&2
     assert_dir_exists "$Assembly_dir_path"; echo
     local BIM_dir_path
     BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    echo "TEST: BIM_dir_path=$BIM_dir_path" >&2
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
@@ -520,9 +524,11 @@ test_post_checkout_hook() {
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
     Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_post_checkout_hook"; exit $FAIL; }
+    echo "TEST: Assembly_dir_path=$Assembly_dir_path" >&2
     assert_dir_exists "$Assembly_dir_path"; echo
     local BIM_dir_path
     BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_post_checkout_hook"; exit $FAIL; }
+    echo "TEST: BIM_dir_path=$BIM_dir_path" >&2
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
@@ -618,6 +624,7 @@ test_stashing() {
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
     FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_stashing"; exit $FAIL; }
+    echo "TEST: FCStd_dir_path=$FCStd_dir_path" >&2
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
@@ -709,9 +716,11 @@ test_post_merge_hook() {
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
     Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_post_merge_hook"; exit $FAIL; }
+    echo "TEST: Assembly_dir_path=$Assembly_dir_path" >&2
     assert_dir_exists "$Assembly_dir_path"; echo
     local BIM_dir_path
     BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_post_merge_hook"; exit $FAIL; }
+    echo "TEST: BIM_dir_path=$BIM_dir_path" >&2
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git fadd get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
