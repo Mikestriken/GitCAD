@@ -26,9 +26,6 @@ fi
 # print all args to stderr
 echo "DEBUG: All args: '$@'" >&2
 
-# In case of `git diff-index` ensure the index is up to date.
-git update-index --refresh -q
-
 # $RESET_MOD is an environment variable set by the alias `git fcmod`
 if [ -n "$RESET_MOD" ]; then
     echo "DEBUG: Reset modification call from fcmod alias, showing empty file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
