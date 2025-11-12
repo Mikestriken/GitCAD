@@ -76,7 +76,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     fi
 
     # Check for changed lockfiles in the working dir (similar to post-checkout)
-    git update-index --refresh -q
+    git update-index --refresh -q >/dev/null 2>&1
     for changefile in $(git diff-index --name-only HEAD | grep -i '\.changefile$'); do
         echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
@@ -90,7 +90,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
 
 else
     # Check for uncommitted .FCStd files
-    git update-index --refresh -q
+    git update-index --refresh -q >/dev/null 2>&1
     UNCOMMITTED_FCSTD_FILES=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
     if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
         echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\`" >&2
@@ -100,7 +100,7 @@ else
     echo "DEBUG: Stashing away or something else..." >&2
     
     # Get modified changefiles before stash
-    git update-index --refresh -q
+    git update-index --refresh -q >/dev/null 2>&1
     BEFORE_STASH_CHANGEFILES=$(git diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
     
     echo "DEBUG: retrieved before stash changefiles..." >&2
@@ -115,7 +115,7 @@ else
     fi
 
     # Get modified lockfiles after stash
-    git update-index --refresh -q
+    git update-index --refresh -q >/dev/null 2>&1
     AFTER_STASH_CHANGEFILE=$(git diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
 
     # Find files present before stash but not after stash (files that were stashed)
