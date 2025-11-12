@@ -12,6 +12,7 @@ source "$FUNCTIONS_FILE"
 # ==============================================================================================
 # Get staged `.FCStd` files
 # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
+# Note: Excluding (A)dded because newly added .FCStd files ARE empty, we're checking that the .FCStd files don't get modified past this point.... at least that is what I think I was intending...
 git update-index --refresh -q
 STAGED_FCSTD_FILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i '\.fcstd$')
 echo -e "\nDEBUG: checking staged FCStd files: '$(echo $STAGED_FCSTD_FILES | xargs)'" >&2
