@@ -26,10 +26,6 @@ fi
 # print all args to stderr
 echo "DEBUG: All args: '$@'" >&2
 
-echo "DEBUG: ====LIST OF MODIFIED FILES====" >&2
-git diff-index --name-only --diff-filter=ACMRTUXB HEAD >&2
-echo "DEBUG: ====LIST OF MODIFIED FILES====" >&2
-
 # $RESET_MOD is an environment variable set by the alias `git fcmod`
 if [ -n "$RESET_MOD" ]; then
     echo "DEBUG: Reset modification call from fcmod alias, showing empty file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
@@ -42,25 +38,31 @@ elif [ ! -s "$1" ]; then
     echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
+fi
 
-# Check if this `.FCStd` file is already staged
-# Note: This prevents issue #11 where previously, newly added (empty from git POV) `.FCStd` files still in the staging area get recleaned and exported a 2nd time.
-# Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
-elif git diff-index --cached --name-only --diff-filter=ACMRTUXB HEAD | grep -q "$1"; then
-    echo "WARNING: \`$1\` already exported, skipping export..." >&2
-    cat /dev/null
-    exit $SUCCESS
+# Check if this `.FCStd` file has been modified since last export by comparing OS modification timestamps between it and the `.changefile`
+    # If `.changefile` is newer, don't export.
+    # If `.changefile` is older, then export.
+    # If `.changefile` doesn't exist then export.
+FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$1")") || {
+    echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
+    exit $FAIL
+}
+changefile_path="$FCStd_dir_path/.changefile"
 
-# # Check if this `.FCStd` shows as not modified, implying the modification has previously been exported
-# # Note: This prevents issue #11 where previously added (empty from git POV) `.FCStd` files get recleaned and exported a 2nd time.
-# # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
-# elif ! git diff-index --name-only --diff-filter=ACMRTUXB HEAD | grep -q "$1"; then
-#     echo "WARNING: \`$1\` already exported, skipping export..." >&2
-#     cat /dev/null
-#     exit $SUCCESS
+if [ -f "$changefile_path" ]; then
+    FCStd_file_modification_time=$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)
+    changefile_modification_time=$(stat -c %Y "$changefile_path" 2>/dev/null || stat -f %m "$changefile_path" 2>/dev/null)
+    
+    if [ "$changefile_modification_time" -ge "$FCStd_file_modification_time" ]; then
+        echo "WARNING: \`$1\` already exported, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat /dev/null
+        exit $SUCCESS
+    fi
+fi
 
 # $EXPORT_ENABLED is an environment variable set by the alias `git fadd`
-elif [ -n "$EXPORT_ENABLED" ]; then
+if [ -n "$EXPORT_ENABLED" ]; then
     :
 
 # If none of the above, the clean filter should be disabled and simply show the file as empty.
@@ -99,12 +101,6 @@ echo -n "EXPORTING: '$1'...." >&2
 if "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
     echo "SUCCESS" >&2
     echo "DEBUG: END@'$(date +"%Y-%m-%dT%H:%M:%S.%6N")'" >&2
-
-    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$1")") || {
-        echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
-        exit $FAIL
-    }
-    changefile_path="$FCStd_dir_path/.changefile"
 
     echo "DEBUG: $(grep 'File Last Exported On:' "$changefile_path")" >&2
 
