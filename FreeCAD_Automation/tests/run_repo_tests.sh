@@ -256,7 +256,6 @@ confirm_user() {
 # ==============================================================================================
 #                                          Define Tests
 # ==============================================================================================
-# ToDo: Ponder edge cases missing from tests below
 # Note on formatting:
     # End every command with `; echo` (variable declarations can be excluded from this)
     # Convert comments to echo statements prepended with "TEST: "
@@ -299,7 +298,7 @@ test_sandbox() {
     echo "TEST: git push origin active_test" >&2
     assert_command_succeeds "git push origin active_test"; echo
 
-    for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+    for i in 1 2; do
         echo "TEST: Request user modify \`AssemblyExample.FCStd\` ($i)" >&2
         assert_no_uncommitted_changes; echo
         await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo

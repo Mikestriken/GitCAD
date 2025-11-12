@@ -419,7 +419,6 @@ setup_git_alias() {
     fi
 }
 
-# ToDo: Remove script shebangs since we're calling the bash exe directly
 setup_git_alias "fcmod" "!bash FreeCAD_Automation/FCStdClearModification.sh" "Clears passed FCStd file modification making git think it's empty."
 setup_git_alias "fadd" "!EXPORT_ENABLED=1 git add" "Allows FCStd clean filter to export \`.FCStd\` files."
 setup_git_alias "fco" "!bash FreeCAD_Automation/coFCStdFiles.sh \"\${GIT_PREFIX}\"" "Adds \`git fco\` as alias to run coFCStdFiles.sh"
