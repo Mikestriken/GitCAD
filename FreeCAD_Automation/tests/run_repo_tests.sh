@@ -276,8 +276,18 @@ test_sandbox() {
     echo "TEST: \`git fadd\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
     assert_command_succeeds "git fadd \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\" > /dev/null"; echo
 
+    echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
+    local Assembly_dir_path
+    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    echo "TEST: Assembly_dir_path=$Assembly_dir_path" >&2
+    assert_dir_exists "$Assembly_dir_path"; echo
+    local BIM_dir_path
+    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    echo "TEST: BIM_dir_path=$BIM_dir_path" >&2
+    assert_dir_exists "$BIM_dir_path"; echo
+
     echo "TEST: git fadd get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
-    assert_command_succeeds "git fadd \"$(get_FCStd_dir $TEST_DIR/AssemblyExample.FCStd)\" \"$(get_FCStd_dir $TEST_DIR/BIMExample.FCStd)\" > /dev/null"; echo
+    assert_command_succeeds "git fadd \"$Assembly_dir_path\" \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial test commit\" > /dev/null"; echo
