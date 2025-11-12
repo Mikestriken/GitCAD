@@ -47,6 +47,14 @@ elif git diff-index --cached --name-only --diff-filter=ACMRTUXB HEAD | grep -q "
     cat /dev/null
     exit $SUCCESS
 
+# Check if this `.FCStd` shows as not modified, implying the modification has previously been exported
+# Note: This prevents issue #11 where previously added (empty from git POV) `.FCStd` files get recleaned and exported a 2nd time.
+# Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
+elif ! git diff-index --name-only --diff-filter=ACMRTUXB HEAD | grep -q "$1"; then
+    echo "WARNING: \`$1\` already exported, skipping export..." >&2
+    cat /dev/null
+    exit $SUCCESS
+
 # $EXPORT_ENABLED is an environment variable set by the alias `git fadd`
 elif [ -n "$EXPORT_ENABLED" ]; then
     :
