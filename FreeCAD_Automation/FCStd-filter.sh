@@ -26,6 +26,10 @@ fi
 # print all args to stderr
 echo "DEBUG: All args: '$@'" >&2
 
+echo "DEBUG: ====LIST OF MODIFIED FILES====" >&2
+git diff-index --name-only --diff-filter=ACMRTUXB HEAD >&2
+echo "DEBUG: ====LIST OF MODIFIED FILES====" >&2
+
 # $RESET_MOD is an environment variable set by the alias `git fcmod`
 if [ -n "$RESET_MOD" ]; then
     echo "DEBUG: Reset modification call from fcmod alias, showing empty file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
