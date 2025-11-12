@@ -3,7 +3,6 @@
 #                                       Script Overview
 # ==============================================================================================
 # Utility functions for the FreeCAD Git automation scripts.
-# ToDo: Split utils up. Prevent python.sh from calling duplicate code.
 
 # ==============================================================================================
 #                                       Constant Globals
