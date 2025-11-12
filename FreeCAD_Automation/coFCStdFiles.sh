@@ -38,6 +38,7 @@ COMMIT_HASH=$1
 shift
 FILES=("$@")
 
+git update-index --refresh -q
 changed_files=$(git diff-index --name-only HEAD)
 # echo "DEBUG: Changed files BEFORE checkout: '$changed_files'" >&2
 
@@ -95,6 +96,7 @@ git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || { # Note: sometimes c
 }
 
 # Get changed files after checkout
+git update-index --refresh -q
 changed_files=$(git diff-index --name-only HEAD)
 # echo "DEBUG: Changed files AFTER checkout: '$changed_files'" >&2
 
