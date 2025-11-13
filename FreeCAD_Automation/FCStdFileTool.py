@@ -226,7 +226,7 @@ def compress_binaries(FCStd_dir_path:str, config:dict):
     for root, _, files in os.walk(FCStd_dir_path):
         for item_name in files:
             item_full_path:str = os.path.join(root, item_name)
-            item_rel_path:str = os.path.relpath(item_full_path, FCStd_dir_path)
+            item_rel_path:str = os.path.relpath(item_full_path, start=FCStd_dir_path)
             posix_path:PurePosixPath = PurePosixPath('/' + item_rel_path.replace(os.sep, '/'))
             
             for pattern in patterns:
@@ -463,7 +463,7 @@ def create_lockfile_and_changefile(FCStd_dir_path:str, FCStd_file_path:str):
     """
     lock_file_path:str = os.path.join(FCStd_dir_path, '.lockfile')
     change_file_path:str = os.path.join(FCStd_dir_path, '.changefile')
-    FCStd_file_relpath:str = os.path.relpath(FCStd_file_path, start=FCStd_dir_path)
+    FCStd_file_relpath:str = os.path.relpath(FCStd_file_path, start=FCStd_dir_path).replace(os.sep, '/')
     
     current_time:str = datetime.datetime.now().isoformat()
     
