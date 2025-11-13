@@ -279,6 +279,10 @@ setup_filter_gitattribute() {
     if [ -f "$GITATTRIBUTES" ]; then
         # Read the file into an array
         mapfile -t lines < "$GITATTRIBUTES"
+        # Strip carriage returns from each line (handles CRLF line endings on Windows)
+        for i in "${!lines[@]}"; do
+            lines[$i]="${lines[$i]%$'\r'}"
+        done
         updated=false
         found=false
         shopt -s nocasematch
