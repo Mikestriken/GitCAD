@@ -1,22 +1,37 @@
 # FreeCAD Git Automation
-
 ## Description
 This repository contains tools and scripts to automate the git workflow for committing uncompressed `.FCStd` files. Binary/other non-human-unreadable files such as `.brp` files are stored using git LFS (optionally they are compressed before storing them as LFS objects). Also supports locking `.FCStd` files to enable multi file collaboration.
 
 ### Key Features
-- **Git Clean Filter**: Tricks git into thinking `.FCStd` files are empty and exports `git fadd`(ed) `.FCStd` files to their uncompressed directories.
+- **Git Clean Filter**: Tricks git into thinking `.FCStd` files are empty and exports `git fadd`(ed) (( `fadd` is a git alias )) `.FCStd` files to their uncompressed directories.
   
-- **Various Hooks**: Updates `.FCStd` files with uncompressed when git commands cause changes. Sets `.FCStd` files to readonly if not locked by the user. Prevents user from committing / pushing changes for `.FCStd` files (and their dirs) that they don't own the lock for.
+- **Various Hooks**: Imports uncompressed data into `.FCStd` to keep them synced when git commands cause changes to uncompressed data (the uncompressed data is what is stored in git, not the `.FCStd` file itself).  
+Sets `.FCStd` files to readonly if not locked by the user. Prevents user from committing / pushing changes for `.FCStd` files (and their uncompressed data) that the user doesn't own the lock for.
   
-- **Locking Mechanism**: Users use the git aliases `git lock path/to/file.FCStd` and `git unlock path/to/file.FCStd` lock a `.lockfile` inside the uncompressed directory instead of the `.FCStd` file itself.  
-   **NOTE: THE COMMAND IS NOT `git lfs lock`/`git lfs unlock`**
+- **Locking Mechanism**: Users use the git aliases `git lock path/to/file.FCStd` and `git unlock path/to/file.FCStd` lock a `.lockfile` inside the uncompressed data directory instead of the `.FCStd` file itself.  
+   NOTE: THE COMMAND IS **NOT** `git lfs lock`/`git lfs unlock`
    - Why lock `.lockfile` instead of `.FCStd` directly? 
       - *`.FCStd` files are filtered to appear empty to git to save space.  
       If the `.FCStd` files were directly locked you would be storing the entire `.FCStd` file in git-lfs,  
       which would somewhat defeat one of the secondary purpose of extracting the `.FCStd` files in the first place...  
       To efficiently store the diffable contents separate from the binary contents.*
 
+### Alternative Solutions to GitCAD (SVN)
+Another viable solution is to use svn (subversion) instead of git. Subversion natively supports locking files (no need to use git LFS). Subversion also has a nice GUI solution (TortoiseSVN) that will graphically show a lock icon on files that are locked.
+
+With subversion you will basically be storing the entire `.FCStd` file instead of its uncompressed data directly.
+
+For diffing I'm sure you can do something similar to:
+```
+git config diff.zip.textconv "unzip -c -a"
+echo "*.ARCHIVE_EXTENSION diff=zip" >> .gitattributes
+```
+To tell svn that it can simply extract the zipped files contents to get some text data that can be compared.
+
+[Here is a demo of TortoiseSVN locking](https://www.youtube.com/watch?v=7TPpwFhEAJA).
+
 ## Installation
+Video Demo:  
 1. Dependencies
    - [Git](https://git-scm.com)
    - [Git-LFS](https://git-lfs.com)
@@ -27,7 +42,7 @@ This repository contains tools and scripts to automate the git workflow for comm
    - This prevents FreeCAD overwritting readonly (locked) files.  
    - Git is your new backup policy lol  
 
-3. Download and extract release into the root of your FreeCAD project's git repository.
+3. Download and extract the latest release into the root of your FreeCAD project's git repository.
 
 4. Run the initialization script:
    *Note: Linux users will need to make the script executable with `chmod`*
@@ -36,91 +51,68 @@ This repository contains tools and scripts to automate the git workflow for comm
    ```
    
 5. Configure the settings in newly added `FreeCAD_Automation/config.json` (from initialization script) as needed.  
-    Make sure to configure:
+   *Note: When you re-run the initialization script later in this installation guide this file will be added to `.gitignore` automatically.*  
+   **Make sure to configure:**
     - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
       *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*
-      *IE LINUX: `/path/to/FreeCAD/bin/python`* -- **LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**
-    
-6. Test your configurations:
-    - To see how your `.FCStd` files will export use:
-      `"C:/Path/To/FreeCAD 1.0/bin/python.exe" "FreeCAD_Automation/FCStdFileTool.py" --CONFIG-FILE --export path/to/file.FCStd`  
-      *Note: If using powershell prepend `&` to the above command. IE: `& "C:/Path/To/FreeCAD 1.0/bin/python.exe"`*
+      *IE LINUX: `/path/to/FreeCAD_Extracted_AppImage/usr/bin/python`* -- **LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**
 
-7. Run the initialization script one last time:
+6. Run the initialization script one last time:
    ```bash
    ./FreeCAD_Automation/init-repo.sh
    ```
    *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
+    
+7. Test your configurations:
+    - To see how your `.FCStd` files will export use:  
+      `git fexport path/to/file.FCStd`  
+      *Note: User will need to delete exported contents if they want to try a different `uncompressed-directory-structure` or `compress-non-human-readable-FreeCAD-files` config setting*  
+      *See the [Changing Things](#changing-things) section for details on modifying the config file post-initialization.*
 
-8. Update your `.gitattributes` with LFS files you want to track.  
-   __Recommendations if `compress-non-human-readable-FreeCAD-files` is disabled in config:__
-   - `git lfs track "**/no_extension/*"` -- folder created by this script to track files without extension
-   - `git lfs track "*.brp"`
-   - `git lfs track "*.Map.*"`
-   - `git lfs track "*.png"` -- thumbnail pictures
+8. Modify the default config file in the `Create Config File` section of the `init-repo.sh` script to match your changes to `FreeCAD_Automation/config.json`.  
+   *Note: This is for future users and you if you clone the repository elsewhere.*
 
-9.  Verify `.gitattributes` is tracking files you want to track:  
+9. Update your `.gitattributes` with LFS files you want to track.  
+   - `git lfs track "*.zip"` -- This is done automatically be the `init-repo.sh` script.  
+   __The following is recommended if `compress-non-human-readable-FreeCAD-files` is disabled in config:__
+     - `git lfs track "**/no_extension/*"` -- folder created by this script to track files without extension
+     - `git lfs track "*.brp"` -- FreeCAD binary file, stores the 3D shape data of an object
+     - `git lfs track "*.Map.*"` -- FreeCAD text files that contain a bunch of numbers that aren't really human readable.
+     - `git lfs track "*.png"` -- thumbnail pictures
+
+10. Verify `.gitattributes` is tracking files you want to track:  
    `git check-attr --all /path/to/file/to/check`
 
-10. Update your `README.md` documentation for collaboration.  
+11. Update your `README.md` documentation for collaboration.  
    *Template available in [Template.md](template.md).*
 
 ## Updating
-1. Backup `FreeCAD_Automation/config.json`.
-   
-2. Download and extract release into the root of your FreeCAD project's git repository.
-   
-3. Manually merge (if required) your backup of `FreeCAD_Automation/config.json` into the new (updated?) `FreeCAD_Automation/config.json`.
-   
-4. Run the initialization script:
+Video Demo:  
+1. Backup/make note of the default `FreeCAD_Automation/config.json` defined in `FreeCAD_Automation/init-repo.sh`, and your `freecad-python-instance-path` in `FreeCAD_Automation/config.json`.
+
+2. Delete `FreeCAD_Automation/config.json`
+
+3. Download and extract the latest release into the root of your FreeCAD project's git repository.
+
+4. Manually merge (if required) your backup of the default `FreeCAD_Automation/config.json` into the new (updated?) default `FreeCAD_Automation/config.json` defined in `FreeCAD_Automation/init-repo.sh`.
+
+5. Run the initialization script:
    ```bash
    ./FreeCAD_Automation/init-repo.sh
    ```
-   *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
+   *This will re-create an updated `FreeCAD_Automation/config.json` file.*  
+   *The Script can be ran multiple times without error (Assuming config wasn't changed).*
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
-## Quick Guide
-### Committing FreeCAD files (and their uncompressed directories)
-1. `git fadd` your file.  
-   *`*.FCStd` file filter will extract the contents*
-
-2. `git add` (`git fadd` works as well) the uncompressed directory.
-
-3. `git commit` the uncompressed directory and empty (from git's POV) `.FCStd` file.
-
-### Cloning and Initializing Your Git Repository
-1. Clone your repository.
-   
-2. Run `./FreeCAD_Automation/init-repo.sh`
-
-4. Press `y` to `Do you want to import data from all uncompressed FreeCAD dirs to their respective '.FCStd' files?`
-
-### Switching Branches (Checking Out Files) <!-- ToDo: file checkout + what if didn't use alias -->
-1. `git checkout` branches/files as usual.  
-    *Everything will be handled automatically.*
-
-### Committing/Pushing Changes
-1. To lock a FreeCAD file for editing:  
-   *Only mandatory if `require-lock-to-modify-FreeCAD-files` is configured to `true`.*
-   ```bash
-   git lock path/to/file.FCStd
-   ```
-
-2. Edit the file in FreeCAD.
-   
-3. Commit and push changes as usual. The hooks will handle compression and validation automatically.
-   
-4. To unlock after pushing changes:  
-   *Only mandatory if `require-lock-to-modify-FreeCAD-files` is configured to `true`.*
-   ```bash
-   git unlock path/to/file.FCStd
-   ```
+6. Paste your saved `freecad-python-instance-path` back into the newly re-created `FreeCAD_Automation/config.json`
 
 ## [Git Aliases](FreeCAD_Automation/added-aliases.md)
-It is important to read the linked alias documentation. These aliases help ensure the `.FCStd` files in your working directory are correctly synced with their corresponding uncompressed directories.
+It is important to read the linked alias documentation (click the heading). These aliases help ensure the `.FCStd` files in your working directory are correctly synced with their corresponding uncompressed directories.
 
 They are also important for manually resynchronizing them in case you forgot to use an alias.
+
+For examples see the [examples.md](FreeCAD_Automation/examples.md) file.
 
 ### IMPORTANT ALIASES / TL;DR:
 1. Use `git fadd` instead of `git add` to export `.FCStd` files.
@@ -132,7 +124,7 @@ They are also important for manually resynchronizing them in case you forgot to 
 
 ### If you forgot to use one of the above commands instead:
 1. Use `git fimport` to manually import the contents of a dir to its `.FCStd` file.
-2. Use `git fcmod` to make git think your `.FCStd` file is empty, without exporting it.
+2. Use `git fcmod` to make git think your `.FCStd` file is empty (clears the modification in git's view assuming an empty `.FCStd` has already been committed).
 
 ## Changing Things
 Some configurations in `FreeCAD_Automation/config.json` cannot be changed by simply changing its value in the JSON file. After you have already initialized the repository with the `init-repo.sh` script.
@@ -143,17 +135,21 @@ If not mentioned here, you can just assume that changing the configuration value
 
 ### Changing `uncompressed-directory-structure`
 If you change any value inside the `uncompressed-directory-structure` JSON key, you will need to follow this checklist to properly propagate that configuration change to your repository.
-- [ ] `git lock *.FCStd` to get edit permissions.
+- [ ] `git lock *.FCStd` to get edit permissions.  
+      *Note: Only necessary if the user has already committed the uncompressed directory to git*
 
 - [ ] `git mv path/to/old/dir path/to/new/dir` all uncompressed FCStd file folders.
-  
-- [ ] Ensure `git status` shows directories as `renamed`, **NOT** `deleted` and `added`.
-  
+
+- [ ] Ensure `git status` shows directories as `renamed`, **NOT** `deleted` and `added`.  
+      *Note: Only necessary if the user has already committed the uncompressed directory to git*
+
 - [ ] Change the values of the `uncompressed-directory-structure` JSON key to match.
 
-- [ ] `git add FreeCAD_Automation/config.json` (**DO NOT `git add .`**)
+- [ ] `git add FreeCAD_Automation/config.json` (**DO NOT `git add .`**)  
+      *Note: Only necessary if the user has already committed the config file to git*
 
 - [ ] `git commit` changes.
+      *Note: Only necessary if the user has already committed the uncompressed directory or config file to git*
 
 ## Configuration Options
 ```jsonc
