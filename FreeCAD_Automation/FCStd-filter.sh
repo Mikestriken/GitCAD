@@ -80,7 +80,17 @@ else
     
     # If none of the above, the clean filter should be disabled and simply show the file as empty.
     else
-        echo "WARNING: Export flag not set. Modification for '$1' cleared. Run \`git fexport\` to manually export the file if that was your intention. Use \`git fadd\` instead of \`git add\` next time to set the export flag (or activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands)" >&2
+        echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> WARNING <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >&2
+        echo "Export flag not set. Removed Modification (git POV only) for '$1'." >&2
+        echo >&2
+        echo "If you didn't run \`git add\` then ignore this warning." >&2
+        echo >&2
+        echo "If you DID run \`git add\` Run \`git fexport\` to manually export the file." >&2
+        echo "Use \`git fadd\` instead of \`git add\` next time to set the export flag." >&2
+        echo >&2
+        echo "ALTERNATIVELY: Activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands" >&2
+        echo "===========================================================================================================" >&2
+        
         cat /dev/null
         exit $SUCCESS
     fi
