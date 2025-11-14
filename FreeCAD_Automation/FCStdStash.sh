@@ -40,7 +40,7 @@ STASH_INDEX="$2"
 #                                   Execute Stash n' Import
 # ==============================================================================================
 if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
-    echo "DEBUG: Stash application detected" >&2
+    # echo "DEBUG: Stash application detected" >&2
 
     # Check that user has locks for lockfile in same dir as stashed changefile
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
@@ -52,10 +52,10 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
         
         STASHED_CHANGEFILES=$(git stash show --name-only "$STASH_REF" 2>/dev/null | grep -i '\.changefile$' || true)
 
-        echo -e "\nDEBUG: checking stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
+        # echo -e "\nDEBUG: checking stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
 
         for changefile in $STASHED_CHANGEFILES; do
-            echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+            # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
             FCStd_dir_path=$(dirname $changefile)
             lockfile="$FCStd_dir_path/.lockfile"
 
@@ -78,7 +78,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     # Check for changed lockfiles in the working dir (similar to post-checkout)
     git update-index --refresh -q >/dev/null 2>&1
     for changefile in $(git diff-index --name-only HEAD | grep -i '\.changefile$'); do
-        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+        # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
@@ -97,13 +97,13 @@ else
         exit $FAIL
     fi
 
-    echo "DEBUG: Stashing away or something else..." >&2
+    # echo "DEBUG: Stashing away or something else..." >&2
     
     # Get modified changefiles before stash
     git update-index --refresh -q >/dev/null 2>&1
     BEFORE_STASH_CHANGEFILES=$(git diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
     
-    echo "DEBUG: retrieved before stash changefiles..." >&2
+    # echo "DEBUG: retrieved before stash changefiles..." >&2
 
     # Execute git stash
     git stash "$@" # Note: Sometimes calls clean filter... other times not... really weird....
@@ -121,11 +121,11 @@ else
     # Find files present before stash but not after stash (files that were stashed)
     STASHED_CHANGEFILES=$(comm -23 <(echo "$BEFORE_STASH_CHANGEFILES") <(echo "$AFTER_STASH_CHANGEFILE"))
 
-    echo -e "\nDEBUG: Importing stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
+    # echo -e "\nDEBUG: Importing stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
 
     # Import the files that are no longer modified (those that were stashed)
     for changefile in $STASHED_CHANGEFILES; do
-        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+        # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {

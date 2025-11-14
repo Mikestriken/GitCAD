@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: post-commit hook trap-card triggered!" >&2
+# echo "DEBUG: post-commit hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                         GIT LFS Hooks
 # ==============================================================================================
@@ -35,7 +35,7 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
     COMMITTED_CHANGEFILES=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -i '\.changefile$')
 
     for changefile in $COMMITTED_CHANGEFILES; do
-        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+        # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
         FCStd_dir_path=$(dirname $changefile)
@@ -44,20 +44,13 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
-            echo "DEBUG: set '$FCStd_file_path' writable." >&2
+            # echo "DEBUG: set '$FCStd_file_path' writable." >&2
         else
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
-            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+            # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
         fi
     done
 fi
-
-# # Note: For some reason on linux after committing changes files turn up as changed again...
-# #       AND for SOME reason, adding a git stat call at the end resolve the issue....
-# if [[ "$OSTYPE" == "linux-gnu"* ]]; then 
-#     echo "DEBUG: Calling \`git stat\`" >&2
-#     git stat
-# fi
 
 exit $SUCCESS

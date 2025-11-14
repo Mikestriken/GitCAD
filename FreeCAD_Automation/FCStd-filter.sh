@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: Clean filter trap-card triggered!" >&2
+# echo "DEBUG: Clean filter trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -24,18 +24,18 @@ fi
 # Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
 # print all args to stderr
-echo "DEBUG: All args: '$@'" >&2
+# echo "DEBUG: All args: '$@'" >&2
 
 # $RESET_MOD is an environment variable set by the alias `git fcmod`
 if [ -n "$RESET_MOD" ]; then
-    echo "DEBUG: Reset modification call from fcmod alias, showing empty file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # echo "DEBUG: Reset modification call from fcmod alias, showing empty file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 # Note: When doing a file checkout the clean filter will parse the current file in the working dir (even if git shows no changes)
     # Solution: If file is empty don't export and exit early with success
 elif [ ! -s "$1" ]; then
-    echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
@@ -55,7 +55,7 @@ if [ -f "$changefile_path" ]; then
     changefile_modification_time=$(stat -c %Y "$changefile_path" 2>/dev/null || stat -f %m "$changefile_path" 2>/dev/null)
     
     if [ "$changefile_modification_time" -ge "$FCStd_file_modification_time" ]; then
-        echo "WARNING: \`$1\` already exported, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "WARNING: \`$1\` already exported, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat /dev/null
         exit $SUCCESS
     fi
@@ -67,7 +67,7 @@ if [ -n "$EXPORT_ENABLED" ]; then
 
 # If none of the above, the clean filter should be disabled and simply show the file as empty.
 else
-    echo "WARNING: Export flag not set, use \`git fadd\` instead of \`git add\` to set the flag." >&2
+    # echo "WARNING: Export flag not set, use \`git fadd\` instead of \`git add\` to set the flag." >&2
     cat /dev/null
     exit $SUCCESS
 fi
@@ -76,12 +76,12 @@ fi
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
 if [[ "$BYPASS_LOCK" == "1" ]]; then
-    echo "DEBUG: BYPASS_LOCK=1, bypassing lock check." >&2
+    # echo "DEBUG: BYPASS_LOCK=1, bypassing lock check." >&2
     :
 else
     FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
 
-    echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
+    # echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 
     if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "$FALSE" ]; then
         echo "ERROR: User doesn't have lock for '$1'... Aborting add operation..." >&2
@@ -95,13 +95,13 @@ fi
 # Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
 # Export the .FCStd file
-echo "DEBUG: START@'$(date +"%Y-%m-%dT%H:%M:%S.%6N")'" >&2
+# echo "DEBUG: START@'$(date +"%Y-%m-%dT%H:%M:%S.%6N")'" >&2
 echo -n "EXPORTING: '$1'...." >&2
 if "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
     echo "SUCCESS" >&2
-    echo "DEBUG: END@'$(date +"%Y-%m-%dT%H:%M:%S.%6N")'" >&2
+    # echo "DEBUG: END@'$(date +"%Y-%m-%dT%H:%M:%S.%6N")'" >&2
 
-    echo "DEBUG: $(grep 'File Last Exported On:' "$changefile_path")" >&2
+    # echo "DEBUG: $(grep 'File Last Exported On:' "$changefile_path")" >&2
 
     cat /dev/null
     exit $SUCCESS

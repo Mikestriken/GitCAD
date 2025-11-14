@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: FCStdClearModification.sh trap-card triggered!" >&2
+# echo "DEBUG: FCStdClearModification.sh trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
