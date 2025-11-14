@@ -1,7 +1,7 @@
 ## GitCAD Usage Examples
 ### Cloning and Initializing Your Git Repository
 1. Clone your repository.
-   
+
 2. Run the initialization script:
    *Note: Linux users will need to make the script executable with `chmod`*
    ```bash
@@ -22,12 +22,13 @@
    *When the script asks "Do you want to import data from all uncompressed FreeCAD dirs?" in the "Synchronizing \`.FCStd\` Files" section, press `y`*
 
 ### Committing FreeCAD files (and their uncompressed directories)
-1. `git fadd` your file.  
-   *file contents will be extracted into configured uncompressed directory*
+1. `git fadd path/to/file.FCStd` your file.  
+   *file contents will be extracted into configured uncompressed directory*  
+   *The `.FCStd` file will be added and later committed as an empty text file.*
 
-2. `git add` (`git fadd` works as well) the uncompressed directory.
+2. `git add path/to/file/uncompressed/dir` (`git fadd` works as well) the uncompressed directory.
 
-3. `git commit` the uncompressed directory and empty (from git's POV) `.FCStd` file.
+3. `git commit -m "your commit message"` the uncompressed directory and empty (from git's POV) `.FCStd` file.
 
 ### Switching Branches / Checking Out Individual `.FCStd` Files
 #### Switching Branches

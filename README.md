@@ -35,7 +35,7 @@ Video Demo:
 1. Dependencies
    - [Git](https://git-scm.com)
    - [Git-LFS](https://git-lfs.com)
-  
+
 2. Ensure `FreeCAD > Tools > Edit Parameters > Preferences > Document` has a boolean key `BackupPolicy` set to `false`.  
    - Techically only required if `require-lock-to-modify-FreeCAD-files` is configured to `true`.  
    - If the boolean key does not exist, create it.  
@@ -49,13 +49,14 @@ Video Demo:
    ```bash
    ./FreeCAD_Automation/init-repo.sh
    ```
-   
+
 5. Configure the settings in newly added `FreeCAD_Automation/config.json` (from initialization script) as needed.  
    *Note: When you re-run the initialization script later in this installation guide this file will be added to `.gitignore` automatically.*  
    **Make sure to configure:**
     - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
-      *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*
-      *IE LINUX: `/path/to/FreeCAD_Extracted_AppImage/usr/bin/python`* -- **LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**
+      *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`* -- **MUST BE `/`, NOT `\`**  
+      *IE LINUX: `/path/to/FreeCAD_Extracted_AppImage/usr/bin/python`* -- **LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**  
+    - For documentation on what every json item does see the [Configuration Options](#configuration-options) section.
 
 6. Run the initialization script one last time:
    ```bash
@@ -63,7 +64,7 @@ Video Demo:
    ```
    *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
-    
+
 7. Test your configurations:
     - To see how your `.FCStd` files will export use:  
       `git fexport path/to/file.FCStd`  
@@ -72,9 +73,10 @@ Video Demo:
 
 8. Modify the default config file in the `Create Config File` section of the `init-repo.sh` script to match your changes to `FreeCAD_Automation/config.json`.  
    *Note: This is for future users and you if you clone the repository elsewhere.*
+   - Assuming everyone has a different install directory for FreeCAD, you can leave `freecad-python-instance-path` empty as is.
 
 9. Update your `.gitattributes` with LFS files you want to track.  
-   - `git lfs track "*.zip"` -- This is done automatically be the `init-repo.sh` script.  
+   - `git lfs track "*.zip"` -- This is done automatically by the `init-repo.sh` script.  
    __The following is recommended if `compress-non-human-readable-FreeCAD-files` is disabled in config:__
      - `git lfs track "**/no_extension/*"` -- folder created by this script to track files without extension
      - `git lfs track "*.brp"` -- FreeCAD binary file, stores the 3D shape data of an object
@@ -138,7 +140,7 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
 - [ ] `git lock *.FCStd` to get edit permissions.  
       *Note: Only necessary if the user has already committed the uncompressed directory to git*
 
-- [ ] `git mv path/to/old/dir path/to/new/dir` all uncompressed FCStd file folders.
+- [ ] `git mv path/to/unchanged/dir path/to/changed/dir` all uncompressed FCStd file folders to move them from their old location to the new location specified in the updated `uncompressed-directory-structure` JSON key.
 
 - [ ] Ensure `git status` shows directories as `renamed`, **NOT** `deleted` and `added`.  
       *Note: Only necessary if the user has already committed the uncompressed directory to git*
