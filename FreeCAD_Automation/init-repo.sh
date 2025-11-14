@@ -375,7 +375,7 @@ setup_filter_gitattribute() {
 }
 
 # Add FCStd filters
-setup_git_FCStd_filter "clean" "./FreeCAD_Automation/FCStd-filter.sh %f" "This makes git see .FCStd files as being empty and decompresses added .FCStd files"
+setup_git_FCStd_filter "clean" "./FreeCAD_Automation/FCStd-clean-filter.sh %f" "This makes git see .FCStd files as being empty and decompresses added .FCStd files"
 setup_git_FCStd_filter "smudge" "cat" "Disabled smudge filter" # Required requires both clean and smudge be defined else it will always error out.
 setup_git_FCStd_filter "required" "true" "If clean/smudge filter fails, undo add operation."
 
@@ -437,17 +437,17 @@ setup_git_alias() {
     fi
 }
 
-setup_git_alias "fcmod" "!bash FreeCAD_Automation/FCStdClearModification.sh" "Clears passed FCStd file modification making git think it's empty."
+setup_git_alias "fcmod" "!bash FreeCAD_Automation/Git_Aliases/clear-FCStd-modification.sh" "Clears passed FCStd file modification making git think it's empty."
 setup_git_alias "fadd" "!EXPORT_ENABLED=$TRUE git add" "Allows FCStd clean filter to export \`.FCStd\` files."
-setup_git_alias "fco" "!bash FreeCAD_Automation/coFCStdFiles.sh \"\${GIT_PREFIX}\"" "Adds \`git fco\` as alias to run coFCStdFiles.sh"
-setup_git_alias "lock" "!bash FreeCAD_Automation/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh"
-setup_git_alias "unlock" "!bash FreeCAD_Automation/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh"
+setup_git_alias "fco" "!bash FreeCAD_Automation/Git_Aliases/checkout-FCStd-files.sh \"\${GIT_PREFIX}\"" "Adds \`git fco\` as alias to run checkout-FCStd-files.sh"
+setup_git_alias "lock" "!bash FreeCAD_Automation/Git_Aliases/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh"
+setup_git_alias "unlock" "!bash FreeCAD_Automation/Git_Aliases/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh"
 setup_git_alias "locks" "lfs locks" "1 to 1 alias for \`git lfs locks\`"
-setup_git_alias "ftool" "!bash FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\"" "Adds \`git ftool\` as alias to run FCStdFileTool.py"
-setup_git_alias "fimport" "!bash FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --import" "Adds \`git fimport\` as alias to run FCStdFileTool.py with preset import args"
-setup_git_alias "fexport" "!bash FreeCAD_Automation/run_FCStdFileTool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --export" "Adds \`git fexport\` as alias to run FCStdFileTool.py with preset export args"
-setup_git_alias "fstash" "!bash FreeCAD_Automation/FCStdStash.sh" "Adds \`git fstash\` as alias to run FCStdStash.sh"
-setup_git_alias "freset" "!bash FreeCAD_Automation/FCStdReset.sh" "Adds \`git freset\` as alias to run FCStdReset.sh"
+setup_git_alias "ftool" "!bash FreeCAD_Automation/Git_Aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\"" "Adds \`git ftool\` as alias to run FCStdFileTool.py"
+setup_git_alias "fimport" "!bash FreeCAD_Automation/Git_Aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --import" "Adds \`git fimport\` as alias to run FCStdFileTool.py with preset import args"
+setup_git_alias "fexport" "!bash FreeCAD_Automation/Git_Aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --export" "Adds \`git fexport\` as alias to run FCStdFileTool.py with preset export args"
+setup_git_alias "fstash" "!bash FreeCAD_Automation/Git_Aliases/git-stash-and-sync-FCStd-files.sh" "Adds \`git fstash\` as alias to run git-stash-and-sync-FCStd-files.sh"
+setup_git_alias "freset" "!bash FreeCAD_Automation/Git_Aliases/git-reset-and-sync-FCStd-files.sh" "Adds \`git freset\` as alias to run git-reset-and-sync-FCStd-files.sh"
 
 echo "=============================================================================================="
 echo "                               Synchronizing \`.FCStd\` Files"
