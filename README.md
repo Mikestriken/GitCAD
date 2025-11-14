@@ -109,12 +109,12 @@ Video Demo:
 
 6. Paste your saved `freecad-python-instance-path` back into the newly re-created `FreeCAD_Automation/config.json`
 
-## [Git Aliases](FreeCAD_Automation/added-aliases.md)
+## [Git Aliases](FreeCAD_Automation/docs/added-aliases.md)
 It is important to read the linked alias documentation (click the heading). These aliases help ensure the `.FCStd` files in your working directory are correctly synced with their corresponding uncompressed directories.
 
 They are also important for manually resynchronizing them in case you forgot to use an alias.
 
-For examples see the [examples.md](FreeCAD_Automation/examples.md) file.
+For examples see the [examples.md](FreeCAD_Automation/docs/examples.md) file.
 
 ### IMPORTANT ALIASES / TL;DR:
 1. Use `git fadd` instead of `git add` to export `.FCStd` files.
