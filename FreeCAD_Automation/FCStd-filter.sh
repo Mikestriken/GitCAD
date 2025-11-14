@@ -66,8 +66,9 @@ if [ -n "$GITCAD_ACTIVATED" ]; then
     if [ "$GIT_COMMAND" = "add" ]; then
         :
     
-    elif [ "$GIT_COMMAND" = "checkout" ]; then
-        :
+    # Note: The following git commands are known to also trigger this clean filter: checkout, reset, stash, unlock, pull
+        # In the above scenarios (that aren't `git add`), we disable the clean filter and make the .FCStd file show up as having no modification (git POV)
+    else
         cat /dev/null
         exit $SUCCESS
     fi
