@@ -320,13 +320,13 @@ dir_has_changes() {
 if [ -f "$CONFIG_FILE" ]; then
     PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
     REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL
-    # REQUIRE_GITCAD_ACTIVATION=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL
+    REQUIRE_GITCAD_ACTIVATION=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL
 
-    # if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
-    #     if [ -z "$GITCAD_ACTIVATED" ]; then
-    #         echo "Error: GitCAD activation is required but not active." >&2
-    #         echo "Please activate GitCAD by running: source FreeCAD_Automation/activate.sh" >&2
-    #         exit $FAIL
-    #     fi
-    # fi
+    if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+        if [ -z "$GITCAD_ACTIVATED" ]; then
+            echo "Error: GitCAD activation is required but not active." >&2
+            echo "Please activate GitCAD by running: source FreeCAD_Automation/activate.sh" >&2
+            exit $FAIL
+        fi
+    fi
 fi

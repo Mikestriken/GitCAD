@@ -7,8 +7,17 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 cd "$GIT_ROOT"
 
 # Import code used in this script
+export GITCAD_ACTIVATED="not really lol" # Note: Suppress crash from sourcing the functions file without activating GitCAD
+
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
+
+unset GITCAD_ACTIVATED
+
+# Activate GitCAD to wrap git exe if config requires it
+if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+    source FreeCAD_Automation/activate.sh
+fi
 
 # Check for uncommitted work in working directory, exit early if so with error message
 if [ -n "$(git status --porcelain)" ]; then
