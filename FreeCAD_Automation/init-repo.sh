@@ -12,6 +12,12 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         exit 1 # 1=$FAIL
     fi
 
+    # Make git wrapper executable
+    if ! chmod 755 "FreeCAD_Automation/git" 2>/dev/null; then
+        echo "Permission denied for chmod on git wrapper. Please run this script with sudo."
+        exit 1 # 1=$FAIL
+    fi
+
     for hook in "${HOOKS[@]}"; do
         if ! chmod 755 "FreeCAD_Automation/hooks/$hook" 2>/dev/null; then
             echo "Permission denied for chmod on hooks. Please run this script with sudo."
