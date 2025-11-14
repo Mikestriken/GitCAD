@@ -21,15 +21,15 @@ PYTHON_EXEC="FreeCAD_Automation/python.sh"
 # ==============================================================================================
 
 # DESCRIPTION: Function to extract FreeCAD Python path from config file
-    # USAGE: `PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL`
-get_freecad_python_path() {
-    local file=$1
-    local key="freecad-python-instance-path"
+    # USAGE: `KEY_VALUE=$(get_json_value_from_key "$JSON_FILE" "$KEY") || exit $FAIL`
+get_json_value_from_key() {
+    local json_file=$1
+    local key=$2
     
     # Find the line containing the key
-    local line=$(grep "\"$key\"" "$file")
+    local line=$(grep "\"$key\"" "$json_file")
     if [ -z "$line" ]; then
-        echo "Error: Key '$key' not found in $file" >&2
+        echo "Error: Key '$key' not found in $json_file" >&2
         return $FAIL
     fi
 
@@ -41,12 +41,25 @@ get_freecad_python_path() {
         value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
     fi
     
-    if [ -z "$value" ]; then
+    echo "$value"
+    return $SUCCESS
+}
+
+# DESCRIPTION: Function to extract FreeCAD Python path from config file
+    # USAGE: `PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL`
+get_freecad_python_path() {
+    local config_file="$1"
+    local key="freecad-python-instance-path"
+
+    # Get python_path from config file
+    local python_path=$(get_json_value_from_key "$config_file" "$key") || return $FAIL
+    
+    if [ -z "$python_path" ]; then
         echo "Error: Python path is empty" >&2
         return $FAIL
     fi
     
-    echo "$value"
+    echo "$python_path"
     return $SUCCESS
 }
 
@@ -55,42 +68,61 @@ get_freecad_python_path() {
     # `REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL`
     # `if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then echo "Locks required"; elif [ "$REQUIRE_LOCKS" == "$FALSE" ]; then echo "Locks not required"; fi`
 get_require_locks_bool() {
-    local file=$1
+    local config_file=$1
     local key="require-lock-to-modify-FreeCAD-files"
     
-    # Find the line containing the key
-    local line=$(grep "\"$key\"" "$file")
-    if [ -z "$line" ]; then
-        echo "Error: Key '$key' not found in $file" >&2
-        return $FAIL
-    fi
+    # Get require_locks value from config file
+    local require_locks_value=$(get_json_value_from_key "$config_file" "$key") || return $FAIL
     
-    # Extract value after : (stops at , or } for simple cases)
-    local value=$(echo "$line" | sed 's/.*"'"$key"'": \([^,}]*\).*/\1/')
-    
-    # Strip surrounding quotes if it's a string (though booleans shouldn't have quotes)
-    if [[ $value =~ ^\".*\"$ ]]; then
-        value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
-    fi
-    
-    if [ -z "$value" ]; then
+    if [ -z "$require_locks_value" ]; then
         echo "Error: Require locks value is empty" >&2
         return $FAIL
     fi
     
     # Check if value matches JSON boolean syntax
-    if [ "$value" = "true" ]; then
+    if [ "$require_locks_value" = "true" ]; then
         # echo "DEBUG: REQUIRE LOCKS = TRUE" >&2
         echo $TRUE
         return $SUCCESS
 
-    elif [ "$value" = "false" ]; then
+    elif [ "$require_locks_value" = "false" ]; then
         # echo "DEBUG: REQUIRE LOCKS = FALSE" >&2
         echo $FALSE
         return $SUCCESS
         
     else
-        echo "Error: Value '$value' does not match JSON boolean syntax 'true' or 'false'" >&2
+        echo "Error: Value '$require_locks_value' does not match JSON boolean syntax 'true' or 'false'" >&2
+        return $FAIL
+    fi
+}
+
+# DESCRIPTION: Function to extract require-GitCAD-activation boolean from config file
+# USAGE:
+    # `REQUIRE_GITCAD=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL`
+    # `if [ "$REQUIRE_GITCAD" == "$TRUE" ]; then echo "GitCAD activation required"; elif [ "$REQUIRE_GITCAD" == "$FALSE" ]; then echo "GitCAD activation not required"; fi`
+get_require_gitcad_activation_bool() {
+    local config_file=$1
+    local key="require-GitCAD-activation"
+    
+    # Get require_activation_value value from config file
+    local require_activation_value=$(get_json_value_from_key "$config_file" "$key") || return $FAIL
+    
+    if [ -z "$require_activation_value" ]; then
+        echo "Error: Require GitCAD activation value is empty" >&2
+        return $FAIL
+    fi
+    
+    # Check if value matches JSON boolean syntax
+    if [ "$require_activation_value" = "true" ]; then
+        echo $TRUE
+        return $SUCCESS
+
+    elif [ "$require_activation_value" = "false" ]; then
+        echo $FALSE
+        return $SUCCESS
+        
+    else
+        echo "Error: Value '$require_activation_value' does not match JSON boolean syntax 'true' or 'false'" >&2
         return $FAIL
     fi
 }
@@ -270,12 +302,12 @@ dir_has_changes() {
     local new_sha="$3"
     
     if git diff-tree --no-commit-id --name-only -r "$old_sha" "$new_sha" | grep -q "^$dir_path/"; then
-        # echo "DEBUG: '$$dir_path/' HAS changes" >&2
+        # echo "DEBUG: '$dir_path/' HAS changes" >&2
         echo $TRUE
         return $SUCCESS
 
     else
-        # echo "DEBUG: '$$dir_path/' has NO changes" >&2
+        # echo "DEBUG: '$dir_path/' has NO changes" >&2
         echo $FALSE
         return $SUCCESS
     fi
@@ -288,4 +320,13 @@ dir_has_changes() {
 if [ -f "$CONFIG_FILE" ]; then
     PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
     REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL
+    # REQUIRE_GITCAD_ACTIVATION=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL
+
+    # if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+    #     if [ -z "$GITCAD_ACTIVATED" ]; then
+    #         echo "Error: GitCAD activation is required but not active." >&2
+    #         echo "Please activate GitCAD by running: source FreeCAD_Automation/activate.sh" >&2
+    #         exit $FAIL
+    #     fi
+    # fi
 fi

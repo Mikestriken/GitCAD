@@ -61,16 +61,31 @@ if [ -f "$changefile_path" ]; then
     fi
 fi
 
-# $EXPORT_ENABLED is an environment variable set by the alias `git fadd`
-if [ -n "$EXPORT_ENABLED" ]; then
-    :
+if [ -n "$GITCAD_ACTIVATED" ]; then
+    # $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when activated via `source FreeCAD_Automation/activate.sh`
+    if [ "$GIT_COMMAND" = "add" ]; then
+        :
+    
+    elif [ "$GIT_COMMAND" = "checkout" ]; then
+        :
+        cat /dev/null
+        exit $SUCCESS
+    fi
 
-# If none of the above, the clean filter should be disabled and simply show the file as empty.
+# If GitCAD is not activated the user must then use the git aliases.
 else
-    echo "WARNING: Export flag not set. Modification for '$1' cleared. Run \`git fexport\` to manually export the file if that was your intention. Use \`git fadd\` instead of \`git add\` next time to set the export flag" >&2
-    cat /dev/null
-    exit $SUCCESS
+    # $EXPORT_ENABLED is an environment variable set by the alias `git fadd`
+    if [ -n "$EXPORT_ENABLED" ]; then
+        :
+    
+    # If none of the above, the clean filter should be disabled and simply show the file as empty.
+    else
+        echo "WARNING: Export flag not set. Modification for '$1' cleared. Run \`git fexport\` to manually export the file if that was your intention. Use \`git fadd\` instead of \`git add\` next time to set the export flag (or activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands)" >&2
+        cat /dev/null
+        exit $SUCCESS
+    fi
 fi
+
 
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file

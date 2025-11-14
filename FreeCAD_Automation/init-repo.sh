@@ -44,7 +44,11 @@ echo "                                    Create Config File"
 echo "=============================================================================================="
 DEFAULT_CONFIG='{
     "freecad-python-instance-path": "",
+
     "require-lock-to-modify-FreeCAD-files": true,
+
+    "require-GitCAD-activation": false,
+    
     "include-thumbnails": true,
 
     "uncompressed-directory-structure": {
@@ -103,8 +107,12 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 cd "$GIT_ROOT"
 
 # Import code used in this script
+export GITCAD_ACTIVATED="not really lol" # Note: Suppress crash from sourcing the functions file without activating GitCAD
+
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
+
+unset GITCAD_ACTIVATED
 
 # Extract Python path
 echo "Extracted Python path: $PYTHON_PATH"
@@ -430,7 +438,7 @@ setup_git_alias() {
 }
 
 setup_git_alias "fcmod" "!bash FreeCAD_Automation/FCStdClearModification.sh" "Clears passed FCStd file modification making git think it's empty."
-setup_git_alias "fadd" "!EXPORT_ENABLED=1 git add" "Allows FCStd clean filter to export \`.FCStd\` files."
+setup_git_alias "fadd" "!EXPORT_ENABLED=$TRUE git add" "Allows FCStd clean filter to export \`.FCStd\` files."
 setup_git_alias "fco" "!bash FreeCAD_Automation/coFCStdFiles.sh \"\${GIT_PREFIX}\"" "Adds \`git fco\` as alias to run coFCStdFiles.sh"
 setup_git_alias "lock" "!bash FreeCAD_Automation/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh"
 setup_git_alias "unlock" "!bash FreeCAD_Automation/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh"
