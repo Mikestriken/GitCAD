@@ -431,8 +431,8 @@ test_pre_commit_hook() {
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
-        echo "TEST: BYPASS_LOCK=1 git fadd \`AssemblyExample.FCStd\`" >&2
-        assert_command_succeeds "BYPASS_LOCK=1 git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
+        echo "TEST: BYPASS_LOCK=$TRUE git fadd \`AssemblyExample.FCStd\`" >&2
+        assert_command_succeeds "BYPASS_LOCK=$TRUE git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
     else
         echo "TEST: git fadd \`AssemblyExample.FCStd\` (no lock required)" >&2
         assert_command_succeeds "git fadd $TEST_DIR/AssemblyExample.FCStd"; echo

@@ -5,7 +5,7 @@
 # ==============================================================================================
 # Script to make git see a .FCStd file as empty (despite it containing data).
 # If the file is already empty then to git it will show as not having any modifications in the working directory.
-# First it makes sure there are no added .FCStd files then it calls `RESET_MOD=1 git add` to clear the modification.
+# First it makes sure there are no added .FCStd files then it calls `RESET_MOD=$TRUE git add` to clear the modification.
 
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
@@ -34,4 +34,4 @@ fi
 # ==============================================================================================
 #                              Clear Modifications For Specified Files
 # ==============================================================================================
-RESET_MOD=1 git add "$@"
+RESET_MOD=$TRUE git add "$@"

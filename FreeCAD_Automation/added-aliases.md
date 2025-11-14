@@ -1,9 +1,9 @@
 ## Git Aliases
 ### `git fadd`
-Sets the `EXPORT_ENABLED=1` environment variable flag when calling `git add`. This allows the FCStd clean filter to export `.FCStd` files.
+Sets the `EXPORT_ENABLED=$TRUE` environment variable flag when calling `git add`. This allows the FCStd clean filter to export `.FCStd` files.
 Git sometimes sneakily calls the clean filter when exporting is not intended, this is a guard to make sure `.FCStd` files are ONLY exported when the user explicitly expects it.
 
-*Behind the scenes all this does is call `EXPORT_ENABLED=1 git add`*
+*Behind the scenes all this does is call `EXPORT_ENABLED=$TRUE git add`*
 
 Usage: `git fadd path/to/file.FCStd` (same as `git add`)
 
@@ -71,7 +71,7 @@ The `.FCStd` file will be checked out as empty without importing from the uncomp
 ### `git fcmod`
 Manually tells git to observe a `.FCStd` file as empty (unmodified). Unfortunately to do this it will first restore any currently staged (added) `.FCStd` files.
 
-*Behind the scenes all this does is call `git restore --staged $STAGED_FCSTD_FILES` then `RESET_MOD=1 git add [ARGS]`*
+*Behind the scenes all this does is call `git restore --staged $STAGED_FCSTD_FILES` then `RESET_MOD=$TRUE git add [ARGS]`*
 
 Usage: `git fcmod path/to/file.FCStd` (same as `git add`)
 
