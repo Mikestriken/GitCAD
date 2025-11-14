@@ -264,9 +264,9 @@ confirm_user() {
 
 git_add() {
     if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
-        assert_command_succeeds "git add \"$@\""
+        git add "$@"
     else
-        assert_command_succeeds "git fadd \"$@\""
+        git fadd "$@"
     fi
 }
 
@@ -290,20 +290,20 @@ test_sandbox() {
     assert_command_succeeds "rm -rf FreeCAD_Automation/tests/uncompressed/"; echo
 
     echo "TEST: \`git_add\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd" > /dev/null; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\"" > /dev/null; echo
 
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
-    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_sandbox"; exit $FAIL; }
     echo "TEST: Assembly_dir_path=$Assembly_dir_path" >&2
     assert_dir_exists "$Assembly_dir_path"; echo
     local BIM_dir_path
-    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_sandbox"; exit $FAIL; }
     echo "TEST: BIM_dir_path=$BIM_dir_path" >&2
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
-    git_add "$Assembly_dir_path" "$BIM_dir_path"; echo
+    assert_command_succeeds "git_add \"$Assembly_dir_path\" \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial test commit\" > /dev/null"; echo
@@ -321,13 +321,13 @@ test_sandbox() {
         await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
         echo "TEST: git_add \`AssemblyExample.FCStd\` ($i)" >&2
-        git_add "$TEST_DIR/AssemblyExample.FCStd"; echo
+        assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
         echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git_add\`(ed) ($i)" >&2
         assert_dir_has_changes "$Assembly_dir_path"; echo
 
         echo "TEST: git_add get_FCStd_dir for \`AssemblyExample.FCStd\` ($i)" >&2
-        git_add "$Assembly_dir_path"; echo
+        assert_command_succeeds "git_add \"$Assembly_dir_path\""; echo
 
         echo "TEST: git commit -m \"active_test commit $i\" ($i)" >&2
         assert_command_succeeds "git commit -m \"active_test commit $i\""; echo
@@ -357,7 +357,7 @@ test_FCStd_filter() {
     assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: \`git_add\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd" > /dev/null; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\" > /dev/null"; echo
 
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
@@ -366,7 +366,7 @@ test_FCStd_filter() {
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    git_add "$FCStd_dir_path" > /dev/null; echo
+    assert_command_succeeds "git_add \"$FCStd_dir_path\" > /dev/null"; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial active_test commit\" > /dev/null"; echo
@@ -400,7 +400,7 @@ test_FCStd_filter() {
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git_add \`AssemblyExample.FCStd\`" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git_add\`(ed)" >&2
     assert_dir_has_changes "$FCStd_dir_path"; echo
@@ -424,7 +424,7 @@ test_pre_commit_hook() {
     assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: \`git_add\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
@@ -433,7 +433,7 @@ test_pre_commit_hook() {
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    git_add "$FCStd_dir_path"; echo
+    assert_command_succeeds "git_add \"$FCStd_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
@@ -454,20 +454,20 @@ test_pre_commit_hook() {
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         echo "TEST: BYPASS_LOCK=$TRUE git_add \`AssemblyExample.FCStd\`" >&2
         if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
-            assert_command_succeeds "BYPASS_LOCK=$TRUE git add $TEST_DIR/AssemblyExample.FCStd"; echo
+            assert_command_succeeds "BYPASS_LOCK=$TRUE git add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
         else
-            assert_command_succeeds "BYPASS_LOCK=$TRUE git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
+            assert_command_succeeds "BYPASS_LOCK=$TRUE git fadd \"$TEST_DIR/AssemblyExample.FCStd\""; echo
         fi
     else
         echo "TEST: git_add \`AssemblyExample.FCStd\` (no lock required)" >&2
-        git_add "$TEST_DIR/AssemblyExample.FCStd"; echo
+        assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     fi
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git_add\`(ed)" >&2
     assert_dir_has_changes "$FCStd_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    git_add "$FCStd_dir_path"; echo
+    assert_command_succeeds "git_add \"$FCStd_dir_path\""; echo
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         echo "TEST: git commit -m \"active_test commit that should error, no lock\" (expect error)" >&2
@@ -494,7 +494,7 @@ test_pre_push_hook() {
     echo
 
     echo "TEST: \`git_add\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
@@ -507,7 +507,7 @@ test_pre_push_hook() {
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
-    git_add "$Assembly_dir_path" "$BIM_dir_path"; echo
+    assert_command_succeeds "git_add \"$Assembly_dir_path\" \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
@@ -535,13 +535,13 @@ test_pre_push_hook() {
         await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
         echo "TEST: 2x git_add \`AssemblyExample.FCStd\` ($i)" >&2
-        git_add "$TEST_DIR/AssemblyExample.FCStd"; echo
+        assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
         echo "TEST: 2x Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git_add\`(ed) ($i)" >&2
         assert_dir_has_changes "$Assembly_dir_path"; echo
 
         echo "TEST: 2x git_add get_FCStd_dir for \`AssemblyExample.FCStd\` ($i)" >&2
-        git_add "$Assembly_dir_path"; echo
+        assert_command_succeeds "git_add \"$Assembly_dir_path\""; echo
 
         echo "TEST: 2x git commit -m \"active_test commit $i\" ($i)" >&2
         assert_command_succeeds "git commit -m \"active_test commit $i\""; echo
@@ -573,13 +573,13 @@ test_pre_push_hook() {
     await_user_modification "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: git_add \`BIMExample.FCStd\`" >&2
-    git_add "$TEST_DIR/BIMExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo "TEST: Assert \`BIMExample.FCStd\` dir has changes that can be \`git_add\`(ed)" >&2
     assert_dir_has_changes "$BIM_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for \`BIMExample.FCStd\`" >&2
-    git_add "$BIM_dir_path"; echo
+    assert_command_succeeds "git_add \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"active_test commit 3\"" >&2
     assert_command_succeeds "git commit -m \"active_test commit 3\""; echo
@@ -619,7 +619,7 @@ test_post_checkout_hook() {
     echo
 
     echo "TEST: \`git_add\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
@@ -632,7 +632,7 @@ test_post_checkout_hook() {
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
-    git_add "$Assembly_dir_path" "$BIM_dir_path"; echo
+    assert_command_succeeds "git_add \"$Assembly_dir_path\" \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
@@ -664,13 +664,13 @@ test_post_checkout_hook() {
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git_add \`AssemblyExample.FCStd\`" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git_add\`(ed)" >&2
     assert_dir_has_changes "$Assembly_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    git_add "$Assembly_dir_path"; echo
+    assert_command_succeeds "git_add \"$Assembly_dir_path\""; echo
 
     echo "TEST: git commit -m \"active_test_branch1 commit 1\"" >&2
     assert_command_succeeds "git commit -m \"active_test_branch1 commit 1\""; echo
@@ -741,7 +741,7 @@ test_stashing() {
     assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: \`git_add\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
@@ -750,7 +750,7 @@ test_stashing() {
     assert_dir_exists "$FCStd_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    git_add "$FCStd_dir_path"; echo
+    assert_command_succeeds "git_add \"$FCStd_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
@@ -772,7 +772,7 @@ test_stashing() {
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git_add \`AssemblyExample.FCStd\`" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert changes to get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     assert_dir_has_changes "$FCStd_dir_path"; echo
@@ -843,7 +843,7 @@ test_post_merge_hook() {
     echo
 
     echo "TEST: \`git_add\` \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` (files copied during setup)" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd" "$TEST_DIR/BIMExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo "TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
@@ -856,7 +856,7 @@ test_post_merge_hook() {
     assert_dir_exists "$BIM_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
-    git_add "$Assembly_dir_path" "$BIM_dir_path"; echo
+    assert_command_succeeds "git_add \"$Assembly_dir_path\" \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"initial active_test commit\"" >&2
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
@@ -895,13 +895,13 @@ test_post_merge_hook() {
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
     echo "TEST: git_add \`AssemblyExample.FCStd\`" >&2
-    git_add "$TEST_DIR/AssemblyExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git_add\`(ed)" >&2
     assert_dir_has_changes "$Assembly_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
-    git_add "$Assembly_dir_path"; echo
+    assert_command_succeeds "git_add \"$Assembly_dir_path\""; echo
 
     echo "TEST: git commit -m \"active_test commit 1\"" >&2
     assert_command_succeeds "git commit -m \"active_test commit 1\""; echo
@@ -946,13 +946,13 @@ test_post_merge_hook() {
     await_user_modification "$TEST_DIR/BIMExample.FCStd"; echo
 
     echo "TEST: git_add \`BIMExample.FCStd\`" >&2
-    git_add "$TEST_DIR/BIMExample.FCStd"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo "TEST: Assert \`BIMExample.FCStd\` dir has changes that can be \`git_add\`(ed)" >&2
     assert_dir_has_changes "$BIM_dir_path"; echo
 
     echo "TEST: git_add get_FCStd_dir for \`BIMExample.FCStd\`" >&2
-    git_add "$BIM_dir_path"; echo
+    assert_command_succeeds "git_add \"$BIM_dir_path\""; echo
 
     echo "TEST: git commit -m \"active_test commit 1b\"" >&2
     assert_command_succeeds "git commit -m \"active_test commit 1b\""; echo
@@ -1004,7 +1004,7 @@ test_post_merge_hook() {
     assert_command_succeeds "git fstash pop"; echo
 
     echo "TEST: git_add \`$TEST_DIR\`" >&2
-    git_add "$TEST_DIR"; echo
+    assert_command_succeeds "git_add \"$TEST_DIR\""; echo
 
     echo "TEST: git commit -m \"active_test commit 1b\"" >&2
     assert_command_succeeds "git commit -m \"active_test commit 1b\""; echo
