@@ -67,7 +67,7 @@ if [ -n "$EXPORT_ENABLED" ]; then
 
 # If none of the above, the clean filter should be disabled and simply show the file as empty.
 else
-    # echo "WARNING: Export flag not set, use \`git fadd\` instead of \`git add\` to set the flag." >&2
+    echo "WARNING: Export flag not set. Modification for '$1' cleared. Run \`git fexport\` to manually export the file if that was your intention. Use \`git fadd\` instead of \`git add\` next time to set the export flag" >&2
     cat /dev/null
     exit $SUCCESS
 fi
