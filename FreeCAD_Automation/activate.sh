@@ -16,8 +16,19 @@ FALSE=1
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
+# Check if inside a Git repository
+if ! git rev-parse --git-dir > /dev/null; then
+    echo "Error: Not inside a Git repository" >&2
+    exit $FAIL
+fi
+
 # Store the repository root
-export GITCAD_REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    gitcad_repo_root="$(git rev-parse --show-toplevel 2>/dev/null)"
+    export GITCAD_REPO_ROOT="$(echo "$gitcad_repo_root" | sed -E 's#^([A-Za-z]):/#/\L\1/#')" # Note: Convert drive letters IE `D:/` to `/d/`
+else
+    export GITCAD_REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+fi
 
 if [ -z "$GITCAD_REPO_ROOT" ]; then
     echo "Error: Not in a git repository" >&2
