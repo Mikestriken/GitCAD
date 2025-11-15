@@ -90,7 +90,7 @@ if ! git config --get user.name > /dev/null || ! git config --get user.email > /
     exit 1 # 1=$FAIL
 fi
 
-# Check if inside a Git repository and ensure working dir is the root of the repo
+# Check if inside a Git repository
 if ! git rev-parse --git-dir > /dev/null; then
     echo "Error: Not inside a Git repository" >&2
     exit 1 # 1=$FAIL
