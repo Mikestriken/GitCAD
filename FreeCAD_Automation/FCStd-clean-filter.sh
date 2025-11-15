@@ -55,7 +55,7 @@ if [ -f "$changefile_path" ]; then
     changefile_modification_time=$(stat -c %Y "$changefile_path" 2>/dev/null || stat -f %m "$changefile_path" 2>/dev/null)
     
     if [ "$changefile_modification_time" -ge "$FCStd_file_modification_time" ]; then
-        # echo "WARNING: \`$1\` already exported, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: \`$1\` already exported, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat /dev/null
         exit $SUCCESS
     fi
