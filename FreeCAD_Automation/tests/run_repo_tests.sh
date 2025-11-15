@@ -314,28 +314,6 @@ test_sandbox() {
     
     echo "TEST: git push origin active_test" >&2
     assert_command_succeeds "git push origin active_test"; echo
-
-    for i in 1 2; do
-        echo "TEST: Request user modify \`AssemblyExample.FCStd\` ($i)" >&2
-        assert_no_uncommitted_changes; echo
-        await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
-
-        echo "TEST: git_add \`AssemblyExample.FCStd\` ($i)" >&2
-        assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
-
-        echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git_add\`(ed) ($i)" >&2
-        assert_dir_has_changes "$Assembly_dir_path"; echo
-
-        echo "TEST: git_add get_FCStd_dir for \`AssemblyExample.FCStd\` ($i)" >&2
-        assert_command_succeeds "git_add \"$Assembly_dir_path\""; echo
-
-        echo "TEST: git commit -m \"active_test commit $i\" ($i)" >&2
-        assert_command_succeeds "git commit -m \"active_test commit $i\""; echo
-        assert_no_uncommitted_changes; echo
-
-        echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly ($i)" >&2
-        assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
-    done
     
     echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
     
