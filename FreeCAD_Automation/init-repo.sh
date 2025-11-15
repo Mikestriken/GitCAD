@@ -76,7 +76,7 @@ if [ ! -f "FreeCAD_Automation/config.json" ]; then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> USER ACTION REQUESTED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >&2
     echo "1. Please define 'freecad-python-instance-path' key in config.json" >&2
     echo "2. Then Re-Run This Script" >&2
-    exit $FAIL
+    exit 1 # 1=$FAIL
 fi
 
 echo "Config already exists."
@@ -87,19 +87,19 @@ echo "==========================================================================
 # Check git user.name and user.email set
 if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
     echo "git config user.name or user.email not set!" >&2
-    exit 1
+    exit 1 # 1=$FAIL
 fi
 
 # Check if inside a Git repository and ensure working dir is the root of the repo
 if ! git rev-parse --git-dir > /dev/null; then
     echo "Error: Not inside a Git repository" >&2
-    exit 1
+    exit 1 # 1=$FAIL
 fi
 
 # Check if git-lfs is installed
 if ! command -v git-lfs >/dev/null; then
     echo "Error: git-lfs is not installed" >&2
-    exit 1
+    exit 1 # 1=$FAIL
 fi
 echo "git-lfs is installed"
 
