@@ -32,4 +32,5 @@ case $1 in
     GIT_COMMAND=$1 "$REAL_GIT" "$@"
     ;;
 esac
-exit 0 # 0=$SUCCESS
+
+exit $?
