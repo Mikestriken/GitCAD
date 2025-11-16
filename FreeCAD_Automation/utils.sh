@@ -175,6 +175,24 @@ make_writable() {
     return $SUCCESS
 }
 
+# DESCRIPTION: Function to get the uncompressed directory path for a .FCStd file
+# USAGE: `FCStd_dir_path=$(get_FCStd_dir "path/to/file.FCStd") || exit $FAIL`
+get_FCStd_dir() {
+    local FCStd_file_path="$1"
+
+    # Get the lockfile path (which gives us the directory structure)
+    local FCStd_dir_path
+    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
+        echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
+        return $FAIL
+    }
+
+    # Return the directory path (parent of lockfile)
+    echo "$FCStd_dir_path" || return $FAIL
+
+    return $SUCCESS
+}
+
 # DESCRIPTION: Function to check if FCStd file has valid lock. Returns $TRUE (0) if valid (no lock required or lock held), $FALSE (1) if invalid (lock required but not held)
 # USAGE:
     # `FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "path/to/file.FCStd") || exit $FAIL`
@@ -202,10 +220,7 @@ FCStd_file_has_valid_lock() {
     # File is tracked, get the .lockfile path
     local FCStd_dir_path
     local lockfile_path
-    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
-        echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
-        return $FAIL
-    }
+    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
     lockfile_path="$FCStd_dir_path/.lockfile"
 
     # Lockfile not tracked by git (new export), no lock needed (valid lock)
@@ -237,24 +252,6 @@ FCStd_file_has_valid_lock() {
         echo $TRUE
         return $SUCCESS
     fi
-}
-
-# DESCRIPTION: Function to get the uncompressed directory path for a .FCStd file
-# USAGE: `FCStd_dir_path=$(get_FCStd_dir "path/to/file.FCStd") || exit $FAIL`
-get_FCStd_dir() {
-    local FCStd_file_path="$1"
-
-    # Get the lockfile path (which gives us the directory structure)
-    local FCStd_dir_path
-    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
-        echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
-        return $FAIL
-    }
-
-    # Return the directory path (parent of lockfile)
-    echo "$FCStd_dir_path" || return $FAIL
-
-    return $SUCCESS
 }
 
 # DESCRIPTION: Function to get the .FCStd file path from its uncompressed directory's .changefile, relative to repo root

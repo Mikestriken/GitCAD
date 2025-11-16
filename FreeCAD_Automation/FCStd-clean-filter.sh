@@ -44,10 +44,7 @@ fi
     # If `.changefile` is newer, don't export.
     # If `.changefile` is older, then export.
     # If `.changefile` doesn't exist then export.
-FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$1")") || {
-    echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
-    exit $FAIL
-}
+FCStd_dir_path=$(get_FCStd_dir "$1") || exit $FAIL
 changefile_path="$FCStd_dir_path/.changefile"
 
 if [ -f "$changefile_path" ]; then
