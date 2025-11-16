@@ -15,4 +15,19 @@ fi
 # ==============================================================================================
 #                     Call Real `git.exe` With GIT_COMMAND Environment Variable
 # ==============================================================================================
-GIT_COMMAND=$1 "$REAL_GIT" "$@"
+case $1 in
+  "checkout")
+    # ToDo: Add checkout refspec to env variable for post-checkout to use during file checkout
+    GIT_COMMAND=$1 "$REAL_GIT" "$@"
+    ;;
+  "reset")
+    GIT_COMMAND=$1 bash FreeCAD_Automation/git_aliases/git-reset-and-sync-FCStd-files.sh "$@"
+    ;;
+  "stash")
+    GIT_COMMAND=$1 bash FreeCAD_Automation/git_aliases/git-stash-and-sync-FCStd-files.sh "$@"
+    ;;
+  *)
+    GIT_COMMAND=$1 "$REAL_GIT" "$@"
+    ;;
+esac
+exit 0 # 0=$SUCCESS
