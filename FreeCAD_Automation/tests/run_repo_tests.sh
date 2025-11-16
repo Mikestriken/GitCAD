@@ -83,8 +83,8 @@ tearDown() {
     # Clear working dir changes
     git reset --hard >/dev/null 2>&1
 
-    if ! git fstash | grep -q "No local changes to save"; then # Stash any leftover changes, if stash successful, drop the stashed changes
-        git fstash drop stash@{0}
+    if ! git_stash | grep -q "No local changes to save"; then # Stash any leftover changes, if stash successful, drop the stashed changes
+        git_stash drop stash@{0}
     fi
     
     git checkout main > /dev/null
@@ -267,6 +267,22 @@ git_add() {
         git add "$@"
     else
         git fadd "$@"
+    fi
+}
+
+git_reset() {
+    if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+        git reset "$@"
+    else
+        git freset "$@"
+    fi
+}
+
+git_stash() {
+    if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+        git stash "$@"
+    else
+        git fstash "$@"
     fi
 }
 
@@ -755,8 +771,8 @@ test_stashing() {
     echo "TEST: Assert changes to get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     assert_dir_has_changes "$FCStd_dir_path"; echo
 
-    echo "TEST: git fstash the changes" >&2
-    assert_command_succeeds "git fstash"; echo
+    echo "TEST: git_stash the changes" >&2
+    assert_command_succeeds "git_stash"; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
@@ -782,9 +798,9 @@ test_stashing() {
         echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-        echo "TEST: git fstash pop -- should fail need lock to modify AssemblyExample.FCStd" >&2
+        echo "TEST: git_stash pop -- should fail need lock to modify AssemblyExample.FCStd" >&2
         assert_no_uncommitted_changes; echo
-        assert_command_fails "git fstash pop"; echo
+        assert_command_fails "git_stash pop"; echo
         assert_no_uncommitted_changes; echo
 
         echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
@@ -798,9 +814,9 @@ test_stashing() {
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    echo "TEST: git fstash pop" >&2
+    echo "TEST: git_stash pop" >&2
     assert_no_uncommitted_changes; echo
-    assert_command_succeeds "git fstash pop"; echo
+    assert_command_succeeds "git_stash pop"; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
@@ -889,8 +905,8 @@ test_post_merge_hook() {
     assert_command_succeeds "git push origin active_test"; echo
     assert_no_uncommitted_changes; echo
 
-    echo "TEST: git freset --hard active_test^" >&2
-    assert_command_succeeds "git freset --hard active_test^"; echo
+    echo "TEST: git_reset --hard active_test^" >&2
+    assert_command_succeeds "git_reset --hard active_test^"; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
@@ -957,15 +973,15 @@ test_post_merge_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
-    echo "TEST: git freset --soft active_test^" >&2
-    assert_command_succeeds "git freset --soft active_test^"; echo
+    echo "TEST: git_reset --soft active_test^" >&2
+    assert_command_succeeds "git_reset --soft active_test^"; echo
 
-    echo "TEST: git fstash" >&2
-    assert_command_succeeds "git fstash"; echo
+    echo "TEST: git_stash" >&2
+    assert_command_succeeds "git_stash"; echo
     assert_no_uncommitted_changes; echo
 
-    echo "TEST: git freset --hard active_test^" >&2
-    assert_command_succeeds "git freset --hard active_test^"; echo
+    echo "TEST: git_reset --hard active_test^" >&2
+    assert_command_succeeds "git_reset --hard active_test^"; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Ask user to confirm \`BIMExample.FCStd\` changes reverted" >&2
@@ -977,9 +993,9 @@ test_post_merge_hook() {
     echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
     assert_command_succeeds "git update-ref refs/remotes/origin/active_test active_test"; echo
 
-    echo "TEST: git fstash pop" >&2
+    echo "TEST: git_stash pop" >&2
     assert_no_uncommitted_changes; echo
-    assert_command_succeeds "git fstash pop"; echo
+    assert_command_succeeds "git_stash pop"; echo
 
     echo "TEST: git_add \`$TEST_DIR\`" >&2
     assert_command_succeeds "git_add \"$TEST_DIR\""; echo
