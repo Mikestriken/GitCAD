@@ -1,4 +1,5 @@
 #!/bin/bash
+# echo "DEBUG: git-stash-and-sync-FCStd-files trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -13,18 +14,25 @@
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
+# Note: Controlled by "FreeCAD_Automation/activate.sh" and "FreeCAD_Automation/git"
+if [ -n "$GITCAD_ACTIVATED" ]; then
+    git_path="$REAL_GIT"
+else
+    git_path="git"
+fi
+
 if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
     echo "Config file missing or invalid; cannot proceed." >&2
     exit $FAIL
 fi
 
 if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
-    CURRENT_USER=$(git config --get user.name) || {
+    CURRENT_USER=$("$git_path" config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
     }
 
-    CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
+    CURRENT_LOCKS=$("$git_path" lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
         echo "Error: failed to list of active lock info." >&2
         exit $FAIL
     }
@@ -50,7 +58,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
             STASH_REF="stash@{0}"
         fi
         
-        STASHED_CHANGEFILES=$(git stash show --name-only "$STASH_REF" 2>/dev/null | grep -i '\.changefile$' || true)
+        STASHED_CHANGEFILES=$("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i '\.changefile$' || true)
 
         # echo -e "\nDEBUG: checking stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
 
@@ -67,7 +75,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     fi
 
     # Execute git stash pop/apply
-    git stash "$@"
+    "$git_path" stash "$@"
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
@@ -76,8 +84,8 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     fi
 
     # Check for changed lockfiles in the working dir (similar to post-checkout)
-    git update-index --refresh -q >/dev/null 2>&1
-    for changefile in $(git diff-index --name-only HEAD | grep -i '\.changefile$'); do
+    "$git_path" update-index --refresh -q >/dev/null 2>&1
+    for changefile in $("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$'); do
         # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
@@ -90,8 +98,8 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
 
 else
     # Check for uncommitted .FCStd files
-    git update-index --refresh -q >/dev/null 2>&1
-    UNCOMMITTED_FCSTD_FILES=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
+    "$git_path" update-index --refresh -q >/dev/null 2>&1
+    UNCOMMITTED_FCSTD_FILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
     if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
         echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\`" >&2
         exit $FAIL
@@ -100,13 +108,14 @@ else
     # echo "DEBUG: Stashing away or something else..." >&2
     
     # Get modified changefiles before stash
-    git update-index --refresh -q >/dev/null 2>&1
-    BEFORE_STASH_CHANGEFILES=$(git diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
+    "$git_path" update-index --refresh -q >/dev/null 2>&1
+    BEFORE_STASH_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
     
     # echo "DEBUG: retrieved before stash changefiles..." >&2
 
     # Execute git stash
-    git stash "$@" # Note: Sometimes calls clean filter... other times not... really weird....
+    # echo "DEBUG: '$git_path stash $@'" >&2
+    "$git_path" stash "$@" # Note: Sometimes calls clean filter... other times not... really weird....
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
@@ -115,8 +124,8 @@ else
     fi
 
     # Get modified lockfiles after stash
-    git update-index --refresh -q >/dev/null 2>&1
-    AFTER_STASH_CHANGEFILE=$(git diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
+    "$git_path" update-index --refresh -q >/dev/null 2>&1
+    AFTER_STASH_CHANGEFILE=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
 
     # Find files present before stash but not after stash (files that were stashed)
     STASHED_CHANGEFILES=$(comm -23 <(echo "$BEFORE_STASH_CHANGEFILES") <(echo "$AFTER_STASH_CHANGEFILE"))
@@ -133,7 +142,7 @@ else
         }
         echo "SUCCESS" >&2
         
-        git fcmod "$FCStd_file_path"
+        "$git_path" fcmod "$FCStd_file_path"
     done
 fi
 

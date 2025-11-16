@@ -13,6 +13,13 @@
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
+# Note: Controlled by "FreeCAD_Automation/activate.sh" and "FreeCAD_Automation/git"
+if [ -n "$GITCAD_ACTIVATED" ]; then
+    git_path="$REAL_GIT"
+else
+    git_path="git"
+fi
+
 if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
     echo "Config file missing or invalid; cannot proceed." >&2
     exit $FAIL
@@ -22,22 +29,22 @@ fi
 #                                      Execute Git Reset
 # ==============================================================================================
 # Get modified .FCStd files before reset
-git update-index --refresh -q >/dev/null 2>&1
-BEFORE_RESET_MODIFIED_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+"$git_path" update-index --refresh -q >/dev/null 2>&1
+BEFORE_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
 
 # Get modified `.changefile`s before reset
-git update-index --refresh -q >/dev/null 2>&1
-BEFORE_RESET_MODIFIED_CHANGEFILES=$(git diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
+"$git_path" update-index --refresh -q >/dev/null 2>&1
+BEFORE_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
 
 # Get original HEAD before reset
-ORIGINAL_HEAD=$(git rev-parse HEAD) || {
+ORIGINAL_HEAD=$("$git_path" rev-parse HEAD) || {
     echo "Error: Failed to get original HEAD" >&2
     exit $FAIL
 }
 
 # Execute git reset with all arguments
     # Note: Sometimes calls clean filter on linux os.
-git reset "$@"
+"$git_path" reset "$@"
 RESET_RESULT=$?
 
 if [ $RESET_RESULT -ne 0 ]; then
@@ -46,7 +53,7 @@ if [ $RESET_RESULT -ne 0 ]; then
 fi
 
 # Get new HEAD after reset
-NEW_HEAD=$(git rev-parse HEAD) || {
+NEW_HEAD=$("$git_path" rev-parse HEAD) || {
     echo "Error: Failed to get new HEAD" >&2
     exit $FAIL
 }
@@ -55,19 +62,19 @@ NEW_HEAD=$(git rev-parse HEAD) || {
 #                           Update .FCStd files with uncompressed files
 # ==============================================================================================
 if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
-    CURRENT_USER=$(git config --get user.name) || {
+    CURRENT_USER=$("$git_path" config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
     }
 
-    CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
+    CURRENT_LOCKS=$("$git_path" lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
         echo "Error: failed to list of active lock info." >&2
         exit $FAIL
     }
 fi
 
 # Append files changed between commits to BEFORE_RESET lists
-files_changed_files_between_commits=$(git diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
+files_changed_files_between_commits=$("$git_path" diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
 
 FCStd_files_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.fcstd$')
 changefiles_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.changefile$')
@@ -76,14 +83,14 @@ BEFORE_RESET_MODIFIED_FCSTD=$(echo -e "$BEFORE_RESET_MODIFIED_FCSTD\n$FCStd_file
 BEFORE_RESET_MODIFIED_CHANGEFILES=$(echo -e "$BEFORE_RESET_MODIFIED_CHANGEFILES\n$changefiles_changed_between_commits" | sort | uniq)
 
 # Filter to list of valid files to process
-git update-index --refresh -q >/dev/null 2>&1
-AFTER_RESET_MODIFIED_FCSTD=$(git diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+"$git_path" update-index --refresh -q >/dev/null 2>&1
+AFTER_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
 
 previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
 # echo "DEBUG: FULL FCStd files to import: '$(echo $previously_modified_FCStd_files_currently_shows_no_modification | xargs)'" >&2
 
-git update-index --refresh -q >/dev/null 2>&1
-AFTER_RESET_MODIFIED_CHANGEFILES=$(git diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
+"$git_path" update-index --refresh -q >/dev/null 2>&1
+AFTER_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
 previously_modified_changefiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_CHANGEFILES") <(echo "$AFTER_RESET_MODIFIED_CHANGEFILES"))
 # echo "DEBUG: FULL .changefile files to import: '$(echo $previously_modified_changefiles_currently_shows_no_modification | xargs)'" >&2
 
@@ -91,7 +98,7 @@ previously_modified_changefiles_currently_shows_no_modification=$(comm -23 <(ech
 FCStd_files_to_process=""
 for FCStd_file_path in $previously_modified_FCStd_files_currently_shows_no_modification; do
     echo -n "DECONFLICTING: '$FCStd_file_path'...." >&2
-    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || continue
+    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$("$git_path" rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || continue
     if echo "$previously_modified_changefiles_currently_shows_no_modification" | grep -q "^$FCStd_dir_path/.changefile$"; then
         echo "REMOVED" >&2
         continue  # Skip, changefile will handle it
@@ -109,7 +116,7 @@ for FCStd_file_path in $FCStd_files_to_process; do
     # echo -e "\nDEBUG: processing FCStd '$FCStd_file_path'...." >&2
 
     # Get lockfile path
-    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
+    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$("$git_path" rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
         echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
         continue
     }
@@ -125,7 +132,7 @@ for FCStd_file_path in $FCStd_files_to_process; do
 
     echo "SUCCESS" >&2
 
-    git fcmod "$FCStd_file_path"
+    "$git_path" fcmod "$FCStd_file_path"
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile_path"; then
@@ -156,7 +163,7 @@ for changefile in $changefiles_to_process; do
 
     echo "SUCCESS" >&2
 
-    git fcmod "$FCStd_file_path"
+    "$git_path" fcmod "$FCStd_file_path"
 
     FCStd_dir_path=$(dirname "$changefile")
     lockfile="$FCStd_dir_path/.lockfile"
