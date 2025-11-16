@@ -21,9 +21,11 @@ case $1 in
     GIT_COMMAND=$1 "$REAL_GIT" "$@"
     ;;
   "reset")
+    shift
     GIT_COMMAND=$1 bash FreeCAD_Automation/git_aliases/git-reset-and-sync-FCStd-files.sh "$@"
     ;;
   "stash")
+    shift
     GIT_COMMAND=$1 bash FreeCAD_Automation/git_aliases/git-stash-and-sync-FCStd-files.sh "$@"
     ;;
   *)
