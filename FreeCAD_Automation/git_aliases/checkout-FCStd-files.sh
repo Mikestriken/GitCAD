@@ -85,6 +85,7 @@ fi
     # This checks out ALL files/patterns (including FCStd files and non-FCStd files)
     # FCStd files will be checked out again later (their uncompressed dirs), but this is fine
     # because we already captured the modification list before this checkout
+echo "DEBUG: Checking out '$@' from commit '$CHECKOUT_COMMIT'" >&2
 "$git_path" checkout "$CHECKOUT_COMMIT" -- "$@" > /dev/null 2>&1  || {
     echo "Error: Failed to checkout files from commit '$CHECKOUT_COMMIT'" >&2
     exit $FAIL
