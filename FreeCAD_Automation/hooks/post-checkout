@@ -106,12 +106,20 @@ elif [ "$3" == "0" ]; then
     
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> If GitCAD Activated <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # Check if GitCAD wrapper is active and has provided checkout info
-            # Note 1: GIT_CHECKOUT_COMMIT, GIT_CHECKOUT_PATTERNS defined in the `FreeCAD_Automation/git` wrapper
+            # Note 1: GIT_CHECKOUT_COMMIT, GIT_CHECKOUT_PATTERNS, CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED defined in the `FreeCAD_Automation/git` wrapper
             # Note 2: GITCAD_ACTIVATED defined in the `FreeCAD_Automation/activate.sh` wrapper init script
     if [ -n "$GITCAD_ACTIVATED" ] && [ -n "$GIT_CHECKOUT_COMMIT" ] && [ -n "$GIT_CHECKOUT_PATTERNS" ]; then
-        echo "DEBUG: Processing file checkout with commit=$GIT_CHECKOUT_COMMIT files=$GIT_CHECKOUT_PATTERNS" >&2
+        echo "DEBUG: Processing file checkout with commit=$GIT_CHECKOUT_COMMIT patterns=$GIT_CHECKOUT_PATTERNS" >&2
         
         IFS=' ' read -ra CHECKOUT_PATTERNS <<< "$GIT_CHECKOUT_PATTERNS" # Convert space-separated string back to array
+        
+        # Determine if this is a HEAD checkout based on whether we received modified changefiles from wrapper
+        IS_HEAD_CHECKOUT=$FALSE
+        if [ -n "$CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED" ]; then
+            IS_HEAD_CHECKOUT=$TRUE
+            echo "DEBUG: HEAD checkout detected (received modified changefiles from wrapper)" >&2
+            echo "DEBUG: Modified changefiles: $(echo $CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED | xargs)" >&2
+        fi
         
         if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
             CURRENT_USER=$(git config --get user.name) || {
@@ -155,48 +163,18 @@ elif [ "$3" == "0" ]; then
         fi
         
         # For every FCStd_file_path matched with patterns, check if the corresponding FCStd_dir_path will change between commits
-            # If checking out HEAD (resetting modified files)
-                # We also need to check if the FCStd_dir_path is modified in the working directory
-            # We'll only checkout dirs for files that will actually be change between commits OR if it's currently modified (HEAD checkout case).
-        HEAD_SHA=$(git rev-parse HEAD)
-        CHECKOUT_SHA=$(git rev-parse "$GIT_CHECKOUT_COMMIT")
-        IS_HEAD_CHECKOUT=$FALSE
-        changefiles_with_modifications_not_yet_committed=""
-        
-        if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
-            echo "DEBUG: Detected HEAD checkout (resetting modified files)" >&2
-            
-            IS_HEAD_CHECKOUT=$TRUE
-            git update-index --refresh -q >/dev/null 2>&1
-
-            changefiles_with_modifications_not_yet_committed=$(git diff-index --name-only HEAD | grep -i '\.changefile$')
-            
-            FCStd_files_with_modifications_not_yet_committed=$(git diff-index --name-only HEAD | grep -i '\.fcstd$')
-            
-            for FCStd_file_path in $FCStd_files_with_modifications_not_yet_committed; do
-                FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
-                changefile_path="$FCStd_dir_path/.changefile"
-
-                if echo "$changefiles_with_modifications_not_yet_committed" | grep -Fxq "$changefile_path"; then
-                    continue
-                else
-                    changefiles_with_modifications_not_yet_committed="$changefiles_with_modifications_not_yet_committed"$'\n'"$changefile_path"
-                fi
-            done
-
-            echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo $changefiles_with_modifications_not_yet_committed | xargs)" >&2
-        fi
-        
+            # We'll only checkout dirs for files that will actually change between commits OR if it's currently modified (HEAD checkout case).
         FCStd_dirs_to_checkout=()
         declare -A FCStd_dir_to_file_dict # Bash Dictionary
         changefiles_changed_between_commits=$(git diff-tree --no-commit-id --name-only -r "$GIT_CHECKOUT_COMMIT" HEAD | grep -i '\.changefile$')
+        
         for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
             echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
             
             FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
             changefile_path="$FCStd_dir_path/.changefile"
             
-            if echo "$changefiles_changed_between_commits" | grep -q "^$changefile_path$" || echo "$changefiles_with_modifications_not_yet_committed" | grep -q "^$changefile_path$"; then
+            if echo "$changefiles_changed_between_commits" | grep -q "^$changefile_path$" || echo "$CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED" | grep -q "^$changefile_path$"; then
                 FCStd_dir_to_file_dict["$FCStd_dir_path"]="$FCStd_file_path"
                 FCStd_dirs_to_checkout+=("$FCStd_dir_path")
                 echo "DEBUG: Added '$FCStd_dir_path' to checkout list (changefile has changes or is modified)" >&2
