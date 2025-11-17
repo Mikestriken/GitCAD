@@ -737,8 +737,8 @@ test_post_checkout_hook() {
         assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
     fi
 
-    echo "TEST: git checkout HEAD -- \"$TEST_DIR/*.FCStd\"" >&2
-    assert_command_succeeds "git checkout HEAD -- \"$TEST_DIR/*.FCStd\""; echo
+    echo "TEST: git_file_checkout HEAD -- \"$TEST_DIR/*.FCStd\"" >&2
+    assert_command_succeeds "git_file_checkout HEAD -- \"$TEST_DIR/*.FCStd\""; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
@@ -752,8 +752,8 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
-    echo "TEST: git checkout active_test -- \"$TEST_DIR/AssemblyExample.FCStd\"" >&2
-    assert_command_succeeds "git checkout active_test -- \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+    echo "TEST: git_file_checkout active_test -- \"$TEST_DIR/AssemblyExample.FCStd\"" >&2
+    assert_command_succeeds "git_file_checkout active_test -- \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
@@ -767,8 +767,8 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
-    echo "TEST: git checkout active_test \"$TEST_DIR/AssemblyExample.FCStd\"" >&2
-    assert_command_succeeds "git checkout active_test \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+    echo "TEST: git_file_checkout active_test \"$TEST_DIR/AssemblyExample.FCStd\"" >&2
+    assert_command_succeeds "git_file_checkout active_test \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
@@ -785,8 +785,8 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`BIMExample.FCStd\` is unchanged (no changes in branch)" >&2
     confirm_user "Please confirm that 'BIMExample.FCStd' is unchanged (no changes were made to it in active_test_branch1)." "test_post_checkout_hook" "$TEST_DIR/BIMExample.FCStd"
 
-    echo "TEST: git checkout active_test -- \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\"" >&2
-    assert_command_succeeds "git checkout active_test -- \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\""; echo
+    echo "TEST: git_file_checkout active_test -- \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\"" >&2
+    assert_command_succeeds "git_file_checkout active_test -- \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\""; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
@@ -800,8 +800,8 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from directory checkout" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from directory checkout." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
-    echo "TEST: git checkout active_test -- \"$TEST_DIR/\"" >&2
-    assert_command_succeeds "git checkout active_test -- \"$TEST_DIR/\""; echo
+    echo "TEST: git_file_checkout active_test -- \"$TEST_DIR/\"" >&2
+    assert_command_succeeds "git_file_checkout active_test -- \"$TEST_DIR/\""; echo
     assert_no_uncommitted_changes; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
