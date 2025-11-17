@@ -17,8 +17,41 @@ fi
 # ==============================================================================================
 case $1 in
   "checkout")
-    # ToDo: Add checkout refspec to env variable for post-checkout to use during file checkout
-    GIT_COMMAND=$1 "$REAL_GIT" "$@"
+    # ToDo: Handle this case when user is cd'd into sub directory
+    # ToDo: Observe outcome when called outside git repo
+    # Parse checkout command to extract commit and files for post-checkout hook
+    shift  # Remove 'checkout' from args
+    
+    # Initialize variables
+    COMMIT=""
+    FILES=()
+    FOUND_SEPARATOR=false
+    
+    # Parse arguments to find commit and files
+    # Supports: git checkout COMMIT -- FILE [FILE ...]
+    #       or: git checkout COMMIT FILE [FILE ...]
+    for arg in "$@"; do
+      if [ "$arg" = "--" ]; then
+        FOUND_SEPARATOR=true
+        continue
+      fi
+      
+      if [ -z "$COMMIT" ] && [ "$FOUND_SEPARATOR" = false ]; then
+        # First arg is the commit
+        COMMIT="$arg"
+      elif [ -n "$COMMIT" ]; then
+        # Subsequent args are files
+        FILES+=("$arg")
+      fi
+    done
+    
+    # Export environment variables for post-checkout hook
+    if [ -n "$COMMIT" ] && [ ${#FILES[@]} -gt 0 ]; then
+      GIT_COMMAND="checkout" GIT_CHECKOUT_COMMIT="$COMMIT" GIT_CHECKOUT_FILES="${FILES[*]}" "$REAL_GIT" checkout "$@"
+    else
+      GIT_COMMAND="checkout" "$REAL_GIT" checkout "$@"
+    fi
+    
     ;;
   "reset")
     shift

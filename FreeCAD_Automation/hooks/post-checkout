@@ -1,5 +1,5 @@
 #!/bin/bash
-# echo "DEBUG: post-checkout hook trap-card triggered!" >&2
+echo "DEBUG: post-checkout hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                         GIT LFS Hooks
 # ==============================================================================================
@@ -22,19 +22,19 @@ fi
 #                                     Pull LFS files
 # ==============================================================================================
 git lfs pull
-# echo "DEBUG: Pulled lfs files" >&2
+echo "DEBUG: Pulled lfs files" >&2
 
 # ==============================================================================================
 #                         Update .FCStd files with uncompressed files
 # ==============================================================================================
 # Note: Rebase logic handled by Post-Rewrite hook. If rebase detected (rebase-merge or rebase-apply dirs exit in .git), skip post-commit hook logic
 if [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; then
-    # echo "DEBUG: Rebase detected, skipping post-checkout hook logic..." >&2
+    echo "DEBUG: Rebase detected, skipping post-checkout hook logic..." >&2
     exit $SUCCESS
 
 # Note, Args: $1=old-head-sha $2=new-head-sha $3=checkout-type (1=branch, 0=file)
 elif [ "$3" == "1" ]; then
-    # echo "DEBUG: Processing Branch Checkout...." >&2
+    echo "DEBUG: Processing Branch Checkout...." >&2
 
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         CURRENT_USER=$(git config --get user.name) || {
@@ -48,16 +48,16 @@ elif [ "$3" == "1" ]; then
         }
     fi
 
-    # echo "DEBUG: diffing <remote sha1>='$1'..'$2'=<local sha1>" >&2
+    echo "DEBUG: diffing <remote sha1>='$1'..'$2'=<local sha1>" >&2
     changed_files=$(git diff-tree --no-commit-id --name-only -r "$1" "$2")
 
     # Get changed `.changefile`s
     changed_changefiles=$(echo "$changed_files" | grep -i '\.changefile$')
 
-    # echo -e "\nDEBUG: checking changed changefiles: '$(echo $changed_changefiles | xargs)'" >&2
+    echo -e "\nDEBUG: checking changed changefiles: '$(echo $changed_changefiles | xargs)'" >&2
 
     for changefile in $changed_changefiles; do
-        # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
@@ -80,20 +80,154 @@ elif [ "$3" == "1" ]; then
             if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
                 # User has lock, set .FCStd file to writable
                 make_writable "$FCStd_file_path"
-                # echo "DEBUG: set '$FCStd_file_path' writable." >&2
+                echo "DEBUG: set '$FCStd_file_path' writable." >&2
             else
                 # User doesn't have lock, set .FCStd file to readonly
                 make_readonly "$FCStd_file_path"
-                # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+                echo "DEBUG: set '$FCStd_file_path' readonly." >&2
             fi
         fi
     done
 
 elif [ "$3" == "0" ]; then
-    # Note: post-checkout hook isn't provided enough information to handle `.FCStd` file checkouts appropriately (what files where checked out and what commit was checked out)
-        # * Use fco.sh instead
-    echo "WARNING: File checkout detected, for .FCStd files use \`git fco\` instead!" >&2
-    :
+    echo "DEBUG: Processing File Checkout...." >&2
+    
+    # Check if GitCAD wrapper is active and has provided checkout info
+        # Note 1: GIT_CHECKOUT_COMMIT, GIT_CHECKOUT_FILES defined in the `FreeCAD_Automation/git` wrapper
+        # Note 2: GITCAD_ACTIVATED defined in the `FreeCAD_Automation/activate.sh` wrapper init script
+    if [ -n "$GITCAD_ACTIVATED" ] && [ -n "$GIT_CHECKOUT_COMMIT" ] && [ -n "$GIT_CHECKOUT_FILES" ]; then
+        echo "DEBUG: Processing file checkout with commit=$GIT_CHECKOUT_COMMIT files=$GIT_CHECKOUT_FILES" >&2
+        
+        # Convert space-separated string back to array
+        IFS=' ' read -ra CHECKOUT_FILES <<< "$GIT_CHECKOUT_FILES"
+        
+        # Get list of changefiles that changed between COMMIT and HEAD
+        changed_changefiles=$(git diff-tree --no-commit-id --name-only -r "$GIT_CHECKOUT_COMMIT" HEAD | grep -i '\.changefile$')
+        
+        if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+            CURRENT_USER=$(git config --get user.name) || {
+                echo "Error: git config user.name not set!" >&2
+                exit $FAIL
+            }
+            
+            CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
+                echo "Error: failed to list of active lock info." >&2
+                exit $FAIL
+            }
+        fi
+        
+        # Collect FCStd files and directories to process
+        declare -A dir_to_file
+        dirs_to_checkout=()
+        
+        for object in "${CHECKOUT_FILES[@]}"; do
+            # Check if it's a directory
+            if [ -d "$object" ]; then
+                dir="$object"
+                echo "DEBUG: Processing directory: $dir" >&2
+                
+                # Find all changefiles in this directory that have changes
+                for changefile in $changed_changefiles; do
+                    # Check if changefile is within the specified directory
+                    if [[ "$changefile" == "$dir"* ]]; then
+                        # Get the FCStd file path from changefile
+                        FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
+                        
+                        # Get the uncompressed directory
+                        FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+                        
+                        dirs_to_checkout+=("$FCStd_dir_path")
+                        dir_to_file["$FCStd_dir_path"]="$FCStd_file_path"
+                    fi
+                done
+                
+            # Check if it's an FCStd file
+            elif [[ "$object" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+                FCStd_file_path="$object"
+                echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
+                
+                # Check if this FCStd_file_path's changefile has changes
+                FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+                changefile_path="$FCStd_dir_path/.changefile"
+                
+                if echo "$changed_changefiles" | grep -q "^$changefile_path$"; then
+                    dirs_to_checkout+=("$FCStd_dir_path")
+                    dir_to_file["$FCStd_dir_path"]="$FCStd_file_path"
+                fi
+            fi
+        done
+        
+        # Remove duplicates from dirs_to_checkout
+        dirs_to_checkout=($(printf '%s\n' "${dirs_to_checkout[@]}" | sort -u))
+        
+        if [ ${#dirs_to_checkout[@]} -eq 0 ]; then
+            echo "DEBUG: No FCStd files with changes to checkout" >&2
+            exit $SUCCESS
+        fi
+        
+        # Checkout the uncompressed directories from the commit
+        echo "DEBUG: Checking out dirs from commit '$GIT_CHECKOUT_COMMIT': ${dirs_to_checkout[*]}" >&2
+        
+        # Store commit hash before unsetting (needed for checkout command and error message)
+        COMMIT_HASH="$GIT_CHECKOUT_COMMIT"
+        
+        # Prevent infinite loop: Unset environment variables before checkout so nested post-checkout won't process
+        unset GIT_CHECKOUT_COMMIT
+        unset GIT_CHECKOUT_FILES
+        
+        git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || {
+            echo "Error: Failed to checkout dirs from commit '$COMMIT_HASH'" >&2
+            exit $FAIL
+        }
+        
+        # Get changed files after checkout
+        # ! Current implementation might not work when doing a file checkout on HEAD
+            # Maybe this could be removed but a `git fcmod` could be called on FCStd file if dir not in changed_files after import
+            # Maybe just replace this with diff-tree and compare HEAD to COMMIT_HASH
+        git update-index --refresh -q >/dev/null 2>&1
+        changed_files=$(git diff-index --name-only HEAD)
+        echo "DEBUG: Changed files AFTER checkout: '$changed_files'" >&2
+        
+        # Import each FCStd file that has directory changes
+        for dir in "${dirs_to_checkout[@]}"; do
+            FCStd_file_path="${dir_to_file[$dir]}"
+            FCStd_dir_path="$dir"
+            
+            if [ -d "$FCStd_dir_path" ] && echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
+                echo -n "IMPORTING: '$FCStd_file_path'...." >&2
+                
+                # Import data to FCStd file
+                "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
+                    echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+                    continue
+                }
+                
+                echo "SUCCESS" >&2
+            else
+                echo "DEBUG: Dir '$FCStd_dir_path' does not exist or has no changes, skipping import for '$FCStd_file_path'" >&2
+                continue
+            fi
+            
+            # Handle locks
+            if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+                FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || continue
+                
+                if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "$FALSE" ]; then
+                    # User doesn't have lock, set .FCStd file to readonly
+                    make_readonly "$FCStd_file_path"
+                    echo "DEBUG: Set '$FCStd_file_path' readonly." >&2
+                else
+                    # User has lock, set .FCStd file to writable
+                    make_writable "$FCStd_file_path"
+                    echo "DEBUG: Set '$FCStd_file_path' writable." >&2
+                fi
+            fi
+        done
+        
+    else
+        # GitCAD not activated or no checkout info available
+        echo "WARNING: File checkout detected, for .FCStd files either activate GitCAD and try again or use \`git fco\` instead!" >&2
+    fi
 else
     # Unknown checkout type
     echo "Unknown checkout type: $3, skipping \`.FCStd\` processing..." >&2
