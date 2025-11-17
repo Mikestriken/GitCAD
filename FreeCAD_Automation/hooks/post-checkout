@@ -52,11 +52,11 @@ elif [ "$3" == "1" ]; then
     changed_files=$(git diff-tree --no-commit-id --name-only -r "$1" "$2")
 
     # Get changed `.changefile`s
-    changed_changefiles=$(echo "$changed_files" | grep -i '\.changefile$')
+    changefiles_changed_between_commits=$(echo "$changed_files" | grep -i '\.changefile$')
 
-    echo -e "\nDEBUG: checking changed changefiles: '$(echo $changed_changefiles | xargs)'" >&2
+    echo -e "\nDEBUG: checking changed changefiles: '$(echo $changefiles_changed_between_commits | xargs)'" >&2
 
-    for changefile in $changed_changefiles; do
+    for changefile in $changefiles_changed_between_commits; do
         echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
@@ -93,16 +93,13 @@ elif [ "$3" == "0" ]; then
     echo "DEBUG: Processing File Checkout...." >&2
     
     # Check if GitCAD wrapper is active and has provided checkout info
-        # Note 1: GIT_CHECKOUT_COMMIT, GIT_CHECKOUT_FILES defined in the `FreeCAD_Automation/git` wrapper
+        # Note 1: GIT_CHECKOUT_COMMIT, GIT_CHECKOUT_PATTERNS defined in the `FreeCAD_Automation/git` wrapper
         # Note 2: GITCAD_ACTIVATED defined in the `FreeCAD_Automation/activate.sh` wrapper init script
-    if [ -n "$GITCAD_ACTIVATED" ] && [ -n "$GIT_CHECKOUT_COMMIT" ] && [ -n "$GIT_CHECKOUT_FILES" ]; then
-        echo "DEBUG: Processing file checkout with commit=$GIT_CHECKOUT_COMMIT files=$GIT_CHECKOUT_FILES" >&2
+    if [ -n "$GITCAD_ACTIVATED" ] && [ -n "$GIT_CHECKOUT_COMMIT" ] && [ -n "$GIT_CHECKOUT_PATTERNS" ]; then
+        echo "DEBUG: Processing file checkout with commit=$GIT_CHECKOUT_COMMIT files=$GIT_CHECKOUT_PATTERNS" >&2
         
         # Convert space-separated string back to array
-        IFS=' ' read -ra CHECKOUT_FILES <<< "$GIT_CHECKOUT_FILES"
-        
-        # Get list of changefiles that changed between COMMIT and HEAD
-        changed_changefiles=$(git diff-tree --no-commit-id --name-only -r "$GIT_CHECKOUT_COMMIT" HEAD | grep -i '\.changefile$')
+        IFS=' ' read -ra CHECKOUT_PATTERNS <<< "$GIT_CHECKOUT_PATTERNS"
         
         if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
             CURRENT_USER=$(git config --get user.name) || {
@@ -116,44 +113,71 @@ elif [ "$3" == "0" ]; then
             }
         fi
         
+        # Expand patterns to actual files using git ls-files
+        MATCHED_FCStd_file_paths=()
+        for pattern in "${CHECKOUT_PATTERNS[@]}"; do
+            echo "DEBUG: Expanding pattern: $pattern" >&2
+            
+            # Check if pattern contains wildcards or is a directory
+            if [[ -d "$pattern" || "$pattern" == *"*"* || "$pattern" == *"?"* ]]; then
+                # It's a wildcard pattern - expand it
+                echo "DEBUG: Pattern contains wildcards" >&2
+                while IFS= read -r file; do
+                    if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+                        MATCHED_FCStd_file_paths+=("$file")
+                    fi
+                done < <(git ls-files "$pattern")
+                
+            # Check if it's an FCStd file
+            elif [[ "$pattern" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+                # It's a direct FCStd file reference
+                echo "DEBUG: Pattern is an FCStd file" >&2
+                MATCHED_FCStd_file_paths+=("$pattern")
+            else
+                echo "DEBUG: Pattern '$pattern' is not an FCStd file, directory, or wildcard..... skipping" >&2
+            fi
+        done
+        
+        # Remove duplicates
+        MATCHED_FCStd_file_paths=($(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u))
+        
+        echo "DEBUG: Expanded files: ${MATCHED_FCStd_file_paths[*]}" >&2
+        
+        if [ ${#MATCHED_FCStd_file_paths[@]} -eq 0 ]; then
+            echo "DEBUG: No FCStd files matched the patterns" >&2
+            exit $SUCCESS
+        fi
+        
         # Collect FCStd files and directories to process
         declare -A dir_to_file
         dirs_to_checkout=()
         
-        for object in "${CHECKOUT_FILES[@]}"; do
-            # Check if it's a directory
-            if [ -d "$object" ]; then
-                dir="$object"
-                echo "DEBUG: Processing directory: $dir" >&2
-                
-                # Find all changefiles in this directory that have changes
-                for changefile in $changed_changefiles; do
-                    # Check if changefile is within the specified directory
-                    if [[ "$changefile" == "$dir"* ]]; then
-                        # Get the FCStd file path from changefile
-                        FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
-                        
-                        # Get the uncompressed directory
-                        FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
-                        
-                        dirs_to_checkout+=("$FCStd_dir_path")
-                        dir_to_file["$FCStd_dir_path"]="$FCStd_file_path"
-                    fi
-                done
-                
-            # Check if it's an FCStd file
-            elif [[ "$object" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
-                FCStd_file_path="$object"
-                echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
-                
-                # Check if this FCStd_file_path's changefile has changes
-                FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
-                changefile_path="$FCStd_dir_path/.changefile"
-                
-                if echo "$changed_changefiles" | grep -q "^$changefile_path$"; then
-                    dirs_to_checkout+=("$FCStd_dir_path")
-                    dir_to_file["$FCStd_dir_path"]="$FCStd_file_path"
-                fi
+        # Get list of changefiles that changed between COMMIT and HEAD
+        changefiles_changed_between_commits=$(git diff-tree --no-commit-id --name-only -r "$GIT_CHECKOUT_COMMIT" HEAD | grep -i '\.changefile$')
+        
+        # Also get list of currently modified changefiles (for HEAD checkout case)
+        # ToDo: Only do `changefiles_with_modifications_not_yet_committed` if checking out HEAD
+            # If Trying to checkout HEAD (compare SHA of HEAD to COMMIT):
+                # 1. Get list of FCStd files matched
+                # 2. If FCStd or its uncompressed dir has modifications => Import after checkout
+                # 3. Clear mod for FCStd.
+        git update-index --refresh -q >/dev/null 2>&1
+        changefiles_with_modifications_not_yet_committed=$(git diff-index --name-only HEAD | grep -i '\.changefile$')
+        
+        for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
+            echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
+            
+            # Check if this FCStd_file_path's changefile has changes
+            FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+            changefile_path="$FCStd_dir_path/.changefile"
+            
+            # Include if changefile has changes between commits OR if it's currently modified (HEAD checkout case)
+            if echo "$changefiles_changed_between_commits" | grep -q "^$changefile_path$" || echo "$changefiles_with_modifications_not_yet_committed" | grep -q "^$changefile_path$"; then
+                dirs_to_checkout+=("$FCStd_dir_path")
+                dir_to_file["$FCStd_dir_path"]="$FCStd_file_path"
+                echo "DEBUG: Added '$FCStd_file_path' to checkout list (changefile has changes or is modified)" >&2
+            else
+                echo "DEBUG: Skipping '$FCStd_file_path' (no changefile changes between $GIT_CHECKOUT_COMMIT and HEAD, and not modified)" >&2
             fi
         done
         
@@ -161,39 +185,40 @@ elif [ "$3" == "0" ]; then
         dirs_to_checkout=($(printf '%s\n' "${dirs_to_checkout[@]}" | sort -u))
         
         if [ ${#dirs_to_checkout[@]} -eq 0 ]; then
-            echo "DEBUG: No FCStd files with changes to checkout" >&2
+            echo "DEBUG: No FCStd files with changefile changes to checkout" >&2
             exit $SUCCESS
         fi
         
         # Checkout the uncompressed directories from the commit
         echo "DEBUG: Checking out dirs from commit '$GIT_CHECKOUT_COMMIT': ${dirs_to_checkout[*]}" >&2
         
-        # Store commit hash before unsetting (needed for checkout command and error message)
-        COMMIT_HASH="$GIT_CHECKOUT_COMMIT"
-        
         # Prevent infinite loop: Unset environment variables before checkout so nested post-checkout won't process
         unset GIT_CHECKOUT_COMMIT
-        unset GIT_CHECKOUT_FILES
+        unset GIT_CHECKOUT_PATTERNS
         
-        git checkout "$COMMIT_HASH" -- "${dirs_to_checkout[@]}" || {
-            echo "Error: Failed to checkout dirs from commit '$COMMIT_HASH'" >&2
+        git checkout "$GIT_CHECKOUT_COMMIT" -- "${dirs_to_checkout[@]}" || {
+            echo "Error: Failed to checkout dirs from commit '$GIT_CHECKOUT_COMMIT'" >&2
             exit $FAIL
         }
         
-        # Get changed files after checkout
-        # ! Current implementation might not work when doing a file checkout on HEAD
-            # Maybe this could be removed but a `git fcmod` could be called on FCStd file if dir not in changed_files after import
-            # Maybe just replace this with diff-tree and compare HEAD to COMMIT_HASH
-        git update-index --refresh -q >/dev/null 2>&1
-        changed_files=$(git diff-index --name-only HEAD)
-        echo "DEBUG: Changed files AFTER checkout: '$changed_files'" >&2
+        # Use diff-tree to compare HEAD to GIT_CHECKOUT_COMMIT for reliable change detection
+        # ToDo: This is supposed to filter down dirs_to_checkout to just a list of dirs that are actually modified. I don't think we need this. It's also coded incorrectly.
+        changed_dirs=$(git diff-tree --no-commit-id --name-only -r HEAD "$GIT_CHECKOUT_COMMIT" | grep -o '^[^/]*/[^/]*/' | sort -u)
+        echo "DEBUG: Changed directories between HEAD and $GIT_CHECKOUT_COMMIT: '$changed_dirs'" >&2
         
-        # Import each FCStd file that has directory changes
+        # Get currently modified directories (for HEAD checkout case)
+        # ToDo: I think this is redundant, if dir was added to dirs_to_checkout this implies that there are changes between the commits.
+        git update-index --refresh -q >/dev/null 2>&1
+        currently_modified_dirs=$(git diff-index --name-only HEAD | grep -o '^[^/]*/[^/]*/' | sort -u)
+        echo "DEBUG: Currently modified directories: '$currently_modified_dirs'" >&2
+        
+        # Import each FCStd file that has directory changes or was previously modified
         for dir in "${dirs_to_checkout[@]}"; do
             FCStd_file_path="${dir_to_file[$dir]}"
             FCStd_dir_path="$dir"
             
-            if [ -d "$FCStd_dir_path" ] && echo "$changed_files" | grep -q "^$FCStd_dir_path/"; then
+            # Check if this directory has changes between commits OR was previously modified
+            if echo "$changed_dirs" | grep -q "^$FCStd_dir_path/" || echo "$currently_modified_dirs" | grep -q "^$FCStd_dir_path/"; then
                 echo -n "IMPORTING: '$FCStd_file_path'...." >&2
                 
                 # Import data to FCStd file
@@ -203,8 +228,18 @@ elif [ "$3" == "0" ]; then
                 }
                 
                 echo "SUCCESS" >&2
+                
+                # Only clear modification flag if directory shows no modifications in working dir after import
+                # ToDo change this to only if commit being checked out is HEAD.
+                git update-index --refresh -q >/dev/null 2>&1
+                if ! git diff-index --name-only HEAD | grep -q "^$FCStd_dir_path/"; then
+                    git fcmod "$FCStd_file_path"
+                    echo "DEBUG: Cleared modification flag for '$FCStd_file_path'" >&2
+                else
+                    echo "DEBUG: Keeping modification flag for '$FCStd_file_path' (dir still has changes)" >&2
+                fi
             else
-                echo "DEBUG: Dir '$FCStd_dir_path' does not exist or has no changes, skipping import for '$FCStd_file_path'" >&2
+                echo "DEBUG: Dir '$FCStd_dir_path' has no changes between HEAD and $GIT_CHECKOUT_COMMIT and was not modified, skipping import for '$FCStd_file_path'" >&2
                 continue
             fi
             
