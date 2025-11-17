@@ -35,14 +35,25 @@ fi
 CALLER_SUBDIR=$1
 shift
 
-# Parse arguments: CHECKOUT_COMMIT FILE [FILE ...]
+# Parse arguments: CHECKOUT_COMMIT FILE [FILE ...] OR -- CHECKOUT_COMMIT FILE [FILE ...]
 if [ $# -lt 2 ]; then
-    echo "Error: Invalid arguments. Usage: fco.sh CHECKOUT_COMMIT FILE [FILE ...]" >&2
+    echo "Error: Invalid arguments. Usage: fco.sh CHECKOUT_COMMIT FILE [FILE ...] OR fco.sh -- CHECKOUT_COMMIT FILE [FILE ...]" >&2
     exit $FAIL
 fi
 
 CHECKOUT_COMMIT=$1
 shift
+
+# Note: In case user uses `git fco CHECKOUT_COMMIT -- FILE [FILE ...]` format
+if [ "$1" = "--" ]; then
+    shift
+    
+    if [ $# -lt 1 ]; then
+        echo "Error: Invalid arguments. Usage: fco.sh CHECKOUT_COMMIT FILE [FILE ...] OR fco.sh -- CHECKOUT_COMMIT FILE [FILE ...]" >&2
+        exit $FAIL
+    fi
+fi
+
 PATTERNS=("$@")
 
 # ==============================================================================================
