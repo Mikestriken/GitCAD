@@ -286,6 +286,14 @@ git_stash() {
     fi
 }
 
+git_file_checkout() {
+    if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+        git checkout "$@"
+    else
+        git fco "$@"
+    fi
+}
+
 # ==============================================================================================
 #                                          Define Tests
 # ==============================================================================================
@@ -298,7 +306,7 @@ test_sandbox() {
 
     echo "TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_FCStd_filter"; exit $FAIL; }
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_sandbox"; exit $FAIL; }
     echo "TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -338,12 +346,13 @@ test_sandbox() {
     return $SUCCESS
 }
 
-test_FCStd_filter() {
-    setup "test_FCStd_filter" || exit $FAIL
+test_FCStd_clean_filter() {
+    # TEST: Initialize
+    setup "test_FCStd_clean_filter" || exit $FAIL
 
     echo "TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_FCStd_filter"; exit $FAIL; }
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_FCStd_clean_filter"; exit $FAIL; }
     echo "TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -355,7 +364,7 @@ test_FCStd_filter() {
 
     echo "TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
-    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_FCStd_filter"; exit $FAIL; }
+    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_FCStd_clean_filter"; exit $FAIL; }
     echo "TEST: FCStd_dir_path=$FCStd_dir_path" >&2
     assert_dir_exists "$FCStd_dir_path"; echo
 
@@ -373,7 +382,9 @@ test_FCStd_filter() {
         echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
         assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
     fi
-
+    
+    
+    # TEST: FCStd Clean filter prevents unlocked add
     echo "TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
     assert_no_uncommitted_changes; echo
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -399,18 +410,19 @@ test_FCStd_filter() {
     echo "TEST: Assert \`AssemblyExample.FCStd\` dir has changes that can be \`git_add\`(ed)" >&2
     assert_dir_has_changes "$FCStd_dir_path"; echo
 
-    tearDown "test_FCStd_filter" || exit $FAIL
+    tearDown "test_FCStd_clean_filter" || exit $FAIL
 
-    echo ">>>>>>>>> TEST 'test_FCStd_filter' PASSED <<<<<<<<<" >&2
+    echo ">>>>>>>>> TEST 'test_FCStd_clean_filter' PASSED <<<<<<<<<" >&2
     return $SUCCESS
 }
 
 test_pre_commit_hook() {
+    # TEST: Initialize
     setup "test_pre_commit_hook" || exit $FAIL
 
     echo "TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_FCStd_filter"; exit $FAIL; }
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_pre_commit_hook"; exit $FAIL; }
     echo "TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -440,7 +452,9 @@ test_pre_commit_hook() {
         echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
         assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
     fi
-
+    
+    
+    # TEST: pre-commit prevents unlocked commit
     echo "TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
     assert_no_uncommitted_changes; echo
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -479,11 +493,12 @@ test_pre_commit_hook() {
 }
 
 test_pre_push_hook() {
+    # TEST: Initialize
     setup "test_pre_push_hook" || exit $FAIL
 
     echo "TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_FCStd_filter"; exit $FAIL; }
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_pre_push_hook"; exit $FAIL; }
     echo "TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -523,6 +538,8 @@ test_pre_push_hook() {
         assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
     fi
 
+    
+    # TEST 1: pre-push checks multiple commits being pushed and ensures user has lock for modifications in all commits
     for i in 1 2; do
         echo "TEST: 2x Request user modify \`AssemblyExample.FCStd\` ($i)" >&2
         assert_no_uncommitted_changes; echo
@@ -545,6 +562,9 @@ test_pre_push_hook() {
         assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
     done
 
+    
+    # TEST 2: git unlock requires --force to unlock unpushed changes (checks all unpushed commits)
+        # Note: TEST 1 still in progress
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias) -- should fail because changes haven't been pushed" >&2
         assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
@@ -604,11 +624,12 @@ test_pre_push_hook() {
 }
 
 test_post_checkout_hook() {
+    # TEST: Initialize
     setup "test_post_checkout_hook" || exit $FAIL
 
     echo "TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_FCStd_filter"; exit $FAIL; }
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_post_checkout_hook"; exit $FAIL; }
     echo "TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -642,6 +663,7 @@ test_post_checkout_hook() {
         assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
     fi
 
+    # TEST: post-checkout hook synchronizes (imports) FCStd files during a branch checkout
     echo "TEST: git checkout -b active_test_branch1" >&2
     assert_command_succeeds "git checkout -b active_test_branch1"; echo
 
@@ -696,14 +718,102 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
-    echo "TEST: git fco active_test_branch1 \`*.FCStd\` -- should fail because regex isn't supported" >&2
-    assert_command_fails "git fco active_test_branch1 \"*.FCStd\""; echo
+    
+    # TEST: git fco / post-checkout hook synchronizes (imports) FCStd files during a file checkout (files specified with wildcards)
+    echo "TEST: git_file_checkout active_test_branch1 -- \`$TEST_DIR/*.FCStd\` (wildcard)" >&2
+    assert_command_succeeds "git_file_checkout active_test_branch1 -- \"$TEST_DIR/*.FCStd\""; echo
 
-    echo "TEST: git fco active_test_branch1 \`AssemblyExample.FCStd\`" >&2
-    assert_command_succeeds "git fco active_test_branch1 "$TEST_DIR/AssemblyExample.FCStd""; echo
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back (wildcard test)" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
+    assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+        echo "TEST: assert \`BIMExample.FCStd\` is readonly" >&2
+        assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
+    else
+        echo "TEST: assert \`BIMExample.FCStd\` is NOT readonly" >&2
+        assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
+    fi
+
+    echo "TEST: git checkout active_test" >&2
+    assert_command_succeeds "git checkout active_test"; echo
+    assert_no_uncommitted_changes; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    
+    # TEST: git fco / post-checkout hook synchronizes (imports) FCStd files during a file checkout (file specified explicitly)
+    echo "TEST: git_file_checkout active_test_branch1 -- \`AssemblyExample.FCStd\` (single file with --)" >&2
+    assert_command_succeeds "git_file_checkout active_test_branch1 -- \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    echo "TEST: git checkout active_test" >&2
+    assert_command_succeeds "git checkout active_test"; echo
+    assert_no_uncommitted_changes; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    
+    # TEST: git fco / post-checkout hook synchronizes (imports) FCStd files during a file checkout (file specified without `--`)
+    echo "TEST: git_file_checkout active_test_branch1 \`AssemblyExample.FCStd\` (single file without --)" >&2
+    assert_command_succeeds "git_file_checkout active_test_branch1 \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    echo "TEST: git checkout active_test" >&2
+    assert_command_succeeds "git checkout active_test"; echo
+    assert_no_uncommitted_changes; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    
+    # TEST: git fco / post-checkout hook synchronizes (imports) FCStd files during a file checkout (multiple files specified explicitly)
+    echo "TEST: git_file_checkout active_test_branch1 -- \`AssemblyExample.FCStd\` \`BIMExample.FCStd\` (multiple files)" >&2
+    assert_command_succeeds "git_file_checkout active_test_branch1 -- \"$TEST_DIR/AssemblyExample.FCStd\" \"$TEST_DIR/BIMExample.FCStd\""; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    echo "TEST: Ask user to confirm \`BIMExample.FCStd\` is unchanged (no changes in branch)" >&2
+    confirm_user "Please confirm that 'BIMExample.FCStd' is unchanged (no changes were made to it in active_test_branch1)." "test_post_checkout_hook" "$TEST_DIR/BIMExample.FCStd"
+
+    echo "TEST: git checkout active_test" >&2
+    assert_command_succeeds "git checkout active_test"; echo
+    assert_no_uncommitted_changes; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    
+    # TEST: git fco / post-checkout hook synchronizes (imports) FCStd files during a file checkout (directory specified explicitly)
+    echo "TEST: git_file_checkout active_test_branch1 -- \`$TEST_DIR/\` (directory)" >&2
+    assert_command_succeeds "git_file_checkout active_test_branch1 -- \"$TEST_DIR/\""; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from directory checkout" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from directory checkout." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    echo "TEST: git checkout active_test" >&2
+    assert_command_succeeds "git checkout active_test"; echo
+    assert_no_uncommitted_changes; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    
+    # TEST: git fco / post-checkout hook synchronizes (imports) FCStd files during a file checkout (files and directory specified explicitly)
+    echo "TEST: git_file_checkout active_test_branch1 -- \`$TEST_DIR/\` \`AssemblyExample.FCStd\` (mixed)" >&2
+    assert_command_succeeds "git_file_checkout active_test_branch1 -- \"$TEST_DIR/\" \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from mixed checkout" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from mixed checkout." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
     echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -723,11 +833,12 @@ test_post_checkout_hook() {
 }
 
 test_stashing() {
+    # TEST: Initialize
     setup "test_stashing" || exit $FAIL
 
     echo "TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_FCStd_filter"; exit $FAIL; }
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_stashing"; exit $FAIL; }
     echo "TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -761,6 +872,8 @@ test_stashing() {
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
+
+    # TEST: Stashing changes in working directory
     echo "TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
     assert_no_uncommitted_changes; echo
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -778,6 +891,8 @@ test_stashing() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
 
+
+    # TEST: git unlock checks for stashed changes not yet committed (fails if so)
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias) -- should fail because changes haven't been pushed" >&2
         assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
@@ -798,6 +913,7 @@ test_stashing() {
         echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
+        # TEST: Unstashing changes without a lock for changes fails
         echo "TEST: git_stash pop -- should fail need lock to modify AssemblyExample.FCStd" >&2
         assert_no_uncommitted_changes; echo
         assert_command_fails "git_stash pop"; echo
@@ -811,6 +927,7 @@ test_stashing() {
         assert_no_uncommitted_changes; echo
     fi
 
+    # TEST: Unstashing changes with a lock succeeds
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
@@ -828,11 +945,12 @@ test_stashing() {
 }
 
 test_post_merge_hook() {
+    # TEST: Initialize
     setup "test_post_merge_hook" || exit $FAIL
 
     echo "TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_FCStd_filter"; exit $FAIL; }
+    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_post_merge_hook"; exit $FAIL; }
     echo "TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -867,6 +985,7 @@ test_post_merge_hook() {
         assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
     fi
 
+    # TEST: Simulate teamwork on remote repository
     echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
     assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
@@ -917,6 +1036,8 @@ test_post_merge_hook() {
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
     assert_no_uncommitted_changes; echo
 
+
+    # TEST: Pull --rebase remote changes and merge with local work to a different `.FCStd` file
     if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
         echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias)" >&2
         assert_command_succeeds "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
@@ -990,6 +1111,8 @@ test_post_merge_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_merge_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
+
+    # TEST: Pull --no-rebase (merge) remote changes and merge with local work to a different `.FCStd` file
     echo "TEST: git update-ref refs/remotes/origin/active_test active_test" >&2
     assert_command_succeeds "git update-ref refs/remotes/origin/active_test active_test"; echo
 
@@ -1052,12 +1175,12 @@ if [ "$1" = "--sandbox" ]; then
 elif [ -z "$1" ]; then
     echo -n ">>>> START STANDARD TEST? <<<<"; read -r dummy; echo
     
-    test_FCStd_filter
-    test_pre_commit_hook
-    test_pre_push_hook
+    # test_FCStd_clean_filter
+    # test_pre_commit_hook
+    # test_pre_push_hook
     test_post_checkout_hook
-    test_stashing
-    test_post_merge_hook
+    # test_stashing
+    # test_post_merge_hook
 
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
 
