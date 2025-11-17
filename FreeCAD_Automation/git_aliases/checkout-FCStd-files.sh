@@ -1,14 +1,14 @@
 #!/bin/bash
 echo "DEBUG: FCStd file checkout trap-card triggered!" >&2
 # ==============================================================================================
-#                                       Script Overview
+#                                        Script Overview
 # ==============================================================================================
 # Script to checkout specific .FCStd files from a given commit. 
 # Handles resynchronization by reimporting data back into the .FCStd files that were checked out
 # Ensures .FCStd file is readonly/writable per lock permissions after resynchronization.
 
 # ==============================================================================================
-#                               Verify and Retrieve Dependencies
+#                                Verify and Retrieve Dependencies
 # ==============================================================================================
 # Import code used in this script
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
@@ -19,8 +19,15 @@ if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
     exit $FAIL
 fi
 
+# Note: Controlled by "FreeCAD_Automation/activate.sh" and "FreeCAD_Automation/git"
+if [ -n "$GITCAD_ACTIVATED" ]; then
+    git_path="$REAL_GIT"
+else
+    git_path="git"
+fi
+
 # ==============================================================================================
-#                                          Parse Args
+#                                           Parse Args
 # ==============================================================================================
 # `$(GIT_PREFIX:-.)`:
     # If caller is in $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
@@ -38,12 +45,12 @@ CHECKOUT_COMMIT=$1
 shift
 PATTERNS=("$@")
 
-# For every FCStd_file_path matched with patterns, check if the corresponding FCStd_dir_path will change between commits
-    # If checking out HEAD (resetting modified files)
-        # We also need to check if the FCStd_dir_path is modified in the working directory
-    # We'll only checkout dirs for files that will actually be change between commits OR if it's currently modified (HEAD checkout case).
-HEAD_SHA=$(git rev-parse HEAD)
-CHECKOUT_SHA=$(git rev-parse "$CHECKOUT_COMMIT")
+# ==============================================================================================
+#                                     HEAD Checkout Edgecase
+# ==============================================================================================
+# Note: If checking out HEAD (resetting modified files), We also need to check if the FCStd_dir_path or FCStd_file_path is modified in the working directory PRIOR to checkout
+HEAD_SHA=$("$git_path" rev-parse HEAD)
+CHECKOUT_SHA=$("$git_path" rev-parse "$CHECKOUT_COMMIT")
 IS_HEAD_CHECKOUT=$FALSE
 changefiles_with_modifications_not_yet_committed=""
 
@@ -51,11 +58,11 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
     echo "DEBUG: Detected HEAD checkout (resetting modified files)" >&2
     
     IS_HEAD_CHECKOUT=$TRUE
-    git update-index --refresh -q >/dev/null 2>&1
+    "$git_path" update-index --refresh -q >/dev/null 2>&1
 
-    changefiles_with_modifications_not_yet_committed=$(git diff-index --name-only HEAD | grep -i '\.changefile$')
+    changefiles_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$')
     
-    FCStd_files_with_modifications_not_yet_committed=$(git diff-index --name-only HEAD | grep -i '\.fcstd$')
+    FCStd_files_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$')
     
     for FCStd_file_path in $FCStd_files_with_modifications_not_yet_committed; do
         FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
@@ -71,6 +78,21 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
     echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo $changefiles_with_modifications_not_yet_committed | xargs)" >&2
 fi
 
+# ==============================================================================================
+#                                    Perform Initial Checkout
+# ==============================================================================================
+# Note: This is to checkout non-FCStd files
+    # This checks out ALL files/patterns (including FCStd files and non-FCStd files)
+    # FCStd files will be checked out again later (their uncompressed dirs), but this is fine
+    # because we already captured the modification list before this checkout
+"$git_path" checkout "$CHECKOUT_COMMIT" -- "$@" > /dev/null 2>&1  || {
+    echo "Error: Failed to checkout files from commit '$CHECKOUT_COMMIT'" >&2
+    exit $FAIL
+}
+
+# ==============================================================================================
+#                                 Match Patterns to FCStd Files
+# ==============================================================================================
 MATCHED_FCStd_file_paths=()
 for pattern in "${PATTERNS[@]}"; do
     # Prepend CALLER_SUBDIR if set
@@ -86,7 +108,7 @@ for pattern in "${PATTERNS[@]}"; do
             if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                 MATCHED_FCStd_file_paths+=("$file")
             fi
-        done < <(git ls-files "$pattern")
+        done < <("$git_path" ls-files "$pattern")
         
     elif [[ "$pattern" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
         echo "DEBUG: Pattern is an FCStd file" >&2
@@ -105,9 +127,14 @@ if [ ${#MATCHED_FCStd_file_paths[@]} -eq 0 ]; then
     exit $SUCCESS
 fi
 
+# ==============================================================================================
+#            Get list of Matches that Actually Change Between Commits / Modified Dir
+# ==============================================================================================
+# For every FCStd_file_path matched with patterns, check if the corresponding FCStd_dir_path will change between commits
+    # We'll only checkout dirs for files that will actually change between commits OR if it's currently modified (HEAD checkout case).
 FCStd_dirs_to_checkout=()
 declare -A FCStd_dir_to_file_dict # Bash Dictionary
-changefiles_changed_between_commits=$(git diff-tree --no-commit-id --name-only -r "$CHECKOUT_COMMIT" HEAD | grep -i '\.changefile$')
+changefiles_changed_between_commits=$("$git_path" diff-tree --no-commit-id --name-only -r "$CHECKOUT_COMMIT" HEAD | grep -i '\.changefile$')
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
     
@@ -131,16 +158,18 @@ if [ ${#FCStd_dirs_to_checkout[@]} -eq 0 ]; then
 fi
 
 # ==============================================================================================
-#                                      File Checkout Logic
+#                                    File Checkout FCStd Dirs
 # ==============================================================================================
-
 echo "DEBUG: Checking out dirs from commit '$CHECKOUT_COMMIT': ${FCStd_dirs_to_checkout[*]}" >&2
 
-git checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
+"$git_path" checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
     echo "Error: Failed to checkout dirs from commit '$CHECKOUT_COMMIT'" >&2
     exit $FAIL
 }
 
+# ==============================================================================================
+#                         Synchronize / Import FCStd Dirs to FCStd Files
+# ==============================================================================================
 # Import data from checked out FCStd dirs into their FCStd files
 for FCStd_dir_path in "${FCStd_dirs_to_checkout[@]}"; do
     FCStd_file_path="${FCStd_dir_to_file_dict[$FCStd_dir_path]}"
@@ -157,7 +186,7 @@ for FCStd_dir_path in "${FCStd_dirs_to_checkout[@]}"; do
     
     # Only clear modification flag when checking out HEAD (resetting modified files)
     if [ "$IS_HEAD_CHECKOUT" == "$TRUE" ]; then
-        git fcmod "$FCStd_file_path"
+        "$git_path" fcmod "$FCStd_file_path"
         echo "DEBUG: Cleared modification flag for '$FCStd_file_path' (HEAD checkout)" >&2
     fi
 
