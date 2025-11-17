@@ -17,37 +17,56 @@ fi
 # ==============================================================================================
 case $1 in
   "checkout")
-    # ToDo: Handle this case when user is cd'd into sub directory
-    # ToDo: Observe outcome when called outside git repo
-    # Parse checkout command to extract commit and files for post-checkout hook
-    shift  # Remove 'checkout' from args
+    # Parse checkout command to extract COMMIT_TO_CHECKOUT and files for post-checkout hook
+    shift
     
     # Initialize variables
-    COMMIT=""
+    COMMIT_TO_CHECKOUT=""
     FILES=()
     FOUND_SEPARATOR=false
     
-    # Parse arguments to find commit and files
-    # Supports: git checkout COMMIT -- FILE [FILE ...]
-    #       or: git checkout COMMIT FILE [FILE ...]
+    # Get current directory relative to repo root for path adjustment
+    GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
+      # Not in a git repo, just pass through
+      echo "ERROR: Current Directory is not a git repository" >&2
+      exit 1 # 1=$FAIL
+    }
+    
+    # Get current directory relative to repo root
+    CURRENT_DIR=$(pwd)
+    if [ "$CURRENT_DIR" = "$GIT_ROOT" ]; then
+      GIT_PREFIX=""
+    else
+      GIT_PREFIX="${CURRENT_DIR#$GIT_ROOT/}/" # Remove `$GIT_ROOT/` from start of $CURRENT_DIR
+    fi
+    
+    # Parse arguments to find COMMIT_TO_CHECKOUT and files
+    # Supports: git checkout COMMIT_TO_CHECKOUT -- FILE [FILE ...]
+    #       or: git checkout COMMIT_TO_CHECKOUT FILE [FILE ...]
     for arg in "$@"; do
       if [ "$arg" = "--" ]; then
         FOUND_SEPARATOR=true
         continue
       fi
       
-      if [ -z "$COMMIT" ] && [ "$FOUND_SEPARATOR" = false ]; then
-        # First arg is the commit
-        COMMIT="$arg"
-      elif [ -n "$COMMIT" ]; then
-        # Subsequent args are files
-        FILES+=("$arg")
+      if [ -z "$COMMIT_TO_CHECKOUT" ] && [ "$FOUND_SEPARATOR" = false ]; then
+        # First arg is the COMMIT_TO_CHECKOUT
+        COMMIT_TO_CHECKOUT="$arg"
+      elif [ -n "$COMMIT_TO_CHECKOUT" ]; then
+        # Subsequent args are files/patterns - adjust to be relative to repo root
+        if [ "$arg" = "." ]; then
+          # Special case: '.' means current directory
+          FILES+=("$GIT_PREFIX")
+        else
+          # Prepend GIT_PREFIX to make path relative to repo root
+          FILES+=("${GIT_PREFIX}${arg}")
+        fi
       fi
     done
     
     # Export environment variables for post-checkout hook
-    if [ -n "$COMMIT" ] && [ ${#FILES[@]} -gt 0 ]; then
-      GIT_COMMAND="checkout" GIT_CHECKOUT_COMMIT="$COMMIT" GIT_CHECKOUT_FILES="${FILES[*]}" "$REAL_GIT" checkout "$@"
+    if [ -n "$COMMIT_TO_CHECKOUT" ] && [ ${#FILES[@]} -gt 0 ]; then
+      GIT_COMMAND="checkout" GIT_CHECKOUT_COMMIT="$COMMIT_TO_CHECKOUT" GIT_CHECKOUT_PATTERNS="${FILES[*]}" "$REAL_GIT" checkout "$@"
     else
       GIT_COMMAND="checkout" "$REAL_GIT" checkout "$@"
     fi
@@ -59,6 +78,7 @@ case $1 in
     ;;
   "stash")
     shift
+    # ToDo: stash also need to have the GIT_PREFIX applied to all args after `--`
     GIT_COMMAND=$1 bash FreeCAD_Automation/git_aliases/git-stash-and-sync-FCStd-files.sh "$@"
     ;;
   *)
