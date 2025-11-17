@@ -117,9 +117,9 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     if echo "$changefiles_changed_between_commits" | grep -q "^$changefile_path$" || echo "$changefiles_with_modifications_not_yet_committed" | grep -q "^$changefile_path$"; then
         FCStd_dir_to_file_dict["$FCStd_dir_path"]="$FCStd_file_path"
         FCStd_dirs_to_checkout+=("$FCStd_dir_path")
-        echo "DEBUG: Added '$FCStd_file_path' to checkout list (changefile has changes or is modified)" >&2
+        echo "DEBUG: Added '$FCStd_dir_path' to checkout list (changefile has changes or is modified)" >&2
     else
-        echo "DEBUG: Skipping '$FCStd_file_path' (no changefile changes between $CHECKOUT_COMMIT and HEAD, and not modified)" >&2
+        echo "DEBUG: Skipping '$FCStd_dir_path' (no changefile changes between $CHECKOUT_COMMIT and HEAD, and not modified)" >&2
     fi
 done
 
