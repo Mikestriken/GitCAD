@@ -136,7 +136,7 @@ fi
 
 echo "DEBUG: Checking out dirs from commit '$CHECKOUT_COMMIT': ${FCStd_dirs_to_checkout[*]}" >&2
 
-git checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" || {
+git checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
     echo "Error: Failed to checkout dirs from commit '$CHECKOUT_COMMIT'" >&2
     exit $FAIL
 }

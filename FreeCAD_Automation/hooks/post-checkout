@@ -219,7 +219,7 @@ elif [ "$3" == "0" ]; then
         unset GIT_CHECKOUT_COMMIT
         unset GIT_CHECKOUT_PATTERNS
         
-        git checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" || {
+        git checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
             echo "Error: Failed to checkout dirs from commit '$CHECKOUT_COMMIT'" >&2
             exit $FAIL
         }
