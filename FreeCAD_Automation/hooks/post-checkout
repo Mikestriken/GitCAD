@@ -104,11 +104,16 @@ elif [ "$3" == "1" ]; then
 elif [ "$3" == "0" ]; then
     echo "DEBUG: Processing File Checkout...." >&2
     
+    # >>>>>>>>>>>>>>>>>>> Prevent Infinite Loop With GitCAD Activated <<<<<<<<<<<<<<<<<<<
+    if [ -n "$FILE_CHECKOUT_IN_PROGRESS" ]; then
+        echo "DEBUG: File checkout already in progress, skipping..." >&2
+        :
+
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> If GitCAD Activated <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         # Check if GitCAD wrapper is active and has provided checkout info
             # Note 1: GIT_CHECKOUT_COMMIT, GIT_CHECKOUT_PATTERNS, CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED defined in the `FreeCAD_Automation/git` wrapper
             # Note 2: GITCAD_ACTIVATED defined in the `FreeCAD_Automation/activate.sh` wrapper init script
-    if [ -n "$GITCAD_ACTIVATED" ] && [ -n "$GIT_CHECKOUT_COMMIT" ] && [ -n "$GIT_CHECKOUT_PATTERNS" ]; then
+    elif [ -n "$GITCAD_ACTIVATED" ] && [ -n "$GIT_CHECKOUT_COMMIT" ] && [ -n "$GIT_CHECKOUT_PATTERNS" ]; then
         echo "DEBUG: Processing file checkout with commit=$GIT_CHECKOUT_COMMIT patterns=$GIT_CHECKOUT_PATTERNS" >&2
         
         IFS=' ' read -ra CHECKOUT_PATTERNS <<< "$GIT_CHECKOUT_PATTERNS" # Convert space-separated string back to array
@@ -192,13 +197,9 @@ elif [ "$3" == "0" ]; then
         
         echo "DEBUG: Checking out dirs from commit '$GIT_CHECKOUT_COMMIT': ${FCStd_dirs_to_checkout[*]}" >&2
         
-        # Note: Prevent infinite loop: Unset environment variables before checkout so nested post-checkout won't process
-        CHECKOUT_COMMIT="$GIT_CHECKOUT_COMMIT"
-        unset GIT_CHECKOUT_COMMIT
-        unset GIT_CHECKOUT_PATTERNS
-        
-        git checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
-            echo "Error: Failed to checkout dirs from commit '$CHECKOUT_COMMIT'" >&2
+        # Note: `FILE_CHECKOUT_IN_PROGRESS=$TRUE` Prevents infinite loop and suppresses GitCAD activation warning message
+        FILE_CHECKOUT_IN_PROGRESS=$TRUE git checkout "$GIT_CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
+            echo "Error: Failed to checkout dirs from commit '$GIT_CHECKOUT_COMMIT'" >&2
             exit $FAIL
         }
         
