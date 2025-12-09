@@ -822,12 +822,12 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
-    # TEST: Adding files while cd'd into subdir
+    # TEST: git fco / post-checkout hook synchronizes (imports) FCStd files while cd'd into subdir
     local Saved_Working_Directory=$(pwd)
     echo "TEST: Changing Directory to '$TEST_DIR'" >&2
     assert_command_succeeds "cd \"$TEST_DIR\""
 
-    echo "TEST: git_file_checkout active_test_branch1 -- \`AssemblyExample.FCStd\` \`BIMExample.FCStd\` (multiple files)" >&2
+    echo "TEST: git_file_checkout active_test_branch1 -- \`AssemblyExample.FCStd\` \`BIMExample.FCStd\` \`.\` \`*\` \`../TEST_BRANCH\` (multiple files)" >&2
     assert_command_succeeds "git_file_checkout active_test_branch1 -- \"AssemblyExample.FCStd\" \"BIMExample.FCStd\" \".\" \"*\" \"../$TEST_BRANCH\""; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from subdir cd'ed checkout" >&2

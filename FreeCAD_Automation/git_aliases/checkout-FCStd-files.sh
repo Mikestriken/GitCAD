@@ -54,7 +54,21 @@ if [ "$1" = "--" ]; then
     fi
 fi
 
-PATTERNS=("$@")
+# Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
+parsed_args=()
+if [ "$CALLER_SUBDIR" != "" ]; then
+    for arg in "$@"; do
+        if [[ "$arg" == -* ]]; then
+            parsed_args+=("$arg")
+        else
+            parsed_args+=("$CALLER_SUBDIR$arg")
+        fi
+    done
+else
+    parsed_args=("$@")
+fi
+
+PATTERNS=("${parsed_args[@]}")
 
 # ==============================================================================================
 #                                     HEAD Checkout Edgecase
@@ -96,8 +110,8 @@ fi
     # This checks out ALL files/patterns (including FCStd files and non-FCStd files)
     # FCStd files will be checked out again later (their uncompressed dirs), but this is fine
     # because we already captured the modification list before this checkout
-echo "DEBUG: Checking out '$@' from commit '$CHECKOUT_COMMIT'" >&2
-"$git_path" checkout "$CHECKOUT_COMMIT" -- "$@" > /dev/null  || {
+echo "DEBUG: Checking out '${parsed_args[*]}' from commit '$CHECKOUT_COMMIT'" >&2
+"$git_path" checkout "$CHECKOUT_COMMIT" -- "${parsed_args[@]}" > /dev/null  || {
     echo "Error: Failed to checkout files from commit '$CHECKOUT_COMMIT'" >&2
     exit $FAIL
 }
