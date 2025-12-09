@@ -815,6 +815,25 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from mixed checkout" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from mixed checkout." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
+    echo "TEST: git_file_checkout active_test -- \"$TEST_DIR/\"" >&2
+    assert_command_succeeds "git_file_checkout active_test -- \"$TEST_DIR/\""; echo
+    assert_no_uncommitted_changes; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    # TEST: Adding files while cd'd into subdir
+    local Saved_Working_Directory=$(pwd)
+    echo "TEST: Changing Directory to '$TEST_DIR'"
+    assert_command_succeeds "cd \"$TEST_DIR\""
+
+    echo "TEST: git_file_checkout active_test_branch1 -- \`AssemblyExample.FCStd\` \`BIMExample.FCStd\` (multiple files)" >&2
+    assert_command_succeeds "git_file_checkout active_test_branch1 -- \"AssemblyExample.FCStd\" \"BIMExample.FCStd\" \".\" \"*\" \"../$TEST_BRANCH\""; echo
+
+    echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from subdir cd'ed checkout" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from subdir cd'ed checkout." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+
+    # TEST: Assert file read / write perms are set correctly
     echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
