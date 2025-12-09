@@ -146,6 +146,7 @@ elif [ "$3" == "0" ]; then
                 echo "DEBUG: Pattern contains wildcards or is a directory" >&2
                 while IFS= read -r file; do
                     if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+                        echo "DEBUG: Matched '$file'" >&2
                         MATCHED_FCStd_file_paths+=("$file")
                     fi
                 done < <(git ls-files "$pattern")

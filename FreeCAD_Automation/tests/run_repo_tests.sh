@@ -824,14 +824,17 @@ test_post_checkout_hook() {
 
     # TEST: Adding files while cd'd into subdir
     local Saved_Working_Directory=$(pwd)
-    echo "TEST: Changing Directory to '$TEST_DIR'"
+    echo "TEST: Changing Directory to '$TEST_DIR'" >&2
     assert_command_succeeds "cd \"$TEST_DIR\""
 
     echo "TEST: git_file_checkout active_test_branch1 -- \`AssemblyExample.FCStd\` \`BIMExample.FCStd\` (multiple files)" >&2
     assert_command_succeeds "git_file_checkout active_test_branch1 -- \"AssemblyExample.FCStd\" \"BIMExample.FCStd\" \".\" \"*\" \"../$TEST_BRANCH\""; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from subdir cd'ed checkout" >&2
-    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from subdir cd'ed checkout." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from subdir cd'ed checkout." "test_post_checkout_hook" "./AssemblyExample.FCStd"
+
+    echo "TEST: Reverting directory change to '$Saved_Working_Directory'"
+    assert_command_succeeds "cd \"$Saved_Working_Directory\""
 
     # TEST: Assert file read / write perms are set correctly
     echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
