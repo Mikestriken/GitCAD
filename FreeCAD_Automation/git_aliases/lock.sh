@@ -38,8 +38,13 @@ for arg in "$@"; do
         fi
     else
         if [ "$CALLER_SUBDIR" != "" ]; then
-            # echo "DEBUG: prepend '$arg'" >&2
-            parsed_args+=("$CALLER_SUBDIR$arg")
+            if [ "$arg" = "." ]; then
+                # echo "DEBUG: '$arg' -> '$CALLER_SUBDIR'" >&2
+                parsed_args+=("$CALLER_SUBDIR")
+            else
+                # echo "DEBUG: prepend '$arg'" >&2
+                parsed_args+=("$CALLER_SUBDIR$arg")
+            fi
         else
             # echo "DEBUG: Don't prepend '$arg'" >&2
             parsed_args+=("$arg")

@@ -35,6 +35,10 @@ if [ "$CALLER_SUBDIR" != "" ]; then
     for arg in "$@"; do
         if [[ "$arg" == -* ]]; then
             parsed_args+=("$arg")
+        
+        elif [ "$arg" = "." ]; then
+            parsed_args+=("$CALLER_SUBDIR")
+            
         else
             parsed_args+=("$CALLER_SUBDIR$arg")
         fi
