@@ -9,6 +9,8 @@
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
+# Note: PWD for all scripts called via git aliases is the root of the git repository
+
 # Import code used in this script
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
@@ -21,7 +23,7 @@ else
 fi
 
 if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
-    echo "Config file missing or invalid; cannot proceed." >&2
+    echo "Error: Config file missing or invalid; cannot proceed." >&2
     exit $FAIL
 fi
 

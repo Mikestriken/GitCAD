@@ -21,7 +21,7 @@ for FCStd_file_path in $STAGED_FCSTD_FILES; do
     # echo -e "\nDEBUG: checking '$FCStd_file_path'...." >&2
 
     if [ -s "$FCStd_file_path" ]; then
-        echo "ERROR: $FCStd_file_path is not empty, export it using \`git fadd\` or clear it using \`git fcmod\`" >&2
+        echo "Error: $FCStd_file_path is not empty, export it using \`git fadd\` or clear it using \`git fcmod\`" >&2
         exit $FAIL
     fi
 done
@@ -56,7 +56,7 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
             # echo "DEBUG: valid lock found for '$lockfile'" >&2
             :
         else
-            echo "ERROR: User doesn't have lock for '$lockfile'... Aborting commit operation..." >&2
+            echo "Error: User doesn't have lock for '$lockfile'... Aborting commit operation..." >&2
             exit $FAIL
         fi
     done

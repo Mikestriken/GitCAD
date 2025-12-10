@@ -71,7 +71,7 @@ if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
             # echo "DEBUG: User has valid lock for '$lockfile'" >&2
             :
         else
-            echo "ERROR: User doesn't have lock for '$lockfile'... Aborting push operation..." >&2
+            echo "Error: User doesn't have lock for '$lockfile'... Aborting push operation..." >&2
             exit $FAIL
         fi
     done

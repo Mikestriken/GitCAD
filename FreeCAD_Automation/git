@@ -21,7 +21,7 @@ case $1 in
     
     # Get GIT_PREFIX (subdir the user is CDed into)
     GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
-      echo "ERROR: Current Directory is not a git repository" >&2
+      echo "Error: Current Directory is not a git repository" >&2
       exit 1 # 1=$FAIL
     }
     

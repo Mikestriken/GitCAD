@@ -47,7 +47,7 @@ if [ -f "$CONFIG_FILE" ]; then
 fi
 
 if [ -z "$PYTHON_PATH" ]; then
-    echo "Config file missing or invalid; cannot proceed." >&2
+    echo "Error: Config file missing or invalid; cannot proceed." >&2
     exit $FAIL
 fi
 

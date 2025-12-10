@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Check if inside a Git repository, ensure pwd is root of repository
+git_repo_root_path=$(git rev-parse --show-toplevel)
+if [ $? == 0 ]; then # 0=$SUCCESS
+    cd "$git_repo_root_path"
+else 
+    echo "Error: Cannot find git repo root dir. Make sure pwd is inside the git repo when calling this script." >&2
+    exit 1 # 1=$FAIL
+fi
+
 HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push") # Note: This array is used again in the `Setup Git Hooks` section
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
@@ -8,19 +17,19 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "=============================================================================================="
     
     if ! find ./FreeCAD_Automation -name "*.sh" -type f -exec chmod 755 {} \; 2>/dev/null; then
-        echo "Permission denied for chmod on scripts. Please run this script with sudo."
+        echo "Error: Permission denied for chmod on scripts. Please run this script with sudo." >&2
         exit 1 # 1=$FAIL
     fi
 
     # Make git wrapper executable
     if ! chmod 755 "FreeCAD_Automation/git" 2>/dev/null; then
-        echo "Permission denied for chmod on git wrapper. Please run this script with sudo."
+        echo "Error: Permission denied for chmod on git wrapper. Please run this script with sudo." >&2
         exit 1 # 1=$FAIL
     fi
 
     for hook in "${HOOKS[@]}"; do
         if ! chmod 755 "FreeCAD_Automation/hooks/$hook" 2>/dev/null; then
-            echo "Permission denied for chmod on hooks. Please run this script with sudo."
+            echo "Error: Permission denied for chmod on hooks. Please run this script with sudo." >&2
             exit 1 # 1=$FAIL
         fi
     done
@@ -33,7 +42,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     fi
 
     if ! chown -R $OWNER:$OWNER $(pwd); then
-        echo "Permission denied for chown. Please run this script with sudo."
+        echo "Error: Permission denied for chown. Please run this script with sudo." >&2
         exit 1 # 1=$FAIL
     fi
     echo "Given ownership of all files to user."
@@ -86,13 +95,7 @@ echo "                             Verify and Retrieve Dependencies"
 echo "=============================================================================================="
 # Check git user.name and user.email set
 if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
-    echo "git config user.name or user.email not set!" >&2
-    exit 1 # 1=$FAIL
-fi
-
-# Check if inside a Git repository
-if ! git rev-parse --git-dir > /dev/null; then
-    echo "Error: Not inside a Git repository" >&2
+    echo "Error: git config user.name or user.email not set!" >&2
     exit 1 # 1=$FAIL
 fi
 

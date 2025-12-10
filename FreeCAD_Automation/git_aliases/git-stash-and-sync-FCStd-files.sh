@@ -10,6 +10,8 @@
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
+# Note: PWD for all scripts called via git aliases is the root of the git repository
+
 # Import code used in this script
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
@@ -22,7 +24,7 @@ else
 fi
 
 if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
-    echo "Config file missing or invalid; cannot proceed." >&2
+    echo "Error: Config file missing or invalid; cannot proceed." >&2
     exit $FAIL
 fi
 
@@ -68,7 +70,7 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
             lockfile="$FCStd_dir_path/.lockfile"
 
             if ! echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
-                echo "ERROR: User does not have lock for $lockfile in stash" >&2
+                echo "Error: User does not have lock for $lockfile in stash" >&2
                 exit $FAIL
             fi
         done

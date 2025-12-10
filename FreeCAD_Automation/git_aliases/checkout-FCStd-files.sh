@@ -10,12 +10,14 @@ echo "DEBUG: FCStd file checkout trap-card triggered!" >&2
 # ==============================================================================================
 #                                Verify and Retrieve Dependencies
 # ==============================================================================================
+# Note: PWD for all scripts called via git aliases is the root of the git repository
+
 # Import code used in this script
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
 if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
-    echo "Config file missing or invalid; cannot proceed." >&2
+    echo "Error: Config file missing or invalid; cannot proceed." >&2
     exit $FAIL
 fi
 
@@ -145,6 +147,8 @@ for pattern in "${PATTERNS[@]}"; do
         echo "DEBUG: Pattern is an FCStd file" >&2
         MATCHED_FCStd_file_paths+=("$pattern")
     else
+        # ! DEBUG: Pattern 'FreeCAD_Automation/tests/active_test/FreeCAD_Automation/tests/active_test/' is not an FCStd file, directory, or wildcard..... skipping
+        # Note: Might be because cd'd into subdir so the above part doesn't make sense relative to subdir
         echo "DEBUG: Pattern '$pattern' is not an FCStd file, directory, or wildcard..... skipping" >&2
     fi
 done
