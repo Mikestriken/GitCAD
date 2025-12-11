@@ -21,7 +21,7 @@ for FCStd_file_path in $STAGED_FCSTD_FILES; do
     # echo -e "\nDEBUG: checking '$FCStd_file_path'...." >&2
 
     if [ -s "$FCStd_file_path" ]; then
-        echo "Error: $FCStd_file_path is not empty, export it using \`git fadd\` or clear it using \`git fcmod\`" >&2
+        echo "Error: $FCStd_file_path is not empty, export it using \`git fadd\` (\`git add\` with GitCAD activated) or clear it using \`git fcmod\`" >&2
         exit $FAIL
     fi
 done
