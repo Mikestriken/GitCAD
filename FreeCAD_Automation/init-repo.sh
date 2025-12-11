@@ -440,7 +440,7 @@ setup_git_alias() {
     fi
 }
 
-setup_git_alias "fcmod" "!bash FreeCAD_Automation/git_aliases/clear-FCStd-modification.sh" "Clears passed FCStd file modification making git think it's empty."
+setup_git_alias "fcmod" "!bash FreeCAD_Automation/git_aliases/clear-FCStd-modification.sh \"\${GIT_PREFIX}\"" "Clears passed FCStd file modification making git think it's empty."
 setup_git_alias "fadd" "!EXPORT_ENABLED=$TRUE git add" "Allows FCStd clean filter to export \`.FCStd\` files."
 setup_git_alias "fco" "!bash FreeCAD_Automation/git_aliases/checkout-FCStd-files.sh \"\${GIT_PREFIX}\"" "Adds \`git fco\` as alias to run checkout-FCStd-files.sh"
 setup_git_alias "lock" "!bash FreeCAD_Automation/git_aliases/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh"
@@ -449,7 +449,7 @@ setup_git_alias "locks" "lfs locks" "1 to 1 alias for \`git lfs locks\`"
 setup_git_alias "ftool" "!bash FreeCAD_Automation/git_aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\"" "Adds \`git ftool\` as alias to run FCStdFileTool.py"
 setup_git_alias "fimport" "!bash FreeCAD_Automation/git_aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --import" "Adds \`git fimport\` as alias to run FCStdFileTool.py with preset import args"
 setup_git_alias "fexport" "!bash FreeCAD_Automation/git_aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --export" "Adds \`git fexport\` as alias to run FCStdFileTool.py with preset export args"
-setup_git_alias "fstash" "!bash FreeCAD_Automation/git_aliases/git-stash-and-sync-FCStd-files.sh" "Adds \`git fstash\` as alias to run git-stash-and-sync-FCStd-files.sh"
+setup_git_alias "fstash" "!bash FreeCAD_Automation/git_aliases/git-stash-and-sync-FCStd-files.sh \"\${GIT_PREFIX}\"" "Adds \`git fstash\` as alias to run git-stash-and-sync-FCStd-files.sh"
 setup_git_alias "freset" "!bash FreeCAD_Automation/git_aliases/git-reset-and-sync-FCStd-files.sh" "Adds \`git freset\` as alias to run git-reset-and-sync-FCStd-files.sh"
 
 echo "=============================================================================================="
