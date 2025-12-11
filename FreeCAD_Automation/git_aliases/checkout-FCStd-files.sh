@@ -29,6 +29,12 @@ else
 fi
 
 # ==============================================================================================
+#                                      Pull LFS files
+# ==============================================================================================
+git lfs pull
+# echo "DEBUG: Pulled lfs files" >&2
+
+# ==============================================================================================
 #                                           Parse Args
 # ==============================================================================================
 # CALLER_SUBDIR=${GIT_PREFIX}:
@@ -88,8 +94,6 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-PATTERNS=("${parsed_file_path_args[@]}")
-
 # ==============================================================================================
 #                                     HEAD Checkout Edgecase
 # ==============================================================================================
@@ -140,30 +144,23 @@ echo "DEBUG: Checking out '${parsed_file_path_args[*]}' from commit '$CHECKOUT_C
 #                                 Match Patterns to FCStd Files
 # ==============================================================================================
 MATCHED_FCStd_file_paths=()
-for pattern in "${PATTERNS[@]}"; do
-    # Prepend CALLER_SUBDIR if set
-    if [ "$CALLER_SUBDIR" != "" ]; then
-        pattern="$CALLER_SUBDIR$pattern"
-    fi
+for file_path in "${parsed_file_path_args[@]}"; do
+    echo "DEBUG: Matching file_path: '$file_path'...." >&2
     
-    echo "DEBUG: Matching pattern: '$pattern'...." >&2
-    
-    if [[ -d "$pattern" || "$pattern" == *"*"* || "$pattern" == *"?"* ]]; then
-        echo "DEBUG: Pattern contains wildcards or is a directory" >&2
+    if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
+        echo "DEBUG: file_path contains wildcards or is a directory" >&2
         while IFS= read -r file; do
             if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                 echo "DEBUG: Matched '$file'" >&2
                 MATCHED_FCStd_file_paths+=("$file")
             fi
-        done < <("$git_path" ls-files "$pattern")
+        done < <("$git_path" ls-files "$file_path")
         
-    elif [[ "$pattern" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
-        echo "DEBUG: Pattern is an FCStd file" >&2
-        MATCHED_FCStd_file_paths+=("$pattern")
+    elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+        echo "DEBUG: file_path is an FCStd file" >&2
+        MATCHED_FCStd_file_paths+=("$file_path")
     else
-        # ! DEBUG: Pattern 'FreeCAD_Automation/tests/active_test/FreeCAD_Automation/tests/active_test/' is not an FCStd file, directory, or wildcard..... skipping
-        # Note: Might be because cd'd into subdir so the above part doesn't make sense relative to subdir
-        echo "DEBUG: Pattern '$pattern' is not an FCStd file, directory, or wildcard..... skipping" >&2
+        echo "DEBUG: file_path '$file_path' is not an FCStd file, directory, or wildcard..... skipping" >&2
     fi
 done
 
