@@ -181,8 +181,16 @@ else
     "$git_path" update-index --refresh -q >/dev/null 2>&1
     UNCOMMITTED_FCSTD_FILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
     if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
-        echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
-        exit $FAIL
+        if [ "$FILE_SEPARATOR_FLAG" == "$TRUE" ]; then
+            FCStd_files_in_args=$(printf '%s\n' "${parsed_file_path_args[@]}" | grep -i '\.fcstd$' || true)
+            if [ -n "$FCStd_files_in_args" ]; then
+                echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
+                exit $FAIL
+            fi
+        else
+            echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
+            exit $FAIL
+        fi
     fi
     
     # Get modified changefiles before stash
