@@ -231,16 +231,16 @@ for FCStd_dir_path in "${FCStd_dirs_to_checkout[@]}"; do
     echo "SUCCESS" >&2
     
     # Only clear modification flag when checking out HEAD (resetting modified files)
-    if [ "$IS_HEAD_CHECKOUT" == "$TRUE" ]; then
+    if [ "$IS_HEAD_CHECKOUT" = "$TRUE" ]; then
         "$git_path" fcmod "$FCStd_file_path"
         echo "DEBUG: Cleared modification flag for '$FCStd_file_path' (HEAD checkout)" >&2
     fi
 
     # Handle locks
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || continue
 
-        if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "$FALSE" ]; then
+        if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
             echo "DEBUG: Set '$FCStd_file_path' readonly." >&2

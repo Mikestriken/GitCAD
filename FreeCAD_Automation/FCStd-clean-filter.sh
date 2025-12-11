@@ -99,7 +99,7 @@ fi
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
-if [[ "$BYPASS_LOCK" == "$TRUE" ]]; then
+if [ "$BYPASS_LOCK" = "$TRUE" ]; then
     # echo "DEBUG: BYPASS_LOCK=0, bypassing lock check." >&2
     :
 else
@@ -107,7 +107,7 @@ else
 
     # echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 
-    if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "$FALSE" ]; then
+    if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
         echo "ERROR: User doesn't have lock for '$1'... Aborting add operation..." >&2
         exit $FAIL
     fi

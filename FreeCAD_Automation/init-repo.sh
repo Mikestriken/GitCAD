@@ -1,12 +1,20 @@
 #!/bin/bash
+# ==============================================================================================
+#                                       Constant Globals
+# ==============================================================================================
+SUCCESS=0
+FAIL=1
+TRUE=0
+FALSE=1
+# ==============================================================================================
 
 # Check if inside a Git repository, ensure pwd is root of repository
 git_repo_root_path=$(git rev-parse --show-toplevel)
-if [ $? == 0 ]; then # 0=$SUCCESS
+if [ "$?" = "$SUCCESS" ]; then
     cd "$git_repo_root_path"
 else 
     echo "Error: Cannot find git repo root dir. Make sure pwd is inside the git repo when calling this script." >&2
-    exit 1 # 1=$FAIL
+    exit $FAIL
 fi
 
 HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push") # Note: This array is used again in the `Setup Git Hooks` section
@@ -18,19 +26,19 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     
     if ! find ./FreeCAD_Automation -name "*.sh" -type f -exec chmod 755 {} \; 2>/dev/null; then
         echo "Error: Permission denied for chmod on scripts. Please run this script with sudo." >&2
-        exit 1 # 1=$FAIL
+        exit $FAIL
     fi
 
     # Make git wrapper executable
     if ! chmod 755 "FreeCAD_Automation/git" 2>/dev/null; then
         echo "Error: Permission denied for chmod on git wrapper. Please run this script with sudo." >&2
-        exit 1 # 1=$FAIL
+        exit $FAIL
     fi
 
     for hook in "${HOOKS[@]}"; do
         if ! chmod 755 "FreeCAD_Automation/hooks/$hook" 2>/dev/null; then
             echo "Error: Permission denied for chmod on hooks. Please run this script with sudo." >&2
-            exit 1 # 1=$FAIL
+            exit $FAIL
         fi
     done
     echo "All bash scripts and hooks made executable."
@@ -43,7 +51,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 
     if ! chown -R $OWNER:$OWNER $(pwd); then
         echo "Error: Permission denied for chown. Please run this script with sudo." >&2
-        exit 1 # 1=$FAIL
+        exit $FAIL
     fi
     echo "Given ownership of all files to user."
 fi
@@ -85,7 +93,7 @@ if [ ! -f "FreeCAD_Automation/config.json" ]; then
     echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> USER ACTION REQUESTED <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" >&2
     echo "1. Please define 'freecad-python-instance-path' key in config.json" >&2
     echo "2. Then Re-Run This Script" >&2
-    exit 1 # 1=$FAIL
+    exit $FAIL
 fi
 
 echo "Config already exists."
@@ -96,13 +104,13 @@ echo "==========================================================================
 # Check git user.name and user.email set
 if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
     echo "Error: git config user.name or user.email not set!" >&2
-    exit 1 # 1=$FAIL
+    exit $FAIL
 fi
 
 # Check if git-lfs is installed
 if ! command -v git-lfs >/dev/null; then
     echo "Error: git-lfs is not installed" >&2
-    exit 1 # 1=$FAIL
+    exit $FAIL
 fi
 echo "git-lfs is installed"
 

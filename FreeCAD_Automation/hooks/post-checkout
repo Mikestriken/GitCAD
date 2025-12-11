@@ -36,10 +36,10 @@ if [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --
 #                                    Branch Checkout Logic
 # ==============================================================================================
 # Note, Args: $1=old-head-sha $2=new-head-sha $3=checkout-type (1=branch, 0=file)
-elif [ "$3" == "1" ]; then
+elif [ "$3" = "1" ]; then
     echo "DEBUG: Processing Branch Checkout...." >&2
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         CURRENT_USER=$(git config --get user.name) || {
             echo "Error: git config user.name not set!" >&2
             exit $FAIL
@@ -79,7 +79,7 @@ elif [ "$3" == "1" ]; then
         FCStd_dir_path=$(dirname $changefile)
         lockfile="$FCStd_dir_path/.lockfile"
 
-        if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+        if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
             if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
                 # User has lock, set .FCStd file to writable
                 make_writable "$FCStd_file_path"
@@ -101,7 +101,7 @@ elif [ "$3" == "1" ]; then
     # This implementation will also work with non-FCStd files, it just tacs on FCStd checkout logic.
     
     # Even if non-FCStd file logic was implemented for git fco, the environments are different enough I don't mind having duplicate code.
-elif [ "$3" == "0" ]; then
+elif [ "$3" = "0" ]; then
     echo "DEBUG: Processing File Checkout...." >&2
     
     # >>>>>>>>>>>>>>>>>>> Prevent Infinite Loop With GitCAD Activated <<<<<<<<<<<<<<<<<<<
@@ -126,7 +126,7 @@ elif [ "$3" == "0" ]; then
             echo "DEBUG: Modified changefiles: $(echo $CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED | xargs)" >&2
         fi
         
-        if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+        if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
             CURRENT_USER=$(git config --get user.name) || {
                 echo "Error: git config user.name not set!" >&2
                 exit $FAIL
@@ -218,16 +218,16 @@ elif [ "$3" == "0" ]; then
             echo "SUCCESS" >&2
             
             # Only clear modification flag when checking out HEAD (resetting modified files)
-            if [ "$IS_HEAD_CHECKOUT" == "$TRUE" ]; then
+            if [ "$IS_HEAD_CHECKOUT" = "$TRUE" ]; then
                 git fcmod "$FCStd_file_path"
                 echo "DEBUG: Cleared modification flag for '$FCStd_file_path' (HEAD checkout)" >&2
             fi
             
             # Handle locks
-            if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+            if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
                 FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || continue
                 
-                if [ "$FCSTD_FILE_HAS_VALID_LOCK" == "$FALSE" ]; then
+                if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                     # User doesn't have lock, set .FCStd file to readonly
                     make_readonly "$FCStd_file_path"
                     echo "DEBUG: Set '$FCStd_file_path' readonly." >&2

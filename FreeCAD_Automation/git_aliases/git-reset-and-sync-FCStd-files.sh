@@ -63,7 +63,7 @@ NEW_HEAD=$("$git_path" rev-parse HEAD) || {
 # ==============================================================================================
 #                           Update .FCStd files with uncompressed files
 # ==============================================================================================
-if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     CURRENT_USER=$("$git_path" config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
@@ -136,7 +136,7 @@ for FCStd_file_path in $FCStd_files_to_process; do
 
     "$git_path" fcmod "$FCStd_file_path"
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile_path"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
@@ -170,7 +170,7 @@ for changefile in $changefiles_to_process; do
     FCStd_dir_path=$(dirname "$changefile")
     lockfile="$FCStd_dir_path/.lockfile"
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"

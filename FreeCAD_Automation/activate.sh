@@ -23,7 +23,7 @@ if ! git rev-parse --git-dir > /dev/null; then
 fi
 
 # Store the repository root
-if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+if [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
     gitcad_repo_root="$(git rev-parse --show-toplevel 2>/dev/null)"
     export GITCAD_REPO_ROOT="$(echo "$gitcad_repo_root" | sed -E 's#^([A-Za-z]):/#/\L\1/#')" # Note: Convert drive letters IE `D:/` to `/d/`
 else

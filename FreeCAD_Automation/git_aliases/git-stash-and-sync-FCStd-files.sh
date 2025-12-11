@@ -28,7 +28,7 @@ if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
     exit $FAIL
 fi
 
-if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     CURRENT_USER=$("$git_path" config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
@@ -50,6 +50,8 @@ CALLER_SUBDIR=$1
 shift
 
 stash_args=("$@")
+
+# Note: Stash Types: list, show, drop, pop, apply, branch, push, save, clear, create, store, export, import
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
 parsed_file_path_args=()
@@ -82,14 +84,14 @@ while [ $# -gt 0 ]; do
         
         "-*")
             echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
-            if [ "$FILE_SEPARATOR_FLAG" == "$FALSE" ]; then
+            if [ "$FILE_SEPARATOR_FLAG" = "$FALSE" ]; then
                 stash_command_args+=("$1")
             fi
             ;;
         
         # Assume arg is path. Fix path to be relative to root of the git repo instead of user's terminal pwd.
         *)
-            if [ "$FILE_SEPARATOR_FLAG" == "$TRUE" ]; then
+            if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
                 if [ -n "$CALLER_SUBDIR" ]; then
                     case $1 in
                         ".")
@@ -119,11 +121,11 @@ done
 #                                   Execute Stash n' Import
 # ==============================================================================================
 # Called stash command involves applying changes to working directory
-if [ "$POP_OR_APPLY_FLAG" == "$TRUE" ]; then
+if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
     # echo "DEBUG: Stash application detected" >&2
 
     # Check that user has locks for lockfile in same dir as stashed changefile
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         if [ -n "$STASH_INDEX" ]; then
             STASH_REF="stash@{$STASH_INDEX}"
         else
@@ -148,7 +150,7 @@ if [ "$POP_OR_APPLY_FLAG" == "$TRUE" ]; then
 
     # Execute git stash pop/apply
         # Note: `git stash` sometimes calls clean filter... other times not... really weird....
-    if [ "$FILE_SEPARATOR_FLAG" == "$TRUE" ]; then
+    if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
         "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
         "$git_path" stash "${stash_args[@]}"
@@ -181,7 +183,7 @@ else
     "$git_path" update-index --refresh -q >/dev/null 2>&1
     UNCOMMITTED_FCSTD_FILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
     if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
-        if [ "$FILE_SEPARATOR_FLAG" == "$TRUE" ]; then
+        if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
             FCStd_files_in_args=$(printf '%s\n' "${parsed_file_path_args[@]}" | grep -i '\.fcstd$' || true)
             if [ -n "$FCStd_files_in_args" ]; then
                 echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
@@ -202,7 +204,7 @@ else
     # Execute git stash
         # Note: `git stash` sometimes calls clean filter... other times not... really weird....
     # echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
-    if [ "$FILE_SEPARATOR_FLAG" == "$TRUE" ]; then
+    if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
         "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
         "$git_path" stash "${stash_args[@]}"

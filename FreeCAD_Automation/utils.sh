@@ -66,7 +66,7 @@ get_freecad_python_path() {
 # DESCRIPTION: Function to extract require-lock-to-modify-FreeCAD-files boolean from config file
 # USAGE:
     # `REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL`
-    # `if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then echo "Locks required"; elif [ "$REQUIRE_LOCKS" == "$FALSE" ]; then echo "Locks not required"; fi`
+    # `if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then echo "Locks required"; elif [ "$REQUIRE_LOCKS" = "$FALSE" ]; then echo "Locks not required"; fi`
 get_require_locks_bool() {
     local config_file=$1
     local key="require-lock-to-modify-FreeCAD-files"
@@ -99,7 +99,7 @@ get_require_locks_bool() {
 # DESCRIPTION: Function to extract require-GitCAD-activation boolean from config file
 # USAGE:
     # `REQUIRE_GITCAD=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL`
-    # `if [ "$REQUIRE_GITCAD" == "$TRUE" ]; then echo "GitCAD activation required"; elif [ "$REQUIRE_GITCAD" == "$FALSE" ]; then echo "GitCAD activation not required"; fi`
+    # `if [ "$REQUIRE_GITCAD" = "$TRUE" ]; then echo "GitCAD activation required"; elif [ "$REQUIRE_GITCAD" = "$FALSE" ]; then echo "GitCAD activation not required"; fi`
 get_require_gitcad_activation_bool() {
     local config_file=$1
     local key="require-GitCAD-activation"
@@ -140,7 +140,7 @@ make_readonly() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         chmod 444 "$file"
     
-    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
         attrib +r "$file"
     
     else
@@ -164,7 +164,7 @@ make_writable() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         chmod 644 "$file"
     
-    elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
         attrib -r "$file"
     
     else
@@ -196,7 +196,7 @@ get_FCStd_dir() {
 # DESCRIPTION: Function to check if FCStd file has valid lock. Returns $TRUE (0) if valid (no lock required or lock held), $FALSE (1) if invalid (lock required but not held)
 # USAGE:
     # `FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "path/to/file.FCStd") || exit $FAIL`
-    # `if [ "$FILE_HAS_VALID_LOCK" == "$TRUE" ]; then echo "File has valid lock"; elif [ $FILE_HAS_VALID_LOCK == $FALSE ]; then echo "File has invalid lock"; fi`
+    # `if [ "$FILE_HAS_VALID_LOCK" = "$TRUE" ]; then echo "File has valid lock"; elif [ $FILE_HAS_VALID_LOCK = $FALSE ]; then echo "File has invalid lock"; fi`
 FCStd_file_has_valid_lock() {
     local FCStd_file_path="$1"
 
@@ -204,7 +204,7 @@ FCStd_file_has_valid_lock() {
     REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || return $FAIL
 
     # If locks not required, return valid
-    if [ "$REQUIRE_LOCKS" == "$FALSE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$FALSE" ]; then
         # echo "DEBUG: Locks not required, '$FCStd_file_path' lock is valid." >&2
         echo $TRUE
         return $SUCCESS
@@ -279,7 +279,7 @@ get_FCStd_file_from_changefile() {
     
     local FCStd_file_path=$(realpath "$FCStd_dir_path/$FCStd_file_relpath")
 
-    if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+    if [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
         FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
     fi
 
@@ -292,7 +292,7 @@ get_FCStd_file_from_changefile() {
 # DESCRIPTION: Function to check if a directory has changes between two commits
 # USAGE:
     # `DIR_HAS_CHANGES=$(dir_has_changes "path/to/dir") || exit $FAIL`
-    # `if [ "$DIR_HAS_CHANGES" == "$TRUE" ]; then echo "dir has changed files"; elif [ $DIR_HAS_CHANGES == $FALSE ]; then echo "No changed files in dir"; fi`
+    # `if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then echo "dir has changed files"; elif [ $DIR_HAS_CHANGES = $FALSE ]; then echo "No changed files in dir"; fi`
 dir_has_changes() {
     local dir_path="$1"
     local old_sha="$2"
@@ -319,7 +319,7 @@ if [ -f "$CONFIG_FILE" ]; then
     REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL
     REQUIRE_GITCAD_ACTIVATION=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL
 
-    if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+    if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
         if [ -z "$GITCAD_ACTIVATED" ]; then
             echo "Error: GitCAD activation is required but not active." >&2
             echo "Please activate GitCAD by running: source FreeCAD_Automation/activate.sh" >&2

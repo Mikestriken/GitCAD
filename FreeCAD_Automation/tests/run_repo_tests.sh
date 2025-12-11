@@ -15,7 +15,7 @@ source "$FUNCTIONS_FILE"
 unset GITCAD_ACTIVATED
 
 # Activate GitCAD to wrap git exe if config requires it
-if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
     source FreeCAD_Automation/activate.sh
 fi
 
@@ -207,7 +207,7 @@ await_user_modification() {
                 echo "No changes detected in '$file'. Please make sure to save your modifications."
             fi
         
-        elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
             echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
             start "$file"
             read -r dummy
@@ -244,7 +244,7 @@ confirm_user() {
                 * ) echo "Please answer y or n.";;
             esac
         
-        elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "win32" ]]; then
+        elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
             echo "$message (y/n)"
             start "$file"
             read -r response
@@ -263,7 +263,7 @@ confirm_user() {
 }
 
 git_add() {
-    if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+    if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
         git add "$@"
     else
         git fadd "$@"
@@ -271,7 +271,7 @@ git_add() {
 }
 
 git_reset() {
-    if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+    if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
         git reset "$@"
     else
         git freset "$@"
@@ -279,7 +279,7 @@ git_reset() {
 }
 
 git_stash() {
-    if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+    if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
         git stash "$@"
     else
         git fstash "$@"
@@ -287,7 +287,7 @@ git_stash() {
 }
 
 git_file_checkout() {
-    if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+    if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
         git checkout "$@"
     else
         git fco "$@"
@@ -375,7 +375,7 @@ test_FCStd_clean_filter() {
     assert_command_succeeds "git commit -m \"initial active_test commit\" > /dev/null"; echo
     assert_no_uncommitted_changes; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: Assert \`AssemblyExample.FCStd\` is now readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
     else
@@ -389,9 +389,9 @@ test_FCStd_clean_filter() {
     assert_no_uncommitted_changes; echo
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: attempt to git_add changes (expect error)" >&2
-        if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+        if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
             assert_command_fails "git add $TEST_DIR/AssemblyExample.FCStd"; echo
         else
             assert_command_fails "git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
@@ -445,7 +445,7 @@ test_pre_commit_hook() {
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
     assert_no_uncommitted_changes; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: Assert \`AssemblyExample.FCStd\` is now readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
     else
@@ -459,9 +459,9 @@ test_pre_commit_hook() {
     assert_no_uncommitted_changes; echo
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: BYPASS_LOCK=$TRUE git_add \`AssemblyExample.FCStd\`" >&2
-        if [ "$REQUIRE_GITCAD_ACTIVATION" == "$TRUE" ]; then
+        if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
             assert_command_succeeds "BYPASS_LOCK=$TRUE git add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
         else
             assert_command_succeeds "BYPASS_LOCK=$TRUE git fadd \"$TEST_DIR/AssemblyExample.FCStd\""; echo
@@ -477,7 +477,7 @@ test_pre_commit_hook() {
     echo "TEST: git_add get_FCStd_dir for \`AssemblyExample.FCStd\`" >&2
     assert_command_succeeds "git_add \"$FCStd_dir_path\""; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: git commit -m \"active_test commit that should error, no lock\" (expect error)" >&2
         assert_command_fails "git commit -m \"active_test commit that should error, no lock\""; echo
     else
@@ -522,7 +522,7 @@ test_pre_push_hook() {
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
     assert_no_uncommitted_changes; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` are now readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
         assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
@@ -565,7 +565,7 @@ test_pre_push_hook() {
     
     # TEST 2: git unlock requires --force to unlock unpushed changes (checks all unpushed commits)
         # Note: TEST 1 still in progress
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias) -- should fail because changes haven't been pushed" >&2
         assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
@@ -602,7 +602,7 @@ test_pre_push_hook() {
     echo "TEST: assert \`BIMExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: git push origin active_test -- should fail because need to lock changes to AssemblyExample.FCStd" >&2
         assert_command_fails "git push origin active_test"; echo
 
@@ -653,7 +653,7 @@ test_post_checkout_hook() {
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
     assert_no_uncommitted_changes; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` are now readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
         assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
@@ -663,11 +663,12 @@ test_post_checkout_hook() {
         assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
     fi
 
+    
     # TEST: post-checkout hook synchronizes (imports) FCStd files during a branch checkout
     echo "TEST: git checkout -b active_test_branch1" >&2
     assert_command_succeeds "git checkout -b active_test_branch1"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
         assert_command_succeeds "git lock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     fi
@@ -695,7 +696,7 @@ test_post_checkout_hook() {
     echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias) -- should fail because changes haven't been pushed" >&2
         assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     fi
@@ -707,7 +708,7 @@ test_post_checkout_hook() {
     echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: assert \`BIMExample.FCStd\` is readonly" >&2
         assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
     else
@@ -729,7 +730,7 @@ test_post_checkout_hook() {
     echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: assert \`BIMExample.FCStd\` is readonly" >&2
         assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
     else
@@ -822,8 +823,9 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_post_checkout_hook" "$TEST_DIR/AssemblyExample.FCStd"
 
+    
     # TEST: git fco / post-checkout hook synchronizes (imports) FCStd files while cd'd into subdir
-    local Saved_Working_Directory=$(pwd)
+    local Original_Working_Directory=$(pwd)
     echo "TEST: Changing Directory to '$TEST_DIR'" >&2
     assert_command_succeeds "cd \"$TEST_DIR\""
 
@@ -833,14 +835,15 @@ test_post_checkout_hook() {
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from subdir cd'ed checkout" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from subdir cd'ed checkout." "test_post_checkout_hook" "./AssemblyExample.FCStd"
 
-    echo "TEST: Reverting directory change to '$Saved_Working_Directory'"
-    assert_command_succeeds "cd \"$Saved_Working_Directory\""
+    echo "TEST: Reverting directory change to '$Original_Working_Directory'"
+    assert_command_succeeds "cd \"$Original_Working_Directory\""
 
+    
     # TEST: Assert file read / write perms are set correctly
     echo "TEST: assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: assert \`BIMExample.FCStd\` is readonly" >&2
         assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
     else
@@ -883,7 +886,7 @@ test_stashing() {
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
     assert_no_uncommitted_changes; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: Assert \`AssemblyExample.FCStd\` is now readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
@@ -915,7 +918,7 @@ test_stashing() {
 
 
     # TEST: git unlock checks for stashed changes not yet committed (fails if so)
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias) -- should fail because changes haven't been pushed" >&2
         assert_command_fails "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
         assert_no_uncommitted_changes; echo
@@ -935,6 +938,7 @@ test_stashing() {
         echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
 
+        
         # TEST: Unstashing changes without a lock for changes fails
         echo "TEST: git_stash pop -- should fail need lock to modify AssemblyExample.FCStd" >&2
         assert_no_uncommitted_changes; echo
@@ -949,6 +953,7 @@ test_stashing() {
         assert_no_uncommitted_changes; echo
     fi
 
+    
     # TEST: Unstashing changes with a lock succeeds
     echo "TEST: Assert \`AssemblyExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -996,7 +1001,7 @@ test_post_merge_hook() {
     assert_command_succeeds "git commit -m \"initial active_test commit\""; echo
     assert_no_uncommitted_changes; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` are now readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
         assert_readonly "$TEST_DIR/BIMExample.FCStd"; echo
@@ -1007,6 +1012,7 @@ test_post_merge_hook() {
         assert_command_succeeds "git lock \"$TEST_DIR/BIMExample.FCStd\""; echo
     fi
 
+    
     # TEST: Simulate teamwork on remote repository
     echo "TEST: Assert \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
@@ -1017,7 +1023,7 @@ test_post_merge_hook() {
     assert_command_succeeds "git push origin active_test"; echo
     assert_no_uncommitted_changes; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: git unlock \`BIMExample.FCStd\` (git alias)" >&2
         assert_command_succeeds "git unlock \"$TEST_DIR/BIMExample.FCStd\""; echo
 
@@ -1060,7 +1066,7 @@ test_post_merge_hook() {
 
 
     # TEST: Pull --rebase remote changes and merge with local work to a different `.FCStd` file
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: git unlock \`AssemblyExample.FCStd\` (git alias)" >&2
         assert_command_succeeds "git unlock \"$TEST_DIR/AssemblyExample.FCStd\""; echo
         assert_no_uncommitted_changes; echo
@@ -1102,7 +1108,7 @@ test_post_merge_hook() {
     echo "TEST: Assert \`BIMExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
     else
@@ -1159,7 +1165,7 @@ test_post_merge_hook() {
     echo "TEST: Assert \`BIMExample.FCStd\` is NOT readonly" >&2
     assert_writable "$TEST_DIR/BIMExample.FCStd"; echo
 
-    if [ "$REQUIRE_LOCKS" == "$TRUE" ]; then
+    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo "TEST: Assert \`AssemblyExample.FCStd\` is readonly" >&2
         assert_readonly "$TEST_DIR/AssemblyExample.FCStd"; echo
     else

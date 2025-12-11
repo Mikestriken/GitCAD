@@ -86,7 +86,7 @@ FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
 lockfile_path="$FCStd_dir_path/.lockfile"
 
 # Check for unpushed changes if not force
-if [ "$FORCE_FLAG" == "$FALSE" ]; then
+if [ "$FORCE_FLAG" = "$FALSE" ]; then
     # ToDo? Consider bringing back using upstream branch as reference first if it exists?
         # UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)
         # if [ -n "$UPSTREAM" ]; then; REFERENCE_BRANCH="$UPSTREAM"; fi;
@@ -121,7 +121,7 @@ if [ "$FORCE_FLAG" == "$FALSE" ]; then
     if [ -n "$REFERENCE_BRANCH" ]; then
         DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
 
-        if [ "$DIR_HAS_CHANGES" == "$TRUE" ]; then
+        if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then
             echo "Error: Cannot unlock file with unpushed changes. Use --force to override." >&2
             exit $FAIL
         fi
@@ -141,7 +141,7 @@ if [ "$FORCE_FLAG" == "$FALSE" ]; then
     # echo "DEBUG: No uncommitted changes to '$FCStd_dir_path', clear to unlock!" >&2
 fi
 
-if [ "$FORCE_FLAG" == "$TRUE" ]; then
+if [ "$FORCE_FLAG" = "$TRUE" ]; then
     git lfs unlock --force "$lockfile_path" || exit $FAIL
     
 else

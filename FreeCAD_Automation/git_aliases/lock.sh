@@ -85,7 +85,7 @@ fi
 FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
 lockfile_path="$FCStd_dir_path/.lockfile"
 
-if [ "$FORCE_FLAG" == "$TRUE" ]; then
+if [ "$FORCE_FLAG" = "$TRUE" ]; then
     # Check if locked by someone else
     LOCK_INFO=$(git lfs locks --path="$lockfile_path")
     CURRENT_USER=$(git config --get user.name) || {
