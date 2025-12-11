@@ -54,7 +54,7 @@ while [ $# -gt 0 ]; do
                         ;;
                     *)
                         # echo "DEBUG: prepend '$1'" >&2
-                        parsed_file_path_args+=("$CALLER_SUBDIR$1")
+                        parsed_file_path_args+=("${CALLER_SUBDIR}${1}")
                         ;;
                 esac
             else
