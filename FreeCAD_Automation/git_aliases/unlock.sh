@@ -22,51 +22,61 @@ fi
 # ==============================================================================================
 #                                          Parse Args
 # ==============================================================================================
-# `$(GIT_PREFIX:-.)`:
-    # If caller is in $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
-    # If caller is in $GIT_ROOT, $(GIT_PREFIX) = ""
+# CALLER_SUBDIR=${GIT_PREFIX}:
+    # If caller's pwd is $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
+    # If caller's pwd is $GIT_ROOT, $(GIT_PREFIX) = ""
 CALLER_SUBDIR=$1
 shift
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
-parsed_args=()
+parsed_file_path_args=()
 FORCE_FLAG=$FALSE
-for arg in "$@"; do
-    # echo "DEBUG: parsing '$arg'..." >&2
-    if [[ "$arg" == -* ]]; then
-        if [ "$arg" == "--force" ]; then
+while [ $# -gt 0 ]; do
+    # echo "DEBUG: parsing '$1'..." >&2
+    case $1 in
+        # Set boolean flag if arg is a valid flag
+        "--force")
             FORCE_FLAG=$TRUE
             # echo "DEBUG: FORCE_FLAG set" >&2
-        fi
-    
-    else
-        if [ "$CALLER_SUBDIR" != "" ]; then
-            if [ "$arg" = "." ]; then
-                # echo "DEBUG: '$arg' -> '$CALLER_SUBDIR'" >&2
-                parsed_args+=("$CALLER_SUBDIR")
-            else
-                # echo "DEBUG: prepend '$arg'" >&2
-                parsed_args+=("$CALLER_SUBDIR$arg")
-            fi
+            ;;
         
-        else
-            # echo "DEBUG: Don't prepend '$arg'" >&2
-            parsed_args+=("$arg")
-        fi
-    fi
+        "-*")
+            echo "Error: '$1' flag is not recognized, skipping..." >&2
+            ;;
+        
+        # Assume arg is path. Fix path to be relative to root of the git repo instead of user's terminal pwd.
+        *)
+            if [ -n "$CALLER_SUBDIR" ]; then
+                case $1 in
+                    ".")
+                        # echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
+                        parsed_file_path_args+=("$CALLER_SUBDIR")
+                        ;;
+                    *)
+                        # echo "DEBUG: prepend '$1'" >&2
+                        parsed_file_path_args+=("$CALLER_SUBDIR$1")
+                        ;;
+                esac
+            else
+                # echo "DEBUG: Don't prepend '$1'" >&2
+                parsed_file_path_args+=("$1")
+            fi
+            ;;
+    esac
+    shift
 done
-# echo "DEBUG: Args='$parsed_args'" >&2
+# echo "DEBUG: Args='$parsed_file_path_args'" >&2
 
 # ==============================================================================================
 #                                          Unlock File
 # ==============================================================================================
 # Ensure valid args
-if [ ${#parsed_args[@]} != 1 ]; then
+if [ ${#parsed_file_path_args[@]} != 1 ]; then
     echo "Error: Invalid arguments. Usage: unlock.sh path/to/file.FCStd [--force]" >&2
     exit $FAIL
 fi
 
-FCStd_file_path="${parsed_args[0]}"
+FCStd_file_path="${parsed_file_path_args[0]}"
 if [ -z "$FCStd_file_path" ]; then
     echo "Error: No file path provided" >&2
     exit $FAIL
