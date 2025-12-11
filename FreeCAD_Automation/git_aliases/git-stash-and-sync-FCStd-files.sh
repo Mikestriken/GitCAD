@@ -43,13 +43,83 @@ fi
 # ==============================================================================================
 #                                          Parse Args
 # ==============================================================================================
-FIRST_ARG="$1"
-STASH_INDEX="$2"
+# CALLER_SUBDIR=${GIT_PREFIX}:
+    # If caller's pwd is $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
+    # If caller's pwd is $GIT_ROOT, $(GIT_PREFIX) = ""
+CALLER_SUBDIR=$1
+shift
+
+stash_args=("$@")
+
+# Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
+parsed_file_path_args=()
+stash_command_args=()
+POP_OR_APPLY_FLAG=$FALSE
+STASH_COMMAND=""
+STASH_INDEX=""
+FILE_SEPARATOR_FLAG=$FALSE
+while [ $# -gt 0 ]; do
+    # echo "DEBUG: parsing '$1'..." >&2
+    case $1 in
+        # Set boolean flag if arg is a valid flag
+        pop|apply)
+            POP_OR_APPLY_FLAG=$TRUE
+            STASH_COMMAND="$1"
+            stash_command_args+=("$1")
+            
+            if [ "$2" != "--" ]; then
+                shift
+                STASH_INDEX="$1"
+                stash_command_args+=("$1")
+            fi
+            # echo "DEBUG: POP_OR_APPLY_FLAG set for '$STASH_COMMAND' at index '$STASH_INDEX'" >&2
+            ;;
+        
+        "--")
+            FILE_SEPARATOR_FLAG=$TRUE
+            # echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
+            ;;
+        
+        "-*")
+            echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
+            if [ "$FILE_SEPARATOR_FLAG" == "$FALSE" ]; then
+                stash_command_args+=("$1")
+            fi
+            ;;
+        
+        # Assume arg is path. Fix path to be relative to root of the git repo instead of user's terminal pwd.
+        *)
+            if [ "$FILE_SEPARATOR_FLAG" == "$TRUE" ]; then
+                if [ -n "$CALLER_SUBDIR" ]; then
+                    case $1 in
+                        ".")
+                            # echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
+                            parsed_file_path_args+=("$CALLER_SUBDIR")
+                            ;;
+                        *)
+                            # echo "DEBUG: prepend '$1'" >&2
+                            parsed_file_path_args+=("${CALLER_SUBDIR}${1}")
+                            ;;
+                    esac
+                else
+                    # echo "DEBUG: Don't prepend '$1'" >&2
+                    parsed_file_path_args+=("$1")
+                fi
+            
+            else
+                stash_command_args+=("$1")
+                echo "DEBUG: '$1' not recognized, skipping..." >&2
+            fi
+            ;;
+    esac
+    shift
+done
 
 # ==============================================================================================
 #                                   Execute Stash n' Import
 # ==============================================================================================
-if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
+# Called stash command involves applying changes to working directory
+if [ "$POP_OR_APPLY_FLAG" == "$TRUE" ]; then
     # echo "DEBUG: Stash application detected" >&2
 
     # Check that user has locks for lockfile in same dir as stashed changefile
@@ -77,11 +147,16 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
     fi
 
     # Execute git stash pop/apply
-    "$git_path" stash "$@"
+        # Note: `git stash` sometimes calls clean filter... other times not... really weird....
+    if [ "$FILE_SEPARATOR_FLAG" == "$TRUE" ]; then
+        "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
+    else
+        "$git_path" stash "${stash_args[@]}"
+    fi
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
-        echo "git stash $FIRST_ARG failed" >&2
+        echo "git stash $STASH_COMMAND failed" >&2
         exit $STASH_RESULT
     fi
 
@@ -98,16 +173,17 @@ if [ "$FIRST_ARG" = "pop" ] || [ "$FIRST_ARG" = "apply" ]; then
         echo "SUCCESS" >&2
     done
 
+# Called stash command involves stashing away changes to working directory or calling some other command
 else
+    # echo "DEBUG: Stashing away or something else..." >&2
+    
     # Check for uncommitted .FCStd files
     "$git_path" update-index --refresh -q >/dev/null 2>&1
     UNCOMMITTED_FCSTD_FILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
     if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
-        echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\`" >&2
+        echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
         exit $FAIL
     fi
-
-    # echo "DEBUG: Stashing away or something else..." >&2
     
     # Get modified changefiles before stash
     "$git_path" update-index --refresh -q >/dev/null 2>&1
@@ -116,8 +192,13 @@ else
     # echo "DEBUG: retrieved before stash changefiles..." >&2
 
     # Execute git stash
-    # echo "DEBUG: '$git_path stash $@'" >&2
-    "$git_path" stash "$@" # Note: Sometimes calls clean filter... other times not... really weird....
+        # Note: `git stash` sometimes calls clean filter... other times not... really weird....
+    # echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
+    if [ "$FILE_SEPARATOR_FLAG" == "$TRUE" ]; then
+        "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
+    else
+        "$git_path" stash "${stash_args[@]}"
+    fi
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then

@@ -16,6 +16,8 @@ fi
 #                     Call Real `git.exe` With GIT_COMMAND Environment Variable
 # ==============================================================================================
 case $1 in
+  # Note: Unfortunately I cannot pass args directly to post-checkout hook directly. For this reason...
+  # ToDo: Consider removing GitCAD post-checkout logic and redirecting the call to fco alias...
   "checkout")
     shift
     
@@ -107,8 +109,24 @@ case $1 in
     ;;
   "stash")
     shift
-    # ToDo: stash also need to have the GIT_PREFIX applied to all args after `--`
-    GIT_COMMAND=$1 bash FreeCAD_Automation/git_aliases/git-stash-and-sync-FCStd-files.sh "$@"
+    
+    # # Get GIT_PREFIX (subdir the user is CDed into)
+    # GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    #   echo "Error: Current Directory is not a git repository" >&2
+    #   exit 1 # 1=$FAIL
+    # }
+    
+    # CURRENT_DIR=$(pwd)
+    # if [ "$CURRENT_DIR" = "$GIT_ROOT" ]; then
+    #   GIT_PREFIX=""
+    # else
+    #   GIT_PREFIX="${CURRENT_DIR#$GIT_ROOT/}/" # Remove `$GIT_ROOT/` from start of $CURRENT_DIR
+    # fi
+    
+    # # Call stash alias script directly
+    # GIT_COMMAND=$1 bash FreeCAD_Automation/git_aliases/git-stash-and-sync-FCStd-files.sh "$GIT_PREFIX" "$@"
+    
+    GIT_COMMAND=$1 "$REAL_GIT" fstash "$@"
     ;;
   *)
     GIT_COMMAND=$1 "$REAL_GIT" "$@"
