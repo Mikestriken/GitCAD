@@ -45,7 +45,7 @@ shift
 
 # Parse arguments: CHECKOUT_COMMIT FILE [FILE ...] OR -- CHECKOUT_COMMIT FILE [FILE ...]
 if [ $# -lt 2 ]; then
-    echo "Error: Invalid arguments. Usage: fco.sh CHECKOUT_COMMIT FILE [FILE ...] OR fco.sh -- CHECKOUT_COMMIT FILE [FILE ...]" >&2
+    echo "Error: Invalid arguments. Usage: git fco CHECKOUT_COMMIT FILE [FILE ...] OR git fco CHECKOUT_COMMIT -- FILE [FILE ...]" >&2
     exit $FAIL
 fi
 
@@ -57,7 +57,7 @@ if [ "$1" = "--" ]; then
     shift
     
     if [ $# -lt 1 ]; then
-        echo "Error: Invalid arguments. Usage: fco.sh CHECKOUT_COMMIT FILE [FILE ...] OR fco.sh -- CHECKOUT_COMMIT FILE [FILE ...]" >&2
+        echo "Error: Invalid arguments. Usage: git fco CHECKOUT_COMMIT FILE [FILE ...] OR git fco CHECKOUT_COMMIT -- FILE [FILE ...]" >&2
         exit $FAIL
     fi
 fi

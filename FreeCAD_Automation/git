@@ -41,16 +41,17 @@ case $1 in
     parsed_file_path_args=()
     IS_FILE_CHECKOUT=$FALSE
     while [ $# -gt 0 ]; do
-      # echo "DEBUG: parsing '$1'..." >&2
+      echo "DEBUG: parsing '$1'..." >&2
       case $1 in
         "-*")
-          # echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
+          echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
           ;;
         
         *)
           # First Arg that doesn't start with '-' should be COMMIT_TO_CHECKOUT
           if [ -z "$COMMIT_TO_CHECKOUT" ]; then
             COMMIT_TO_CHECKOUT="$1"
+            echo "DEBUG: Commit to Checkout='$COMMIT_TO_CHECKOUT'" >&2
 
           # Assume subsequent args are file paths (if not staring with '-') => Confirming this is a file checkout type.
           else
@@ -63,8 +64,10 @@ case $1 in
     done
     
     if [ "$IS_FILE_CHECKOUT" = "$TRUE" ]; then
+      echo "DEBUG: calling 'GIT_COMMAND=\"checkout\" \"$REAL_GIT\" fco \"${checkout_args[*]}\"'" >&2
       GIT_COMMAND="checkout" "$REAL_GIT" fco "${checkout_args[*]}"
     else
+      echo "DEBUG: calling 'GIT_COMMAND=\"checkout\" \"$REAL_GIT\" checkout \"${checkout_args[*]}\"'" >&2
       GIT_COMMAND="checkout" "$REAL_GIT" checkout "${checkout_args[*]}"
     fi
     
