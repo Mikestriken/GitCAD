@@ -3,69 +3,99 @@
 #                                       Script Overview
 # ==============================================================================================
 # Temporary git wrapper for GitCAD workflow. Only wraps over git.exe when user runs `source activate.sh` for that terminal session
+# ==============================================================================================
+#                                       Constant Globals
+# ==============================================================================================
+SUCCESS=0
+FAIL=1
+TRUE=0
+FALSE=1
 
 # ==============================================================================================
 #                              Verify and Retrieve Dependencies
 # ==============================================================================================
 if [ -z "$REAL_GIT" ]; then
   echo "Error: Could not find real git executable" >&2
-  exit 1 # 1=$FAIL
+  exit $FAIL
 fi
 
 # ==============================================================================================
 #                     Call Real `git.exe` With GIT_COMMAND Environment Variable
 # ==============================================================================================
 case $1 in
-  # Note: Unfortunately I cannot pass args directly to post-checkout hook directly. For this reason...
-  # ToDo: Consider removing GitCAD post-checkout logic and redirecting the call to fco alias...
+  # Note: Unfortunately I cannot pass args directly to post-checkout hook directly. For this reason checkout case has extra logic to extract additional information for the file checkout and 
+  # Note: One cannot simply redirect checkout to the `git fco` alias because `git fco` DOES NOT handle branch checkouts. Determining checkout type is ambiguous if `--` is omitted, by the time checkout type is determined one may as well, call the post-checkout hook to prevent duplicate code.
+  # Note: `git switch` does NOT support file checkout, it only handles branch checkouts and thus is completely handled by the post-checkout hook, no alias required.
   "checkout")
     shift
+
+    checkout_args=("$@")
     
-    # Get GIT_PREFIX (subdir the user is CDed into)
+    # Get CALLER_SUBDIR (subdir the user is CDed into)
     GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
       echo "Error: Current Directory is not a git repository" >&2
-      exit 1 # 1=$FAIL
+      exit $FAIL
     }
     
     CURRENT_DIR=$(pwd)
     if [ "$CURRENT_DIR" = "$GIT_ROOT" ]; then
-      GIT_PREFIX=""
+      CALLER_SUBDIR=""
     else
-      GIT_PREFIX="${CURRENT_DIR#$GIT_ROOT/}/" # Remove `$GIT_ROOT/` from start of $CURRENT_DIR
+      CALLER_SUBDIR="${CURRENT_DIR#$GIT_ROOT/}/" # Remove `$GIT_ROOT/` from start of $CURRENT_DIR
     fi
     
     # Parse arguments to find COMMIT_TO_CHECKOUT and files
     # Supports: git checkout COMMIT_TO_CHECKOUT -- FILE [FILE ...]
     #       or: git checkout COMMIT_TO_CHECKOUT FILE [FILE ...]
     COMMIT_TO_CHECKOUT=""
-    FILES=()
-    FOUND_SEPARATOR=false
-
-    for arg in "$@"; do
-      # Skip file separator --
-      if [ "$arg" = "--" ]; then
-        FOUND_SEPARATOR=true
-        continue
-      fi
-      
-      # First Arg (COMMIT_TO_CHECKOUT)
-      if [ -z "$COMMIT_TO_CHECKOUT" ] && [ "$FOUND_SEPARATOR" = false ]; then
-        COMMIT_TO_CHECKOUT="$arg"
-      
-      # Subsequent Args (FILES)
-      elif [ -n "$COMMIT_TO_CHECKOUT" ]; then
-        if [ "$arg" = "." ]; then # Special case: '.' means current directory user is CDed into
-          FILES+=("$GIT_PREFIX")
+    parsed_file_path_args=()
+    FOUND_SEPARATOR=$FALSE
+    IS_FILE_CHECKOUT=$FALSE
+    while [ $# -gt 0 ]; do
+      # echo "DEBUG: parsing '$1'..." >&2
+      case $1 in
+        "--")
+          FILE_SEPARATOR_FLAG=$TRUE
+          # echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
+          ;;
         
-        # Prefix subdir user is CDed into
-        else
-          FILES+=("${GIT_PREFIX}${arg}")
-        fi
-      fi
-    done
+        "-*")
+          # echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
+          ;;
+        
+        *)
+          # First Arg should be COMMIT_TO_CHECKOUT
+          if [ -z "$COMMIT_TO_CHECKOUT" ] && [ "$FOUND_SEPARATOR" = "$FALSE" ]; then
+            COMMIT_TO_CHECKOUT="$1"
 
+          # Assume subsequent args are file paths (if not staring with '-').
+          # Fix path to be relative to root of the git repo instead of user's terminal pwd.
+          else
+            IS_FILE_CHECKOUT=$TRUE
+            break
+            if [ -n "$CALLER_SUBDIR" ]; then
+              case $1 in
+                ".")
+                  # echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
+                  parsed_file_path_args+=("$CALLER_SUBDIR")
+                  ;;
+                *)
+                  # echo "DEBUG: prepend '$1'" >&2
+                  parsed_file_path_args+=("${CALLER_SUBDIR}${1}")
+                  ;;
+              esac
+            else
+              # echo "DEBUG: Don't prepend '$1'" >&2
+              parsed_file_path_args+=("$1")
+            fi
+          fi
+          ;;
+      esac
+      shift
+    done
+    
     # If file checkout detected
-    if [ -n "$COMMIT_TO_CHECKOUT" ] && [ ${#FILES[@]} -gt 0 ]; then
+    if [ "$IS_FILE_CHECKOUT" = "$TRUE" ]; then
       # If checking out HEAD (resetting modified files)
         # We also need to check if the FCStd_dir_path or FCStd_file_path is modified in the working directory PRIOR to checkout
       HEAD_SHA=$(git rev-parse HEAD)
@@ -96,36 +126,20 @@ case $1 in
 
         echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo $CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED | xargs)" >&2
       fi
-        
-      GIT_COMMAND="checkout" GIT_CHECKOUT_COMMIT="$COMMIT_TO_CHECKOUT" GIT_CHECKOUT_PATTERNS="${FILES[*]}" CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED="$CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED" "$REAL_GIT" checkout "$@"
+      
+      # GIT_COMMAND="checkout" "$REAL_GIT" fco "${checkout_args[*]}"
+      GIT_COMMAND="checkout" GIT_CHECKOUT_COMMIT="$COMMIT_TO_CHECKOUT" GIT_CHECKOUT_PATTERNS="${parsed_file_path_args[*]}" CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED="$CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED" "$REAL_GIT" checkout "$@"
     else
-      GIT_COMMAND="checkout" "$REAL_GIT" checkout "$@"
+      GIT_COMMAND="checkout" "$REAL_GIT" checkout "${checkout_args[*]}"
     fi
     
     ;;
   "reset")
     shift
-    GIT_COMMAND=$1 bash FreeCAD_Automation/git_aliases/git-reset-and-sync-FCStd-files.sh "$@"
+    GIT_COMMAND=$1 "$REAL_GIT" freset "$@"
     ;;
   "stash")
     shift
-    
-    # # Get GIT_PREFIX (subdir the user is CDed into)
-    # GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
-    #   echo "Error: Current Directory is not a git repository" >&2
-    #   exit 1 # 1=$FAIL
-    # }
-    
-    # CURRENT_DIR=$(pwd)
-    # if [ "$CURRENT_DIR" = "$GIT_ROOT" ]; then
-    #   GIT_PREFIX=""
-    # else
-    #   GIT_PREFIX="${CURRENT_DIR#$GIT_ROOT/}/" # Remove `$GIT_ROOT/` from start of $CURRENT_DIR
-    # fi
-    
-    # # Call stash alias script directly
-    # GIT_COMMAND=$1 bash FreeCAD_Automation/git_aliases/git-stash-and-sync-FCStd-files.sh "$GIT_PREFIX" "$@"
-    
     GIT_COMMAND=$1 "$REAL_GIT" fstash "$@"
     ;;
   *)
