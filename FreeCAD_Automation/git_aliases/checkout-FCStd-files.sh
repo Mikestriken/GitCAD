@@ -135,7 +135,9 @@ fi
     # FCStd files will be checked out again later (their uncompressed dirs), but this is fine
     # because we already captured the modification list before this checkout
 echo "DEBUG: Checking out '${parsed_file_path_args[*]}' from commit '$CHECKOUT_COMMIT'" >&2
-"$git_path" checkout "$CHECKOUT_COMMIT" -- "${parsed_file_path_args[@]}" > /dev/null  || {
+
+# Note: `FILE_CHECKOUT_IN_PROGRESS=$TRUE` suppresses GitCAD activation warning message
+FILE_CHECKOUT_IN_PROGRESS=$TRUE "$git_path" checkout "$CHECKOUT_COMMIT" -- "${parsed_file_path_args[@]}" > /dev/null  || {
     echo "Error: Failed to checkout files from commit '$CHECKOUT_COMMIT'" >&2
     exit $FAIL
 }
@@ -208,7 +210,8 @@ fi
 # ==============================================================================================
 echo "DEBUG: Checking out dirs from commit '$CHECKOUT_COMMIT': ${FCStd_dirs_to_checkout[*]}" >&2
 
-"$git_path" checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
+# Note: `FILE_CHECKOUT_IN_PROGRESS=$TRUE` suppresses GitCAD activation warning message
+FILE_CHECKOUT_IN_PROGRESS=$TRUE "$git_path" checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
     echo "Error: Failed to checkout dirs from commit '$CHECKOUT_COMMIT'" >&2
     exit $FAIL
 }
