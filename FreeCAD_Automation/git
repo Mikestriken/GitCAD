@@ -31,104 +31,39 @@ case $1 in
 
     checkout_args=("$@")
     
-    # Get CALLER_SUBDIR (subdir the user is CDed into)
-    GIT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
-      echo "Error: Current Directory is not a git repository" >&2
-      exit $FAIL
-    }
-    
-    CURRENT_DIR=$(pwd)
-    if [ "$CURRENT_DIR" = "$GIT_ROOT" ]; then
-      CALLER_SUBDIR=""
-    else
-      CALLER_SUBDIR="${CURRENT_DIR#$GIT_ROOT/}/" # Remove `$GIT_ROOT/` from start of $CURRENT_DIR
-    fi
-    
-    # Parse arguments to find COMMIT_TO_CHECKOUT and files
-    # Supports: git checkout COMMIT_TO_CHECKOUT -- FILE [FILE ...]
-    #       or: git checkout COMMIT_TO_CHECKOUT FILE [FILE ...]
+    # Parse arguments to determine checkout type
+    # File Checkout:
+    #           git checkout COMMIT_TO_CHECKOUT -- FILE [FILE ...]
+    #           git checkout COMMIT_TO_CHECKOUT FILE [FILE ...]
+    # Branch Checkout:
+    #           git checkout COMMIT_TO_CHECKOUT
     COMMIT_TO_CHECKOUT=""
     parsed_file_path_args=()
-    FOUND_SEPARATOR=$FALSE
     IS_FILE_CHECKOUT=$FALSE
     while [ $# -gt 0 ]; do
       # echo "DEBUG: parsing '$1'..." >&2
       case $1 in
-        "--")
-          FILE_SEPARATOR_FLAG=$TRUE
-          # echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
-          ;;
-        
         "-*")
           # echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
           ;;
         
         *)
-          # First Arg should be COMMIT_TO_CHECKOUT
-          if [ -z "$COMMIT_TO_CHECKOUT" ] && [ "$FOUND_SEPARATOR" = "$FALSE" ]; then
+          # First Arg that doesn't start with '-' should be COMMIT_TO_CHECKOUT
+          if [ -z "$COMMIT_TO_CHECKOUT" ]; then
             COMMIT_TO_CHECKOUT="$1"
 
-          # Assume subsequent args are file paths (if not staring with '-').
-          # Fix path to be relative to root of the git repo instead of user's terminal pwd.
+          # Assume subsequent args are file paths (if not staring with '-') => Confirming this is a file checkout type.
           else
             IS_FILE_CHECKOUT=$TRUE
             break
-            if [ -n "$CALLER_SUBDIR" ]; then
-              case $1 in
-                ".")
-                  # echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
-                  parsed_file_path_args+=("$CALLER_SUBDIR")
-                  ;;
-                *)
-                  # echo "DEBUG: prepend '$1'" >&2
-                  parsed_file_path_args+=("${CALLER_SUBDIR}${1}")
-                  ;;
-              esac
-            else
-              # echo "DEBUG: Don't prepend '$1'" >&2
-              parsed_file_path_args+=("$1")
-            fi
           fi
           ;;
       esac
       shift
     done
     
-    # If file checkout detected
     if [ "$IS_FILE_CHECKOUT" = "$TRUE" ]; then
-      # If checking out HEAD (resetting modified files)
-        # We also need to check if the FCStd_dir_path or FCStd_file_path is modified in the working directory PRIOR to checkout
-      HEAD_SHA=$(git rev-parse HEAD)
-      CHECKOUT_SHA=$(git rev-parse "$COMMIT_TO_CHECKOUT")
-      IS_HEAD_CHECKOUT=$FALSE
-      CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED=""
-      
-      if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
-        echo "DEBUG: Detected HEAD checkout (resetting modified files)" >&2
-        
-        IS_HEAD_CHECKOUT=$TRUE
-        git update-index --refresh -q >/dev/null 2>&1
-
-        CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED=$(git diff-index --name-only HEAD | grep -i '\.changefile$')
-        
-        FCStd_files_with_modifications_not_yet_committed=$(git diff-index --name-only HEAD | grep -i '\.fcstd$')
-        
-        for FCStd_file_path in $FCStd_files_with_modifications_not_yet_committed; do
-          FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
-          changefile_path="$FCStd_dir_path/.changefile"
-
-          if echo "$CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED" | grep -Fxq "$changefile_path"; then
-            continue
-          else
-            CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED="$CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED"$'\n'"$changefile_path"
-          fi
-        done
-
-        echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo $CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED | xargs)" >&2
-      fi
-      
-      # GIT_COMMAND="checkout" "$REAL_GIT" fco "${checkout_args[*]}"
-      GIT_COMMAND="checkout" GIT_CHECKOUT_COMMIT="$COMMIT_TO_CHECKOUT" GIT_CHECKOUT_PATTERNS="${parsed_file_path_args[*]}" CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED="$CHANGEFILES_WITH_MODIFICATIONS_NOT_YET_COMMITTED" "$REAL_GIT" checkout "$@"
+      GIT_COMMAND="checkout" "$REAL_GIT" fco "${checkout_args[*]}"
     else
       GIT_COMMAND="checkout" "$REAL_GIT" checkout "${checkout_args[*]}"
     fi
@@ -136,14 +71,14 @@ case $1 in
     ;;
   "reset")
     shift
-    GIT_COMMAND=$1 "$REAL_GIT" freset "$@"
+    GIT_COMMAND="$1" "$REAL_GIT" freset "$@"
     ;;
   "stash")
     shift
-    GIT_COMMAND=$1 "$REAL_GIT" fstash "$@"
+    GIT_COMMAND="$1" "$REAL_GIT" fstash "$@"
     ;;
   *)
-    GIT_COMMAND=$1 "$REAL_GIT" "$@"
+    GIT_COMMAND="$1" "$REAL_GIT" "$@"
     ;;
 esac
 
