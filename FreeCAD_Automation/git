@@ -43,7 +43,7 @@ case $1 in
     while [ $# -gt 0 ]; do
       echo "DEBUG: parsing '$1'..." >&2
       case $1 in
-        "-*")
+        -*)
           echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
           ;;
         
