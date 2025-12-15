@@ -23,20 +23,43 @@ else
     git_path="git"
 fi
 
+GIT_COMMAND_ALREADY_SET=$TRUE
+if [ -z "$GIT_COMMAND" ]; then
+    GIT_COMMAND_ALREADY_SET=$FALSE
+    export GIT_COMMAND="stash"
+fi
+
+exit_fstash() {
+    if [ "$GIT_COMMAND_ALREADY_SET" = "$FALSE" ]; then 
+        unset GIT_COMMAND
+    fi
+    
+    case $1 in
+        "")
+            echo "Error: No exit code provided, exiting with fail!" >&2
+            exit $FAIL
+            ;;
+        *)
+            exit $1
+            ;;
+    esac
+}
+trap "exit_fstash $FAIL 2>/dev/null" EXIT
+
 if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
     echo "Error: Config file missing or invalid; cannot proceed." >&2
-    exit $FAIL
+    exit_fstash $FAIL
 fi
 
 if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     CURRENT_USER=$("$git_path" config --get user.name) || {
         echo "Error: git config user.name not set!" >&2
-        exit $FAIL
+        exit_fstash $FAIL
     }
 
     CURRENT_LOCKS=$("$git_path" lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
         echo "Error: failed to list of active lock info." >&2
-        exit $FAIL
+        exit_fstash $FAIL
     }
 fi
 
@@ -82,7 +105,7 @@ while [ $# -gt 0 ]; do
             echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
             ;;
         
-        "-*")
+        -*)
             echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
             if [ "$FILE_SEPARATOR_FLAG" = "$FALSE" ]; then
                 stash_command_args+=("$1")
@@ -132,7 +155,7 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
             STASH_REF="stash@{0}"
         fi
         
-        STASHED_CHANGEFILES=$(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i '\.changefile$' || true)
+        STASHED_CHANGEFILES=$("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i '\.changefile$' || true)
 
         # echo -e "\nDEBUG: checking stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
 
@@ -143,7 +166,7 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
 
             if ! echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
                 echo "Error: User does not have lock for $lockfile in stash" >&2
-                exit $FAIL
+                exit_fstash $FAIL
             fi
         done
     fi
@@ -151,15 +174,15 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
     # Execute git stash pop/apply
         # Note: `git stash` sometimes calls clean filter... other times not... really weird....
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
-        GIT_COMMAND="stash" "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
+        "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
-        GIT_COMMAND="stash" "$git_path" stash "${stash_args[@]}"
+        "$git_path" stash "${stash_args[@]}"
     fi
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
         echo "git stash $STASH_COMMAND failed" >&2
-        exit $STASH_RESULT
+        exit_fstash $STASH_RESULT
     fi
 
     # Check for changed lockfiles in the working dir (similar to post-checkout)
@@ -188,11 +211,11 @@ else
     #         FCStd_files_in_args=$(printf '%s\n' "${parsed_file_path_args[@]}" | grep -i '\.fcstd$' || true)
     #         if [ -n "$FCStd_files_in_args" ]; then
     #             echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
-    #             exit $FAIL
+    #             exit_fstash $FAIL
     #         fi
     #     else
     #         echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
-    #         exit $FAIL
+    #         exit_fstash $FAIL
     #     fi
     # fi
     
@@ -206,15 +229,15 @@ else
         # Note: `git stash` sometimes calls clean filter... other times not... really weird....
     echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
-        GIT_COMMAND="stash" "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
+        "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
-        GIT_COMMAND="stash" "$git_path" stash "${stash_args[@]}"
+        "$git_path" stash "${stash_args[@]}"
     fi
     STASH_RESULT=$?
 
     if [ $STASH_RESULT -ne 0 ]; then
         echo "git stash failed" >&2
-        exit $STASH_RESULT
+        exit_fstash $STASH_RESULT
     fi
 
     # Get modified lockfiles after stash
@@ -240,4 +263,4 @@ else
     done
 fi
 
-exit $SUCCESS
+exit_fstash $SUCCESS
