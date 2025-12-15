@@ -109,18 +109,25 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
     IS_HEAD_CHECKOUT=$TRUE
     "$git_path" update-index --refresh -q >/dev/null 2>&1
 
+    # List of all modified changefiles
     changefiles_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$')
+    echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo $changefiles_with_modifications_not_yet_committed | xargs)" >&2
     
     FCStd_files_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$')
+    echo "DEBUG: Found modified FCStd files for HEAD checkout: $(echo $FCStd_files_with_modifications_not_yet_committed | xargs)" >&2
     
+    # For each modified FCStd file, find its changefile and add it to the list of modified changefiles
     for FCStd_file_path in $FCStd_files_with_modifications_not_yet_committed; do
+        echo "DEBUG: Finding changefile for FCStd file: '$FCStd_file_path'" >&2
         FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
         changefile_path="$FCStd_dir_path/.changefile"
 
         if echo "$changefiles_with_modifications_not_yet_committed" | grep -Fxq "$changefile_path"; then
+            echo "DEBUG: '$changefile_path' already in list of modified changefiles" >&2
             continue
         else
             changefiles_with_modifications_not_yet_committed="$changefiles_with_modifications_not_yet_committed"$'\n'"$changefile_path"
+            echo "DEBUG: Added '$changefile_path' to list of modified changefiles" >&2
         fi
     done
 
