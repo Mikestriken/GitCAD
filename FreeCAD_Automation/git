@@ -37,6 +37,7 @@ case $1 in
     #           git checkout COMMIT_TO_CHECKOUT FILE [FILE ...]
     # Branch Checkout:
     #           git checkout COMMIT_TO_CHECKOUT
+    #           git checkout -b COMMIT_TO_CHECKOUT
     COMMIT_TO_CHECKOUT=""
     parsed_file_path_args=()
     IS_FILE_CHECKOUT=$FALSE
@@ -55,6 +56,7 @@ case $1 in
 
           # Assume subsequent args are file paths (if not staring with '-') => Confirming this is a file checkout type.
           else
+            echo "DEBUG: Checkout type is file checkout" >&2
             IS_FILE_CHECKOUT=$TRUE
             break
           fi
@@ -64,11 +66,11 @@ case $1 in
     done
     
     if [ "$IS_FILE_CHECKOUT" = "$TRUE" ]; then
-      echo "DEBUG: calling 'GIT_COMMAND=\"checkout\" \"$REAL_GIT\" fco \"${checkout_args[*]}\"'" >&2
-      GIT_COMMAND="checkout" "$REAL_GIT" fco "${checkout_args[*]}"
+      echo "DEBUG: calling 'GIT_COMMAND=\"checkout\" \"$REAL_GIT\" fco \"${checkout_args[@]}\"'" >&2
+      GIT_COMMAND="checkout" "$REAL_GIT" fco "${checkout_args[@]}"
     else
-      echo "DEBUG: calling 'GIT_COMMAND=\"checkout\" \"$REAL_GIT\" checkout \"${checkout_args[*]}\"'" >&2
-      GIT_COMMAND="checkout" "$REAL_GIT" checkout "${checkout_args[*]}"
+      echo "DEBUG: calling 'GIT_COMMAND=\"checkout\" \"$REAL_GIT\" checkout \"${checkout_args[@]}\"'" >&2
+      GIT_COMMAND="checkout" "$REAL_GIT" checkout "${checkout_args[@]}"
     fi
     
     ;;

@@ -134,7 +134,7 @@ fi
     # This checks out ALL files/patterns (including FCStd files and non-FCStd files)
     # FCStd files will be checked out again later (their uncompressed dirs), but this is fine
     # because we already captured the modification list before this checkout
-echo "DEBUG: Checking out '${parsed_file_path_args[*]}' from commit '$CHECKOUT_COMMIT'" >&2
+echo "DEBUG: Checking out '${parsed_file_path_args[@]}' from commit '$CHECKOUT_COMMIT'" >&2
 
 # Note: `FILE_CHECKOUT_IN_PROGRESS=$TRUE` suppresses GitCAD activation warning message
 FILE_CHECKOUT_IN_PROGRESS=$TRUE "$git_path" checkout "$CHECKOUT_COMMIT" -- "${parsed_file_path_args[@]}" > /dev/null  || {
@@ -168,7 +168,7 @@ done
 
 MATCHED_FCStd_file_paths=($(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u)) # Remove duplicates
 
-echo "DEBUG: matched FCStd files: ${MATCHED_FCStd_file_paths[*]}" >&2
+echo "DEBUG: matched FCStd files: ${MATCHED_FCStd_file_paths[@]}" >&2
 
 if [ ${#MATCHED_FCStd_file_paths[@]} -eq 0 ]; then
     echo "DEBUG: No FCStd files matched the patterns" >&2
@@ -208,7 +208,7 @@ fi
 # ==============================================================================================
 #                                    File Checkout FCStd Dirs
 # ==============================================================================================
-echo "DEBUG: Checking out dirs from commit '$CHECKOUT_COMMIT': ${FCStd_dirs_to_checkout[*]}" >&2
+echo "DEBUG: Checking out dirs from commit '$CHECKOUT_COMMIT': ${FCStd_dirs_to_checkout[@]}" >&2
 
 # Note: `FILE_CHECKOUT_IN_PROGRESS=$TRUE` suppresses GitCAD activation warning message
 FILE_CHECKOUT_IN_PROGRESS=$TRUE "$git_path" checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
