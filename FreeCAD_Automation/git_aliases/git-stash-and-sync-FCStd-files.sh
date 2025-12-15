@@ -1,5 +1,5 @@
 #!/bin/bash
-# echo "DEBUG: git-stash-and-sync-FCStd-files trap-card triggered!" >&2
+echo "DEBUG: git-stash-and-sync-FCStd-files trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -61,7 +61,7 @@ STASH_COMMAND=""
 STASH_INDEX=""
 FILE_SEPARATOR_FLAG=$FALSE
 while [ $# -gt 0 ]; do
-    # echo "DEBUG: parsing '$1'..." >&2
+    echo "DEBUG: parsing '$1'..." >&2
     case $1 in
         # Set boolean flag if arg is a valid flag
         pop|apply)
@@ -74,12 +74,12 @@ while [ $# -gt 0 ]; do
                 STASH_INDEX="$1"
                 stash_command_args+=("$1")
             fi
-            # echo "DEBUG: POP_OR_APPLY_FLAG set for '$STASH_COMMAND' at index '$STASH_INDEX'" >&2
+            echo "DEBUG: POP_OR_APPLY_FLAG set for '$STASH_COMMAND' at index '$STASH_INDEX'" >&2
             ;;
         
         "--")
             FILE_SEPARATOR_FLAG=$TRUE
-            # echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
+            echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
             ;;
         
         "-*")
@@ -95,16 +95,16 @@ while [ $# -gt 0 ]; do
                 if [ -n "$CALLER_SUBDIR" ]; then
                     case $1 in
                         ".")
-                            # echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
+                            echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
                             parsed_file_path_args+=("$CALLER_SUBDIR")
                             ;;
                         *)
-                            # echo "DEBUG: prepend '$1'" >&2
+                            echo "DEBUG: prepend '$1'" >&2
                             parsed_file_path_args+=("${CALLER_SUBDIR}${1}")
                             ;;
                     esac
                 else
-                    # echo "DEBUG: Don't prepend '$1'" >&2
+                    echo "DEBUG: Don't prepend '$1'" >&2
                     parsed_file_path_args+=("$1")
                 fi
             
@@ -122,7 +122,7 @@ done
 # ==============================================================================================
 # Called stash command involves applying changes to working directory
 if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
-    # echo "DEBUG: Stash application detected" >&2
+    echo "DEBUG: Stash application detected" >&2
 
     # Check that user has locks for lockfile in same dir as stashed changefile
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
@@ -177,7 +177,7 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
 
 # Called stash command involves stashing away changes to working directory or calling some other command
 else
-    # echo "DEBUG: Stashing away or something else..." >&2
+    echo "DEBUG: Stashing away or something else..." >&2
     
     # Check for uncommitted .FCStd files
     # "$git_path" update-index --refresh -q >/dev/null 2>&1
@@ -199,11 +199,11 @@ else
     "$git_path" update-index --refresh -q >/dev/null 2>&1
     BEFORE_STASH_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
     
-    # echo "DEBUG: retrieved before stash changefiles..." >&2
+    echo "DEBUG: retrieved before stash changefiles..." >&2
 
     # Execute git stash
         # Note: `git stash` sometimes calls clean filter... other times not... really weird....
-    # echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
+    echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
         GIT_COMMAND="stash" "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
@@ -223,11 +223,11 @@ else
     # Find files present before stash but not after stash (files that were stashed)
     STASHED_CHANGEFILES=$(comm -23 <(echo "$BEFORE_STASH_CHANGEFILES") <(echo "$AFTER_STASH_CHANGEFILE"))
 
-    # echo -e "\nDEBUG: Importing stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
+    echo -e "\nDEBUG: Importing stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
 
     # Import the files that are no longer modified (those that were stashed)
     for changefile in $STASHED_CHANGEFILES; do
-        # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
