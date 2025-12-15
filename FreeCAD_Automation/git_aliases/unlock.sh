@@ -40,7 +40,7 @@ while [ $# -gt 0 ]; do
             # echo "DEBUG: FORCE_FLAG set" >&2
             ;;
         
-        "-*")
+        -*)
             echo "Error: '$1' flag is not recognized, skipping..." >&2
             ;;
         

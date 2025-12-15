@@ -33,7 +33,7 @@ while [ $# -gt 0 ]; do
     # echo "DEBUG: parsing '$1'..." >&2
     case $1 in
         # Set boolean flag if arg is a valid flag
-        "-*")
+        -*)
             echo "Error: '$1' flag is not recognized, skipping..." >&2
             ;;
         
