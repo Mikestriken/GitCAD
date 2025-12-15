@@ -76,11 +76,11 @@ case $1 in
     ;;
   "reset")
     shift
-    GIT_COMMAND="$1" "$REAL_GIT" freset "$@"
+    GIT_COMMAND="reset" "$REAL_GIT" freset "$@"
     ;;
   "stash")
     shift
-    GIT_COMMAND="$1" "$REAL_GIT" fstash "$@"
+    GIT_COMMAND="stash" "$REAL_GIT" fstash "$@"
     ;;
   *)
     GIT_COMMAND="$1" "$REAL_GIT" "$@"

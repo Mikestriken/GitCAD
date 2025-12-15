@@ -132,7 +132,7 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
             STASH_REF="stash@{0}"
         fi
         
-        STASHED_CHANGEFILES=$("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i '\.changefile$' || true)
+        STASHED_CHANGEFILES=$(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i '\.changefile$' || true)
 
         # echo -e "\nDEBUG: checking stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
 
@@ -151,9 +151,9 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
     # Execute git stash pop/apply
         # Note: `git stash` sometimes calls clean filter... other times not... really weird....
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
-        "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
+        GIT_COMMAND="stash" "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
-        "$git_path" stash "${stash_args[@]}"
+        GIT_COMMAND="stash" "$git_path" stash "${stash_args[@]}"
     fi
     STASH_RESULT=$?
 
@@ -180,20 +180,20 @@ else
     # echo "DEBUG: Stashing away or something else..." >&2
     
     # Check for uncommitted .FCStd files
-    "$git_path" update-index --refresh -q >/dev/null 2>&1
-    UNCOMMITTED_FCSTD_FILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
-    if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
-        if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
-            FCStd_files_in_args=$(printf '%s\n' "${parsed_file_path_args[@]}" | grep -i '\.fcstd$' || true)
-            if [ -n "$FCStd_files_in_args" ]; then
-                echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
-                exit $FAIL
-            fi
-        else
-            echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
-            exit $FAIL
-        fi
-    fi
+    # "$git_path" update-index --refresh -q >/dev/null 2>&1
+    # UNCOMMITTED_FCSTD_FILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
+    # if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
+    #     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+    #         FCStd_files_in_args=$(printf '%s\n' "${parsed_file_path_args[@]}" | grep -i '\.fcstd$' || true)
+    #         if [ -n "$FCStd_files_in_args" ]; then
+    #             echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
+    #             exit $FAIL
+    #         fi
+    #     else
+    #         echo "Error: Cannot stash .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
+    #         exit $FAIL
+    #     fi
+    # fi
     
     # Get modified changefiles before stash
     "$git_path" update-index --refresh -q >/dev/null 2>&1
@@ -205,9 +205,9 @@ else
         # Note: `git stash` sometimes calls clean filter... other times not... really weird....
     # echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
-        "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
+        GIT_COMMAND="stash" "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
-        "$git_path" stash "${stash_args[@]}"
+        GIT_COMMAND="stash" "$git_path" stash "${stash_args[@]}"
     fi
     STASH_RESULT=$?
 

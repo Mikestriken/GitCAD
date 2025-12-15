@@ -32,6 +32,11 @@ if [ -n "$RESET_MOD" ]; then
     cat /dev/null
     exit $SUCCESS
 
+# Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files
+elif [ "$GIT_COMMAND" = "stash" ]; then
+    cat
+    exit $SUCCESS
+
 # Note: When doing a file checkout the clean filter will parse the current file in the working dir (even if git shows no changes)
     # Solution: If file is empty don't export and exit early with success
 elif [ ! -s "$1" ]; then
