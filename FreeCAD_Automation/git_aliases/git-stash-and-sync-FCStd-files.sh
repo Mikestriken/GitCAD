@@ -74,47 +74,170 @@ shift
 
 stash_args=("$@")
 
-# Note: Stash Types: list, show, drop, pop, apply, branch, push, save, clear, create, store, export, import
+# Note, Stash sub-commands as of git v2.52.0: list, show, drop, pop, apply, branch, push, -p (push -p), save, clear, create, store, export, import
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
 parsed_file_path_args=()
 stash_command_args=()
-POP_OR_APPLY_FLAG=$FALSE
+STASH_COMMAND_DOES_NOT_MODIFY_WORKING_DIR_OR_CREATE_STASHES=$FALSE
 STASH_COMMAND=""
-STASH_INDEX=""
+BRANCH_NAME=""
+STASH_REF=""
 FILE_SEPARATOR_FLAG=$FALSE
 while [ $# -gt 0 ]; do
     echo "DEBUG: parsing '$1'..." >&2
     case $1 in
-        # Set boolean flag if arg is a valid flag
+        # ===== Capture Explicit STASH_COMMANDs that apply stashed changes =====
         pop|apply)
-            POP_OR_APPLY_FLAG=$TRUE
+            if [ -n "$STASH_COMMAND" ]; then
+                echo "Error: Stash command already provided, yet command '$1' was specified afterwards" >&2
+                exit_fstash $FAIL
+            
+            elif [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: stash command '$1' is invalid after '--' file separator" >&2
+                exit_fstash $FAIL
+            fi
+
+            STASH_COMMAND="$1"
+            stash_command_args+=("$1")
+            echo "DEBUG: POP_OR_APPLY_FLAG set for '$STASH_COMMAND'" >&2
+            ;;
+
+        "branch")
+            if [ -n "$STASH_COMMAND" ]; then
+                echo "Error: Stash command already provided, yet command '$1' was specified afterwards" >&2
+                exit_fstash $FAIL
+            
+            elif [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: stash command '$1' is invalid after '--' file separator" >&2
+                exit_fstash $FAIL
+            fi
+
             STASH_COMMAND="$1"
             stash_command_args+=("$1")
             
-            if [ "$2" != "--" ]; then
-                shift
-                STASH_INDEX="$1"
-                stash_command_args+=("$1")
+            shift
+            BRANCH_NAME="$1"
+            stash_command_args+=("$1")
+            ;;
+
+        # ===== Capture Explicit STASH_COMMANDs that stashes away changes =====
+        push|save)
+            if [ -n "$STASH_COMMAND" ]; then
+                echo "Error: Stash command already provided, yet command '$1' was specified afterwards" >&2
+                exit_fstash $FAIL
+            
+            elif [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: stash command '$1' is invalid after '--' file separator" >&2
+                exit_fstash $FAIL
             fi
-            echo "DEBUG: POP_OR_APPLY_FLAG set for '$STASH_COMMAND' at index '$STASH_INDEX'" >&2
+
+            STASH_COMMAND="$1"
+            stash_command_args+=("$1")
             ;;
         
+        "-p")
+            # Note: `git stash -p` is short for `git stash push -p` 
+            if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: stash command '$1' is invalid after '--' file separator" >&2
+                exit_fstash $FAIL
+            fi
+            
+            if [ -z "$STASH_COMMAND" ]; then
+                STASH_COMMAND="push"
+            fi
+
+            stash_command_args+=("$1")
+            ;;
+
+        "create")
+            # Note: For the purposes of this script, create behaves like `git stash push` and `git stash apply` in one command. (There is more to it than that)
+            if [ -n "$STASH_COMMAND" ]; then
+                echo "Error: Stash command already provided, yet command '$1' was specified afterwards" >&2
+                exit_fstash $FAIL
+            
+            elif [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: stash command '$1' is invalid after '--' file separator" >&2
+                exit_fstash $FAIL
+            fi
+            
+            STASH_COMMAND="$1"
+            stash_command_args+=("$1")
+            ;;
+        
+        # ===== Capture passthrough STASH_COMMANDs that DO NOT modify the working directory or create stashes =====
+        list|show|drop|clear|store|import|export)
+            if [ -n "$STASH_COMMAND" ]; then
+                echo "Error: Stash command already provided, yet command '$1' was specified afterwards" >&2
+                exit_fstash $FAIL
+            
+            elif [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: stash command '$1' is invalid after '--' file separator" >&2
+                exit_fstash $FAIL
+            fi
+            
+            STASH_COMMAND_DOES_NOT_MODIFY_WORKING_DIR_OR_CREATE_STASHES=$TRUE
+            break
+            ;;
+        
+        # ===== Capture STASH_REF =====
+        stash@\{[0-9]*\})
+            if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: '$1' assumed to be stash index is invalid after '--' file separator" >&2
+                exit_fstash $FAIL
+            fi
+
+            STASH_REF="$1"
+            stash_command_args+=("$1")
+            ;;
+        
+        [0-9]*)
+            if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: '$1' assumed to be stash index is invalid after '--' file separator" >&2
+                exit_fstash $FAIL
+            fi
+
+            # Ensure arg is only numbers
+            if [[ $1 =~ ^[0-9]+$ ]]; then
+                STASH_REF="stash@{$1}"
+                stash_command_args+=("$1")
+            else
+                echo "Error: '$1' assumed to be stash index contains non-numeric characters." >&2
+                exit_fstash $FAIL
+            fi
+            ;;
+        
+        # ===== Capture FILE_SEPARATOR =====
+        # Note: As of git v2.52.0, the FILE_SEPARATOR is only valid for the "push" STASH_COMMAND
         "--")
             FILE_SEPARATOR_FLAG=$TRUE
             echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
             ;;
         
+        # ===== Capture `git stash` Flags =====
         -*)
-            echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
-            if [ "$FILE_SEPARATOR_FLAG" = "$FALSE" ]; then
-                stash_command_args+=("$1")
+            if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: '$1' flag is invalid after '--' file separator" >&2
+                exit_fstash $FAIL
             fi
+
+            echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
+            stash_command_args+=("$1")
             ;;
         
-        # Assume arg is path. Fix path to be relative to root of the git repo instead of user's terminal pwd.
+        # ===== Capture files paths and other flags =====
         *)
-            if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+            # If command not specified, assume command is `git stash push`
+            if [ -z "$STASH_COMMAND" ] && [ "$FILE_SEPARATOR_FLAG" = "$FALSE" ]; then
+                # ! WARNING: This WILL cause a bug if git adds a new git stash command not accounted for and that command is called.
+                    # Simple fix for this would be to add that command to the `list|show|drop|clear|store|import|export)` case
+                STASH_COMMAND="push"
+
+            elif [ -z "$STASH_COMMAND" ] && [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+                echo "Error: Something is wrong with these args: '${stash_args[@]}'" >&2
+                exit_fstash $FAIL
+            
+            elif [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
                 if [ -n "$CALLER_SUBDIR" ]; then
                     case $1 in
                         ".")
@@ -143,15 +266,23 @@ done
 # ==============================================================================================
 #                                   Execute Stash n' Import
 # ==============================================================================================
-# Called stash command involves applying changes to working directory
-if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
-    echo "DEBUG: Stash application detected" >&2
+# ToDo: When checking for valid lock, check .FCStd files as well for stash application and creation (instead of just .changefiles)
+    # ToDo: Use git ls-files to handle wildcards when matching
+# ToDo: when stashing away, user cannot be allowed to store changes to both the .FCStd file and its associated .changefile at same time (stash application logic will overwrite said .FCStd file with .changefile changes)
+# ToDo TEST: git unlocking with a stashed .FCStd file change
+# ToDo TEST: git checkout stash@{0} -- path/to/file
+if [ "$STASH_COMMAND_DOES_NOT_MODIFY_WORKING_DIR_OR_CREATE_STASHES" = "$TRUE" ]; then
+    echo "DEBUG: stash command does not modify working directory or create stashes. Passing command directly to git stash." >&2
+    echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
+    "$git_path" stash "${stash_args[@]}"
+
+# ===== Called stash command involves applying stash to working directory =====
+elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH_COMMAND" = "branch" ]; then
+    echo "DEBUG: Stash pop/apply/branch detected" >&2
 
     # Check that user has locks for lockfile in same dir as stashed changefile
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-        if [ -n "$STASH_INDEX" ]; then
-            STASH_REF="stash@{$STASH_INDEX}"
-        else
+        if [ -z "$STASH_REF" ]; then
             STASH_REF="stash@{0}"
         fi
         
@@ -171,8 +302,9 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
         done
     fi
 
-    # Execute git stash pop/apply
-        # Note: `git stash` sometimes calls clean filter... other times not... really weird....
+    # Execute git stash pop/apply/branch
+        # Note: `git stash` sometimes calls clean filter...
+        # Note: As of git v2.52.0, the FILE_SEPARATOR is only valid for the "push" STASH_COMMAND
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
         "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
@@ -185,7 +317,7 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
         exit_fstash $STASH_RESULT
     fi
 
-    # Check for changed lockfiles in the working dir (similar to post-checkout)
+    # Synchronize .FCStd files with popped changes
     "$git_path" update-index --refresh -q >/dev/null 2>&1
     for changefile in $("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$'); do
         # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
@@ -198,9 +330,9 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
         echo "SUCCESS" >&2
     done
 
-# Called stash command involves stashing away changes to working directory or calling some other command
-else
-    echo "DEBUG: Stashing away or something else..." >&2
+# ===== Called stash command involves stashing away working directory changes (creating stashes) =====
+elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH_COMMAND" = "create" ]; then
+    echo "DEBUG: Stash push/save/create detected" >&2
     
     # # Check for uncommitted .FCStd files
     # #     Note: The reason I'm not allowing the user to stash away .FCStd without exporting them first is because unlock.sh needs to check for .changefiles in stash to prevent stash
@@ -226,7 +358,8 @@ else
     echo "DEBUG: retrieved before stash changefiles..." >&2
 
     # Execute git stash
-        # Note: `git stash` sometimes calls clean filter... other times not... really weird....
+        # Note: `git stash` sometimes calls clean filter...
+        # Note: As of git v2.52.0, the FILE_SEPARATOR is only valid for the "push" STASH_COMMAND
     echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
         "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
@@ -261,6 +394,10 @@ else
         
         "$git_path" fcmod "$FCStd_file_path"
     done
+
+else
+    echo "Error: Impossible logic branch reached in git-stash-and-sync-FCStd-files.sh" >&2
+    exit_fstash $FAIL
 fi
 
 exit_fstash $SUCCESS
