@@ -32,7 +32,7 @@ fi
 
 if [ -z "$GITCAD_REPO_ROOT" ]; then
     echo "Error: Not in a git repository" >&2
-    return $FAIL
+    exit $FAIL
 fi
 
 # ==============================================================================================
