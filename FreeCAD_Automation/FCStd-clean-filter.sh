@@ -32,8 +32,11 @@ if [ -n "$RESET_MOD" ]; then
     cat /dev/null
     exit $SUCCESS
 
-# Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files
+# $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when activated via `source FreeCAD_Automation/activate.sh`
+    # It is also set by the fstash script to "stash" when the GitCAD wrapper script is not active
+# Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files for this case
 elif [ "$GIT_COMMAND" = "stash" ]; then
+    # echo "DEBUG: stash call from fstash alias or git wrapper, showing modified file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat
     exit $SUCCESS
 
@@ -65,6 +68,7 @@ fi
 
 if [ -n "$GITCAD_ACTIVATED" ]; then
     # $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when activated via `source FreeCAD_Automation/activate.sh`
+        # It is also set by the fstash script to "stash" when the GitCAD wrapper script is not active
     if [ "$GIT_COMMAND" = "add" ]; then
         :
     
