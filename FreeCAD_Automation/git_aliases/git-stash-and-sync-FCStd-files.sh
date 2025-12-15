@@ -179,7 +179,8 @@ if [ "$POP_OR_APPLY_FLAG" = "$TRUE" ]; then
 else
     echo "DEBUG: Stashing away or something else..." >&2
     
-    # Check for uncommitted .FCStd files
+    # # Check for uncommitted .FCStd files
+    # #     Note: The reason I'm not allowing the user to stash away .FCStd without exporting them first is because unlock.sh needs to check for .changefiles in stash to prevent stash
     # "$git_path" update-index --refresh -q >/dev/null 2>&1
     # UNCOMMITTED_FCSTD_FILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
     # if [ -n "$UNCOMMITTED_FCSTD_FILES" ]; then
