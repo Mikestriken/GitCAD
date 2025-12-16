@@ -260,7 +260,7 @@ get_FCStd_file_from_changefile() {
     local changefile_path="$1"
 
     if [ ! -f "$changefile_path" ]; then
-        echo "Error: Lockfile '$changefile_path' does not exist" >&2
+        echo "Error: changefile '$changefile_path' does not exist" >&2
         return $FAIL
     fi
 
