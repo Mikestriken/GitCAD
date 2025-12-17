@@ -59,7 +59,10 @@ elif [ "$3" = "1" ]; then
 
     echo -e "\nDEBUG: checking changed changefiles: '$(echo $changefiles_changed_between_commits | xargs)'" >&2
 
-    for changefile in $changefiles_changed_between_commits; do
+    mapfile -t changefiles_changed_between_commits <<<"$changefiles_changed_between_commits"
+    for changefile in "${changefiles_changed_between_commits[@]}"; do
+        [ -z "$changefile" ] && continue
+        
         echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue

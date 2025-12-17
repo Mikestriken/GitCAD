@@ -71,7 +71,8 @@ git update-index --refresh -q >/dev/null 2>&1
 STAGED_FCSTD_FILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i '\.fcstd$')
 
 if [ -n "$STAGED_FCSTD_FILES" ]; then
-    git restore --staged $STAGED_FCSTD_FILES
+    mapfile -t STAGED_FCSTD_FILES <<<"$STAGED_FCSTD_FILES"
+    git restore --staged "${STAGED_FCSTD_FILES[@]}"
 fi
 
 # ==============================================================================================

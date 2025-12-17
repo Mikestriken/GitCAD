@@ -102,7 +102,7 @@ if [ "$FORCE_FLAG" = "$FALSE" ]; then
     # echo "DEBUG: Initial guess: '$REFERENCE_BRANCH' @ '$smallest_num_commits_to_merge_base' commits away" >&2
     
     # echo "DEBUG: List to try='${REMOTE_BRANCHES[@]}'" >&2
-    for remote_branch in ${REMOTE_BRANCHES[@]}; do
+    for remote_branch in "${REMOTE_BRANCHES[@]}"; do
         MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
         # echo "DEBUG: Trying '$remote_branch' @ hash '$MERGE_BASE'" >&2
         

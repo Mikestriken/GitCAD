@@ -61,7 +61,10 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
 
     # echo -e "\nDEBUG: checking changed changefiles: '$(echo $changed_changefiles | xargs)'" >&2
 
-    for changefile in $changed_changefiles; do
+    mapfile -t changed_changefiles <<<"$changed_changefiles"
+    for changefile in "${changed_changefiles[@]}"; do
+        [ -z "$changefile" ] && continue
+        
         # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
         FCStd_dir_path=$(dirname $changefile)

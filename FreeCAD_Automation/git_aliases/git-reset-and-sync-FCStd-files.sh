@@ -97,24 +97,30 @@ previously_modified_changefiles_currently_shows_no_modification=$(comm -23 <(ech
 # echo "DEBUG: FULL .changefile files to import: '$(echo $previously_modified_changefiles_currently_shows_no_modification | xargs)'" >&2
 
 # Deconflict: skip FCStd if corresponding changefile is being processed
-FCStd_files_to_process=""
-for FCStd_file_path in $previously_modified_FCStd_files_currently_shows_no_modification; do
+FCStd_files_to_process=()
+mapfile -t previously_modified_FCStd_files_currently_shows_no_modification <<<"$previously_modified_FCStd_files_currently_shows_no_modification"
+for FCStd_file_path in "${previously_modified_FCStd_files_currently_shows_no_modification[@]}"; do
+    [ -z "$FCStd_file_path" ] && continue
+    
     echo -n "DECONFLICTING: '$FCStd_file_path'...." >&2
     FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$("$git_path" rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || continue
+    
     if echo "$previously_modified_changefiles_currently_shows_no_modification" | grep -q "^$FCStd_dir_path/.changefile$"; then
         echo "REMOVED" >&2
         continue  # Skip, changefile will handle it
     fi
+    
     echo "ADDED" >&2
-    FCStd_files_to_process="$FCStd_files_to_process $FCStd_file_path"
+    FCStd_files_to_process+=("$FCStd_file_path")
 done
-changefiles_to_process="$previously_modified_changefiles_currently_shows_no_modification"
+changefiles_to_process=("${previously_modified_changefiles_currently_shows_no_modification[@]}")
 
-# echo "DEBUG: MERGED FCStd files to import: '$(echo $FCStd_files_to_process | xargs)'" >&2
-# echo "DEBUG: MERGED .changefile files to import: '$(echo $changefiles_to_process | xargs)'" >&2
+# echo "DEBUG: MERGED FCStd files to import: '$(echo ${FCStd_files_to_process[@]})'" >&2
+# echo "DEBUG: MERGED .changefile files to import: '$(echo ${changefiles_to_process[@]})'" >&2
 
 # Process FCStd files
-for FCStd_file_path in $FCStd_files_to_process; do
+for FCStd_file_path in "${FCStd_files_to_process[@]}"; do
+    [ -z "$FCStd_file_path" ] && continue
     # echo -e "\nDEBUG: processing FCStd '$FCStd_file_path'...." >&2
 
     # Get lockfile path
@@ -150,7 +156,9 @@ for FCStd_file_path in $FCStd_files_to_process; do
 done
 
 # Process changefiles
-for changefile in $changefiles_to_process; do
+for changefile in "${changefiles_to_process[@]}"; do
+    # Skip empty entries
+    [ -z "$changefile" ] && continue
     # echo -e "\nDEBUG: processing changefile '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
     FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue

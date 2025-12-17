@@ -470,13 +470,17 @@ if [ -n "$FCStd_file_paths" ]; then
     read -p "(( initialize \`.FCStd\` file ↔ uncompressed dir synchronization ))  (y/n): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        for FCStd_file_path in $FCStd_file_paths; do
+        mapfile -t FCStd_file_paths <<<"$FCStd_file_paths"
+        for FCStd_file_path in "${FCStd_file_paths[@]}"; do
+            [ -z "$FCStd_file_path" ] && continue
+            
             echo -n "IMPORTING: '$FCStd_file_path'...."
             # Import data to FCStd file
             "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
                 echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
                 continue
             }
+            
             echo "SUCCESS"
             git fcmod "$FCStd_file_path"
         done

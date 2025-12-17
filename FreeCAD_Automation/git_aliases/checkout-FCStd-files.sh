@@ -117,7 +117,10 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
     echo "DEBUG: Found modified FCStd files for HEAD checkout: $(echo $FCStd_files_with_modifications_not_yet_committed | xargs)" >&2
     
     # For each modified FCStd file, find its changefile and add it to the list of modified changefiles
-    for FCStd_file_path in $FCStd_files_with_modifications_not_yet_committed; do
+    mapfile -t FCStd_files_with_modifications_not_yet_committed <<<"$FCStd_files_with_modifications_not_yet_committed"
+    for FCStd_file_path in "${FCStd_files_with_modifications_not_yet_committed[@]}"; do
+        [ -z "$FCStd_file_path" ] && continue
+        
         echo "DEBUG: Finding changefile for FCStd file: '$FCStd_file_path'" >&2
         FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
         changefile_path="$FCStd_dir_path/.changefile"

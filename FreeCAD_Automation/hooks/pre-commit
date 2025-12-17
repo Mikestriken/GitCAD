@@ -17,7 +17,10 @@ git update-index --refresh -q >/dev/null 2>&1
 STAGED_FCSTD_FILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i '\.fcstd$')
 # echo -e "\nDEBUG: checking staged FCStd files: '$(echo $STAGED_FCSTD_FILES | xargs)'" >&2
 
-for FCStd_file_path in $STAGED_FCSTD_FILES; do
+mapfile -t STAGED_FCSTD_FILES <<<"$STAGED_FCSTD_FILES"
+for FCStd_file_path in "${STAGED_FCSTD_FILES[@]}"; do
+    [ -z "$FCStd_file_path" ] && continue
+
     # echo -e "\nDEBUG: checking '$FCStd_file_path'...." >&2
 
     if [ -s "$FCStd_file_path" ]; then
@@ -46,7 +49,10 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     STAGED_CHANGEFILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i '\.changefile$')
     # echo -e "\nDEBUG: checking staged changefiles: '$(echo $STAGED_CHANGEFILES | xargs)'" >&2
 
-    for changefile in $STAGED_CHANGEFILES; do
+    mapfile -t STAGED_CHANGEFILES <<<"$STAGED_CHANGEFILES"
+    for changefile in "${STAGED_CHANGEFILES[@]}"; do
+        [ -z "$changefile" ] && continue
+        
         # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
         FCStd_dir_path=$(dirname $changefile)

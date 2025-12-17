@@ -47,7 +47,10 @@ changed_changefiles=$(echo "$changed_files" | grep -i '\.changefile$')
 
 # echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_changefiles | xargs)'" >&2
 
-for changefile in $changed_changefiles; do
+mapfile -t changed_changefiles <<<"$changed_changefiles"
+for changefile in "${changed_changefiles[@]}"; do
+    [ -z "$changefile" ] && continue
+    
     # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
     FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
