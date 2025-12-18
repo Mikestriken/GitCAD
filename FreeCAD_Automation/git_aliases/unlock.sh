@@ -94,7 +94,7 @@ if [ "$FORCE_FLAG" = "$FALSE" ]; then
     # echo "DEBUG: Looking for closest reference branch..." >&2
 
     # Reference the remote branch with the closest merge-base (fewest commits)
-    mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
+    mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//') # Convert line 'origin/HEAD -> origin/main' to 'origin/HEAD' and 'origin/main' lines
     FIRST_MERGE_BASE=$(git merge-base "${REMOTE_BRANCHES[0]}" HEAD 2>/dev/null)
     
     REFERENCE_BRANCH=${REMOTE_BRANCHES[0]}
