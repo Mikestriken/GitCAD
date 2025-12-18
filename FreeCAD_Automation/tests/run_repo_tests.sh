@@ -48,7 +48,7 @@ git fcmod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/test
 # ==============================================================================================
 #                                          Test Functions
 # ==============================================================================================
-TEST_BRANCH="active_test"
+TEST_BRANCH="active test"
 TEST_DIR="FreeCAD_Automation/tests/$TEST_BRANCH"
 setup() {
     local test_name="$1"
@@ -89,12 +89,12 @@ tearDown() {
     
     git checkout main > /dev/null
 
-    rm -rf $TEST_DIR
+    rm -rf "$TEST_DIR"
 
     git reset --hard >/dev/null 2>&1
 
     # Delete active_test* branches (local and remote)
-    mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
+    mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//') # Convert line 'origin/HEAD -> origin/main' to 'origin/HEAD' and 'origin/main' lines
 
     for remote_branch in "${REMOTE_BRANCHES[@]}"; do
         if [[ "$remote_branch" == "origin/$TEST_BRANCH"* ]]; then
