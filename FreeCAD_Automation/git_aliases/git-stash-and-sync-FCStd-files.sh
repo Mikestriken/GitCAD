@@ -273,38 +273,109 @@ if [ "$STASH_COMMAND_DOES_NOT_MODIFY_WORKING_DIR_OR_CREATE_STASHES" = "$TRUE" ];
     echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
     "$git_path" stash "${stash_args[@]}"
 
-# ===== Called stash command involves applying stash to working directory =====
+
+
+
+
+# ============= Called stash command involves applying stash to working directory ==============
 elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH_COMMAND" = "branch" ]; then
     echo "DEBUG: Stash pop/apply/branch detected" >&2
 
+    if [ -z "$STASH_REF" ]; then
+        STASH_REF="stash@{0}"
+    fi
+
     # Check that user has valid lock
-    # ToDo: Add git ls-files logic to handle wildcards in parsed_file_path_args (when checking for valid locks)
-    if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-        if [ -z "$STASH_REF" ]; then
-            STASH_REF="stash@{0}"
-        fi
-        
-        STASHED_CHANGEFILES=$("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i '\.changefile$' || true)
-        STASHED_FCSTD_FILES=$("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i '\.fcstd$' || true)
+    # Note: This should never be true, as of git v2.52.0, the FILE_SEPARATOR is only valid for the "push" STASH_COMMAND
+    CHANGEFILES_IN_STASH_BEING_APPLIED=()
+    FCSTD_FILES_IN_STASH_BEING_APPLIED=()
+    if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+        for index in "${!parsed_file_path_args[@]}"; do
+            file_path="${parsed_file_path_args[index]}"
+            
+            echo "DEBUG: Matching file_path: '$file_path'...." >&2
+            # Match pattern to stashed FCStd and changefiles and ensure user has lock
+            if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
+                echo "DEBUG: file_path contains wildcards or is a directory" >&2
+                
+                while IFS= read -r file; do
+                    if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+                        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file") || exit_fstash $FAIL
 
-        # echo -e "\nDEBUG: checking stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
-        # echo -e "\nDEBUG: checking stashed FCStd files: '$(echo $STASHED_FCSTD_FILES | xargs)'" >&2
+                        if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
+                            echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
+                            exit_fstash $FAIL
+                        fi
 
-        # Note: It is impossible for the user to stash both a .FCStd file and its associated .changefile at same time (otherwise stash application logic would overwrite said .FCStd file with .changefile data)
-        FCStd_file_paths_derived_from_stashed_changefiles=()
-        for changefile in $STASHED_CHANGEFILES; do
-            # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+                        FCSTD_FILES_IN_STASH_BEING_APPLIED+=("$file")
+                    
+                    elif [[ "$file" =~ \.changefile$ ]]; then
+                        echo "DEBUG: Matched '$file'" >&2
+                        FCStd_file_path=$(get_FCStd_file_from_changefile "$file") || exit_fstash $FAIL
+                        
+                        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
 
-            # Note: code mostly copied from utils `get_FCStd_file_from_changefile()` except we check the stashed .changefile instead of the working dir .changefile
-                if ! git cat-file -e "$STASH_REF":"$changefile" > /dev/null 2>&1; then
-                    echo "Error: changefile '$changefile' does not exist" >&2
-                    return $FAIL
+                        if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
+                            echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
+                            exit_fstash $FAIL
+                        fi
+
+                        CHANGEFILES_IN_STASH_BEING_APPLIED+=("$file")
+
+                    fi
+                done < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep "$file_path")
+            
+            # Check for (exit early if true)
+                # If specified FCStd file is modified
+                # If specified FCStd file has invalid lock
+            # If valid, change file_path in parsed_file_path_args to the FCStd_dir_path
+            elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+                echo "DEBUG: file_path is an FCStd file" >&2
+                FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file_path") || exit_fstash $FAIL
+
+                if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
+                    echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
+                    exit_fstash $FAIL
                 fi
 
+                FCSTD_FILES_IN_STASH_BEING_APPLIED+=("$file_path")
+                
+            # Check user has lock for changefile being stashed
+            elif [[ "$file_path" =~ \.changefile$ ]]; then
+                echo "DEBUG: file_path is a changefile" >&2
+                FCStd_file_path=$(get_FCStd_file_from_changefile "$file_path") || exit_fstash $FAIL
+                
+                FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+
+                if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
+                    echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
+                    exit_fstash $FAIL
+                fi
+
+                CHANGEFILES_IN_STASH_BEING_APPLIED+=("$file_path")
+            
+            else
+                echo "DEBUG: file_path '$file_path' is not an FCStd file, changefile, directory, or wildcard..... skipping" >&2
+                :
+            fi
+        done
+    else
+        mapfile -t CHANGEFILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.fcstd$' || true)
+        mapfile -t FCSTD_FILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.changefile$' || true)
+        
+        # echo -e "\nDEBUG: checking stashed changefiles: '$(echo ${CHANGEFILES_IN_STASH_BEING_APPLIED[@]})'" >&2
+        # echo -e "\nDEBUG: checking stashed FCStd files: '$(echo ${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]})'" >&2
+
+        # Note 1: If a user stashes both a .FCStd file and its associated .changefile at the same time, the .FCStd file will be overwritten with .changefile data during the import stage later.
+        # Note 2: User is prevented from stashing .FCStd files using this script.
+        for changefile_path in "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}"; do
+            # echo -e "\nDEBUG: checking '$changefile_path'....$(grep 'File Last Exported On:' "$changefile_path")" >&2
+
+            # Note: code mostly copied from utils `get_FCStd_file_from_changefile()` except we check the stashed .changefile instead of the working dir .changefile
                 # Read the line with FCStd_file_relpath
-                FCStd_file_relpath_line_in_changefile=$(git cat-file -p "$STASH_REF":"$changefile" | grep "FCStd_file_relpath=")
+                FCStd_file_relpath_line_in_changefile=$(git cat-file -p "$STASH_REF":"$changefile_path" | grep -F -- "FCStd_file_relpath=")
                 if [ -z "$FCStd_file_relpath_line_in_changefile" ]; then
-                    echo "Error: FCStd_file_relpath not found in '$changefile'" >&2
+                    echo "Error: FCStd_file_relpath not found in '$changefile_path'" >&2
                     exit_fstash $FAIL
                 fi
 
@@ -312,7 +383,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                 FCStd_file_relpath=$(echo "$FCStd_file_relpath_line_in_changefile" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")
 
                 # Derive the FCStd_file_path from the FCStd_file_relpath
-                FCStd_dir_path=$(dirname "$changefile")
+                FCStd_dir_path=$(dirname "$changefile_path")
                 
                 FCStd_file_path=$(realpath "$FCStd_dir_path/$FCStd_file_relpath")
 
@@ -324,20 +395,20 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
 
                 FCStd_file_paths_derived_from_stashed_changefiles+=("$FCStd_file_path")
 
-            FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit $FAIL
+            FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
 
             if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                 echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
                 exit_fstash $FAIL
             fi
         done
-
-        for FCStd_file_path in $STASHED_FCSTD_FILES; do
+        
+        for FCStd_file_path in "${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]}"; do
             # echo -e -n "\nDEBUG: checking '$FCStd_file_path'...." >&2
             FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
             # echo -e "$(grep 'File Last Exported On:' "$FCStd_dir_path/.changefile")" >&2
 
-            FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit $FAIL
+            FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
 
             if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                 echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
@@ -356,13 +427,17 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
     fi
     STASH_RESULT=$?
 
-    if [ $STASH_RESULT -ne 0 ]; then
-        echo "git stash $STASH_COMMAND failed" >&2
+    if [ $STASH_RESULT -ne $SUCCESS ]; then
+        echo "Error: git stash $STASH_COMMAND failed" >&2
         exit_fstash $STASH_RESULT
     fi
 
-    # Synchronize .FCStd files with popped changes
-    for FCStd_file_path in "${FCStd_file_paths_derived_from_stashed_changefiles[@]}"; do
+    # Synchronize .FCStd files with applied changes
+    for changefile_path in "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}"; do
+        echo -e "\nDEBUG: checking '$changefile_path'....$(grep -F -- 'File Last Exported On:' "$changefile_path")" >&2
+        
+        FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || continue
+        
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
             echo "Failed to import $FCStd_file_path" >&2
@@ -370,172 +445,156 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         echo "SUCCESS" >&2
     done
 
+
+
+
+
+
+
 # ===== Called stash command involves stashing away working directory changes (creating stashes) =====
 elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH_COMMAND" = "create" ]; then
     echo "DEBUG: Stash push/save/create detected" >&2
     
-    # Get list of currently modified files
     "$git_path" update-index --refresh -q >/dev/null 2>&1
-    MODIFIED_FCSTD_FILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' || true)
-    MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' || true)
+    mapfile -t MODIFIED_FCSTD_FILES < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' || true)
+    mapfile -t MODIFIED_CHANGEFILES < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' || true)
     
-    # Check that user is not trying to stash both .FCStd file and its associated .changefile at same time
-    # This would cause issues because stash application logic will overwrite the .FCStd file with .changefile changes
+    # Check that:
+        # User is not trying to stash any .FCStd files
+            # Note: The reason I'm not allowing the user to stash away .FCStd files is because .FCStd files can hide changes whenever `git fcmod` gets called on them (I think it's bad practice).
+        # User has lock for files being stashed
+    # For File Separator Case:
+        # Redirect FCStd_file_paths to their FCStd_dir_paths
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
-        # Build list of FCStd files and changefiles that will be stashed
-        FCStd_file_paths_to_stash=()
-        FCStd_dir_paths_to_stash=()
         
-        for file_path in "${parsed_file_path_args[@]}"; do
-            echo "DEBUG: Matching file_path: '$file_path'...." >&2
+        for index in "${!parsed_file_path_args[@]}"; do
+            file_path="${parsed_file_path_args[index]}"
             
+            echo "DEBUG: Matching file_path: '$file_path'...." >&2
+            # Match pattern to modified FCStd and changefiles
+                # If pattern matches FCStd file, exit early
+            # Ensure user has lock for changefiles being stashed
             if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
                 echo "DEBUG: file_path contains wildcards or is a directory" >&2
+                
                 while IFS= read -r file; do
                     if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
-                        echo "DEBUG: Matched '$file'" >&2
-                        FCStd_file_paths_to_stash+=("$file")
+                        echo "Error: Cannot stash '$file', export it first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
+                        exit_fstash $FAIL
                     
                     elif [[ "$file" =~ \.changefile$ ]]; then
-                        echo "DEBUG: Matched '$(dirname "$file")'" >&2
-                        FCStd_dir_paths_to_stash+=("$(dirname "$file")")
+                        echo "DEBUG: Matched '$file'" >&2
+                        FCStd_file_path=$(get_FCStd_file_from_changefile "$file") || exit_fstash $FAIL
+                        
+                        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+
+                        if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
+                            echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
+                            exit_fstash $FAIL
+                        fi
                     fi
-                done < <("$git_path" ls-files "$file_path")
+                done < <("$git_path" ls-files -m "$file_path")
             
+            # Check for (exit early if true)
+                # If specified FCStd file is modified
+                # If specified FCStd file has invalid lock
+            # If valid, change file_path in parsed_file_path_args to the FCStd_dir_path
             elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                 echo "DEBUG: file_path is an FCStd file" >&2
-                FCStd_file_paths_to_stash+=("$file_path")
                 
+                if printf '%s\n' "${MODIFIED_FCSTD_FILES[@]}" | grep -Fxq -- "$file_path"; then
+                    echo "Error: Cannot stash '$file_path', export it first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
+                    exit_fstash $FAIL
+                fi
+
+                FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file_path") || exit_fstash $FAIL
+
+                if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
+                    echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
+                    exit_fstash $FAIL
+                fi
+
+                FCStd_dir_path=$(get_FCStd_dir "$file_path") || exit_fstash $FAIL
+                parsed_file_path_args[index]="$FCStd_dir_path"
+                
+            # Check user has lock for changefile being stashed
             elif [[ "$file_path" =~ \.changefile$ ]]; then
                 echo "DEBUG: file_path is a changefile" >&2
-                FCStd_dir_paths_to_stash+=("$(dirname "$file_path")")
-            fi
-        done
-        
-        # Remove duplicates
-        FCStd_file_paths_to_stash=($(printf '%s\n' "${FCStd_file_paths_to_stash[@]}" | sort -u))
-        FCStd_dir_paths_to_stash=($(printf '%s\n' "${FCStd_dir_paths_to_stash[@]}" | sort -u))
-        
-        echo "DEBUG: matched FCStd files: ${FCStd_file_paths_to_stash[@]}" >&2
-        echo "DEBUG: matched changefiles: ${FCStd_dir_paths_to_stash[@]}" >&2
-
-        if [ ${#FCStd_file_paths_to_stash[@]} -eq 0 ] && [ ${#FCStd_dir_paths_to_stash[@]} -eq 0 ]; then
-            # ToDo: This means the command can be directly passed through.
-            echo "DEBUG: No FCStd files or changefiles matched the patterns" >&2
-        fi
-        
-        # If specified FCStd file is not modified, redirect stash to its directory instead
-        for FCStd_file_path in "${FCStd_file_paths_to_stash[@]}"; do
-            if ! echo "$MODIFIED_FCSTD_FILES" | grep -q "^$FCStd_file_path$"; then
-                echo "DEBUG: '$FCStd_file_path' is not modified, redirecting stash to its directory '$FCStd_dir_path'" >&2
+                FCStd_file_path=$(get_FCStd_file_from_changefile "$file_path") || exit_fstash $FAIL
                 
-                # Remove FCStd file from list and add its directory to list
-                # ToDo: Check redirection is handled correctly later during the git stash call
-                FCStd_file_paths_to_stash=($(printf '%s\n' "${FCStd_file_paths_to_stash[@]}" | grep -v "^$FCStd_file_path$"))
-                FCStd_dir_paths_to_stash+=("$FCStd_dir_path")
-            fi
-        done
+                FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
 
-        # Check for conflicts: FCStd file and its changefile both being stashed
-        associated_FCStd_dir_paths_of_FCStd_files_paths_to_stash=($(for FCStd_file_path in "${FCStd_file_paths_to_stash[@]}"; do get_FCStd_dir "$FCStd_file_path" 2>/dev/null || true; done | sort -u))
-        
-        conflicting_FCStd_dir_paths_stashed_by_both_changefile_and_FCStd_file=$(comm -12 <(printf '%s\n' "${associated_FCStd_dir_paths_of_FCStd_files_paths_to_stash[@]}") <(printf '%s\n' "${FCStd_dir_paths_to_stash[@]}"))
-        
-        if [ -n "$conflicting_FCStd_dir_paths_stashed_by_both_changefile_and_FCStd_file" ]; then
-            echo "Error: Cannot stash both .FCStd file and its associated changefile directory at the same time." >&2
-            echo "       Conflicting directories: $conflicting_FCStd_dir_paths_stashed_by_both_changefile_and_FCStd_file" >&2
-            echo "       Export the .FCStd file first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
-            exit_fstash $FAIL
-        fi
-        
-        # Check locks for FCStd files being stashed
-        for FCStd_file_path in "${FCStd_file_paths_to_stash[@]}"; do
-            FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
-            
-            if [ "$FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
-                echo "Error: User does not have valid lock for '$FCStd_file_path'" >&2
-                exit_fstash $FAIL
-            fi
-        done
-        
-        # Check locks for changefiles being stashed
-        for FCStd_dir_path in "${FCStd_dir_paths_to_stash[@]}"; do
-            changefile_path="$FCStd_dir_path/.changefile"
-            
-            FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || exit_fstash $FAIL
-            
-            FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
-            
-            if [ "$FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
-                echo "Error: User does not have valid lock for '$FCStd_file_path'" >&2
-                exit_fstash $FAIL
+                if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
+                    echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
+                    exit_fstash $FAIL
+                fi
+            else
+                echo "DEBUG: file_path '$file_path' is not an FCStd file, changefile, directory, or wildcard..... skipping" >&2
+                :
             fi
         done
     
+    
     else # IF Stashing all modified files
-        # Check for conflicts: FCStd file and its changefile both being stashed
-        associated_FCStd_dir_paths_of_modified_FCStd_files_paths=($(for FCStd_file_path in $MODIFIED_FCSTD_FILES; do get_FCStd_dir "$FCStd_file_path" 2>/dev/null || true; done | sort -u))
-        associated_FCStd_dir_paths_of_modified_changefile_paths=($(for changefile_path in $MODIFIED_CHANGEFILES; do dirname "$changefile_path" 2>/dev/null || true; done | sort -u))
         
-        conflicting_FCStd_dir_paths_stashed_by_both_changefile_and_FCStd_file=$(comm -12 <(printf '%s\n' "${associated_FCStd_dir_paths_of_modified_FCStd_files_paths[@]}") <(printf '%s\n' "${associated_FCStd_dir_paths_of_modified_changefile_paths[@]}"))
-        
-        if [ -n "$conflicting_FCStd_dir_paths_stashed_by_both_changefile_and_FCStd_file" ]; then
-            echo "Error: Cannot stash both .FCStd file and its associated changefile directory at the same time." >&2
-            echo "       Conflicting directories: $conflicting_FCStd_dir_paths_stashed_by_both_changefile_and_FCStd_file" >&2
-            echo "       Export the .FCStd file first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
+        # Check for FCStd files being stashed
+        if [ ! ${#MODIFIED_FCSTD_FILES[@]} -eq 0 ]; then
+            echo "Error: Cannot stash the following .FCStd files, export them first with \`git fadd\` or \`git add\` with GitCAD activated:" >&2
+            printf '%s\n' "       ${MODIFIED_FCSTD_FILES[@]}" >&2
             exit_fstash $FAIL
         fi
 
-        for FCStd_file_path in $MODIFIED_FCSTD_FILES; do
-            FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
-            changefile_path="$FCStd_dir_path/.changefile"
+        # Check locks for changefiles being stashed
+        for changefile_path in "${MODIFIED_CHANGEFILES[@]}"; do
+            FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || exit_fstash $FAIL
             
-            # Check if both FCStd file and its changefile are modified
-            if echo "$MODIFIED_CHANGEFILES" | grep -q "^$changefile_path$"; then
-                echo "Error: Both '$FCStd_file_path' and its associated changefile '$changefile_path' are modified." >&2
-                echo "       Export the .FCStd file first with \`git fadd\` or \`git add\` with GitCAD activated before stashing." >&2
+            FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+            
+            if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
+                echo "Error: User does not have valid lock for '$FCStd_file_path'" >&2
                 exit_fstash $FAIL
             fi
         done
-        # ToDo: Check locks for FCStd files being stashed
-        # ToDo: Check locks for changefiles being stashed
     fi
     
     # Get modified changefiles before stash
     "$git_path" update-index --refresh -q >/dev/null 2>&1
-    BEFORE_STASH_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
+    mapfile -t BEFORE_STASH_CHANGEFILES < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
     
     echo "DEBUG: retrieved before stash changefiles..." >&2
 
     # Execute git stash
         # Note: `git stash` sometimes calls clean filter...
         # Note: As of git v2.52.0, the FILE_SEPARATOR is only valid for the "push" STASH_COMMAND
-    echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
+        echo "DEBUG: '$git_path stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"'" >&2
         "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
+        echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
         "$git_path" stash "${stash_args[@]}"
     fi
     STASH_RESULT=$?
 
-    if [ $STASH_RESULT -ne 0 ]; then
-        echo "git stash failed" >&2
+    if [ $STASH_RESULT -ne $SUCCESS ]; then
+        echo "Error: git stash $STASH_COMMAND failed" >&2
         exit_fstash $STASH_RESULT
     fi
 
     # Get modified lockfiles after stash
     "$git_path" update-index --refresh -q >/dev/null 2>&1
-    AFTER_STASH_CHANGEFILE=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
+    mapfile -t AFTER_STASH_CHANGEFILE < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 
     # Find files present before stash but not after stash (files that were stashed)
-    STASHED_CHANGEFILES=$(comm -23 <(echo "$BEFORE_STASH_CHANGEFILES") <(echo "$AFTER_STASH_CHANGEFILE"))
+    STASHED_CHANGEFILES=$(comm -23 <(printf '%s\n' "${BEFORE_STASH_CHANGEFILES[@]}") <(printf '%s\n' "${AFTER_STASH_CHANGEFILE[@]}"))
 
-    echo -e "\nDEBUG: Importing stashed changefiles: '$(echo $STASHED_CHANGEFILES | xargs)'" >&2
+    echo -e "\nDEBUG: Importing stashed changefiles: '${STASHED_CHANGEFILES[@]}'" >&2
 
     # Import the files that are no longer modified (those that were stashed)
-    for changefile in $STASHED_CHANGEFILES; do
-        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
-        FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
+    for changefile_path in "${STASHED_CHANGEFILES[@]}"; do
+        echo -e "\nDEBUG: checking '$changefile_path'....$(grep -F -- 'File Last Exported On:' "$changefile_path")" >&2
+        
+        FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || continue
+        
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
             echo "Failed to import $FCStd_file_path" >&2
