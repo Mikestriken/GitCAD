@@ -176,7 +176,7 @@ for file_path in "${parsed_file_path_args[@]}"; do
     fi
 done
 
-MATCHED_FCStd_file_paths=($(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u)) # Remove duplicates
+mapfile -t MATCHED_FCStd_file_paths < <(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u) # Remove duplicates
 
 echo "DEBUG: matched FCStd files: ${MATCHED_FCStd_file_paths[@]}" >&2
 
@@ -208,7 +208,7 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     fi
 done
 
-FCStd_dirs_to_checkout=($(printf '%s\n' "${FCStd_dirs_to_checkout[@]}" | sort -u)) # Remove duplicates from FCStd_dirs_to_checkout
+mapfile -t FCStd_dirs_to_checkout < <(printf '%s\n' "${FCStd_dirs_to_checkout[@]}" | sort -u) # Remove duplicates
 
 if [ ${#FCStd_dirs_to_checkout[@]} -eq 0 ]; then
     echo "DEBUG: No FCStd files with changefile changes to checkout" >&2
