@@ -78,12 +78,12 @@ tearDown() {
     echo ">>>> Tearing Down '$1' <<<<"
 
     # remove any locks in test dir
-    git lfs locks | grep "^$TEST_DIR" | awk '{print $3}' | sed 's/ID://' | xargs -r -I {} git lfs unlock --id {} --force || true
+    git lfs locks | grep -- "^$TEST_DIR" | awk '{print $3}' | sed 's/ID://' | xargs -r -I {} git lfs unlock --id {} --force || true
     
     # Clear working dir changes
     git reset --hard >/dev/null 2>&1
 
-    if ! git_stash | grep -q "No local changes to save"; then # Stash any leftover changes, if stash successful, drop the stashed changes
+    if ! git_stash | grep -Fq -- "No local changes to save"; then # Stash any leftover changes, if stash successful, drop the stashed changes
         git_stash drop stash@{0}
     fi
     
@@ -96,7 +96,7 @@ tearDown() {
     # Delete active_test* branches (local and remote)
     mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//')
 
-    for remote_branch in ${REMOTE_BRANCHES[@]}; do
+    for remote_branch in "${REMOTE_BRANCHES[@]}"; do
         if [[ "$remote_branch" == "origin/$TEST_BRANCH"* ]]; then
             git push origin --delete "${remote_branch#origin/}" >/dev/null 2>&1 || true
             git branch -D "${remote_branch#origin/}" >/dev/null 2>&1 || true
@@ -150,7 +150,7 @@ assert_writable() {
 assert_dir_has_changes() {
     local dir="$1"
     git update-index --refresh -q >/dev/null 2>&1
-    if ! git diff-index --name-only HEAD | grep -q "^$dir/"; then
+    if ! git diff-index --name-only HEAD | grep -q -- "^$dir/"; then
         echo "Assertion failed: Directory '$dir' has no changes" >&2
         echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
         tearDown
@@ -199,7 +199,7 @@ await_user_modification() {
             xdg-open "$file" > /dev/null &
             disown
             read -r dummy
-            if git status --porcelain | grep -q "^.M $file$"; then
+            if git status --porcelain | grep -q -- "^.M $file$"; then
                 freecad_pid=$(pgrep -n -i FreeCAD)
                 kill $freecad_pid
                 break
@@ -211,7 +211,7 @@ await_user_modification() {
             echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
             start "$file"
             read -r dummy
-            if git status --porcelain | grep -q "^.M $file$"; then
+            if git status --porcelain | grep -q -- "^.M $file$"; then
                 taskkill //IM freecad.exe //F
                 break
             else

@@ -18,7 +18,7 @@ get_freecad_python_path() {
     local key="freecad-python-instance-path"
     
     # Find the line containing the key
-    local line=$(grep "\"$key\"" "$file")
+    local line=$(grep -F -- "\"$key\"" "$file")
     if [ -z "$line" ]; then
         echo "Error: Key '$key' not found in $file" >&2
         return $FAIL

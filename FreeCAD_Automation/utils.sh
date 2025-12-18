@@ -27,7 +27,7 @@ get_json_value_from_key() {
     local key=$2
     
     # Find the line containing the key
-    local line=$(grep "\"$key\"" "$json_file")
+    local line=$(grep -F -- "\"$key\"" "$json_file")
     if [ -z "$line" ]; then
         echo "Error: Key '$key' not found in $json_file" >&2
         return $FAIL
@@ -243,7 +243,7 @@ FCStd_file_has_valid_lock() {
         return $FAIL
     }
 
-    if ! echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
+    if ! printf '%s\n' "$LOCK_INFO" | grep -Fq -- "$CURRENT_USER"; then
         # echo "DEBUG: '$FCStd_file_path' lock is INVALID." >&2
         echo $FALSE
         return $SUCCESS
@@ -265,7 +265,7 @@ get_FCStd_file_from_changefile() {
     fi
 
     # Read the line with FCStd_file_relpath
-    local FCStd_file_relpath_line_in_changefile=$(grep "FCStd_file_relpath=" "$changefile_path")
+    local FCStd_file_relpath_line_in_changefile=$(grep -F -- "FCStd_file_relpath=" "$changefile_path")
     if [ -z "$FCStd_file_relpath_line_in_changefile" ]; then
         echo "Error: FCStd_file_relpath not found in '$changefile_path'" >&2
         return $FAIL
@@ -298,7 +298,7 @@ dir_has_changes() {
     local old_sha="$2"
     local new_sha="$3"
     
-    if git diff-tree --no-commit-id --name-only -r "$old_sha" "$new_sha" | grep -q "^$dir_path/"; then
+    if git diff-tree --no-commit-id --name-only -r "$old_sha" "$new_sha" | grep -q -- "^$dir_path/"; then
         # echo "DEBUG: '$dir_path/' HAS changes" >&2
         echo $TRUE
         return $SUCCESS

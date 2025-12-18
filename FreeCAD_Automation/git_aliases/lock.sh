@@ -95,7 +95,7 @@ if [ "$FORCE_FLAG" = "$TRUE" ]; then
 
     # echo "DEBUG: Stealing..." >&2
     
-    if echo "$LOCK_INFO" | grep -q "$CURRENT_USER"; then
+    if printf '%s\n' "$LOCK_INFO" | grep -Fq -- "$CURRENT_USER"; then
         # echo "DEBUG: lock already owned, no need to steal." >&2
         :
     

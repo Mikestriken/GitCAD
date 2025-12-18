@@ -132,8 +132,10 @@ if [ "$FORCE_FLAG" = "$FALSE" ]; then
     for i in $(seq 0 $((STASH_COUNT - 1))); do
         # echo "DEBUG: checking stash '$i'...." >&2
         
-        if git stash show --name-only "stash@{$i}" 2>/dev/null | grep -q "^$FCStd_dir_path/" || \
-           git stash show --name-only "stash@{$i}" 2>/dev/null | grep -q "^$FCStd_file_path$"; then
+        stashed_files=$(git stash show --name-only "stash@{$i}" 2>/dev/null)
+
+        if printf '%s\n' "$stashed_files" | grep -q -- "^$FCStd_dir_path/" || \
+           printf '%s\n' "$stashed_files" | grep -Fxq -- "$FCStd_file_path"; then
             echo "Error: Cannot unlock file with stashed changes. Use --force to override." >&2
             exit $FAIL
             break

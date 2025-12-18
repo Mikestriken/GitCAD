@@ -110,10 +110,10 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
     "$git_path" update-index --refresh -q >/dev/null 2>&1
 
     # List of all modified changefiles
-    changefiles_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$')
+    changefiles_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$')
     echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo $changefiles_with_modifications_not_yet_committed | xargs)" >&2
     
-    FCStd_files_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$')
+    FCStd_files_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$')
     echo "DEBUG: Found modified FCStd files for HEAD checkout: $(echo $FCStd_files_with_modifications_not_yet_committed | xargs)" >&2
     
     # For each modified FCStd file, find its changefile and add it to the list of modified changefiles
@@ -125,7 +125,7 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
         FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
         changefile_path="$FCStd_dir_path/.changefile"
 
-        if echo "$changefiles_with_modifications_not_yet_committed" | grep -Fxq "$changefile_path"; then
+        if printf '%s\n' "$changefiles_with_modifications_not_yet_committed" | grep -Fxq -- "$changefile_path"; then
             echo "DEBUG: '$changefile_path' already in list of modified changefiles" >&2
             continue
         else
@@ -192,14 +192,14 @@ fi
     # We'll only checkout dirs for files that will actually change between commits OR if it's currently modified (HEAD checkout case).
 FCStd_dirs_to_checkout=()
 declare -A FCStd_dir_to_file_dict # Bash Dictionary
-changefiles_changed_between_commits=$("$git_path" diff-tree --no-commit-id --name-only -r "$CHECKOUT_COMMIT" HEAD | grep -i '\.changefile$')
+changefiles_changed_between_commits=$("$git_path" diff-tree --no-commit-id --name-only -r "$CHECKOUT_COMMIT" HEAD | grep -i -- '\.changefile$')
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
     
     FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
     changefile_path="$FCStd_dir_path/.changefile"
     
-    if echo "$changefiles_changed_between_commits" | grep -q "^$changefile_path$" || echo "$changefiles_with_modifications_not_yet_committed" | grep -q "^$changefile_path$"; then
+    if printf '%s\n' "$changefiles_changed_between_commits" | grep -Fxq -- "$changefile_path" || printf '%s\n' "$changefiles_with_modifications_not_yet_committed" | grep -Fxq -- "$changefile_path"; then
         FCStd_dir_to_file_dict["$FCStd_dir_path"]="$FCStd_file_path"
         FCStd_dirs_to_checkout+=("$FCStd_dir_path")
         echo "DEBUG: Added '$FCStd_dir_path' to checkout list (changefile has changes or is modified)" >&2

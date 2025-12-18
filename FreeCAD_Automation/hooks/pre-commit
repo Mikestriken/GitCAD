@@ -14,7 +14,7 @@ source "$FUNCTIONS_FILE"
 # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
 # Note: Excluding (A)dded because newly added .FCStd files ARE empty, we're checking that the .FCStd files don't get modified past this point.... at least that is what I think I was intending...
 git update-index --refresh -q >/dev/null 2>&1
-STAGED_FCSTD_FILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i '\.fcstd$')
+STAGED_FCSTD_FILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.fcstd$')
 # echo -e "\nDEBUG: checking staged FCStd files: '$(echo $STAGED_FCSTD_FILES | xargs)'" >&2
 
 mapfile -t STAGED_FCSTD_FILES <<<"$STAGED_FCSTD_FILES"
@@ -46,7 +46,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     # Get staged `.changefile`s
     # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
     git update-index --refresh -q >/dev/null 2>&1
-    STAGED_CHANGEFILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i '\.changefile$')
+    STAGED_CHANGEFILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.changefile$')
     # echo -e "\nDEBUG: checking staged changefiles: '$(echo $STAGED_CHANGEFILES | xargs)'" >&2
 
     mapfile -t STAGED_CHANGEFILES <<<"$STAGED_CHANGEFILES"
@@ -58,7 +58,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         FCStd_dir_path=$(dirname $changefile)
         lockfile="$FCStd_dir_path/.lockfile"
 
-        if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
+        if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile"; then
             # echo "DEBUG: valid lock found for '$lockfile'" >&2
             :
         else

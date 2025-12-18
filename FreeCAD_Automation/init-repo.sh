@@ -151,7 +151,7 @@ echo "==========================================================================
 add_to_gitignore() {
     local ignore_target="$1"
     if [ -f .gitignore ]; then
-        if ! grep -q "^$ignore_target$" .gitignore; then
+        if ! grep -q -- "^$ignore_target$" .gitignore; then
             # Ensure .gitignore ends with a newline before appending
             if [ -s .gitignore ] && [ "$(tail -c1 .gitignore)" != $'\n' ]; then
                 echo >> .gitignore
@@ -463,7 +463,7 @@ setup_git_alias "freset" "!bash FreeCAD_Automation/git_aliases/git-reset-and-syn
 echo "=============================================================================================="
 echo "                               Synchronizing \`.FCStd\` Files"
 echo "=============================================================================================="
-FCStd_file_paths=$(git ls-files | grep -i '\.fcstd$')
+FCStd_file_paths=$(git ls-files | grep -i -- '\.fcstd$')
 
 if [ -n "$FCStd_file_paths" ]; then
     echo "Do you want to import data from all uncompressed FreeCAD dirs to their respective \`.FCStd\` files?: "

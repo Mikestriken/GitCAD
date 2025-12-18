@@ -55,7 +55,7 @@ elif [ "$3" = "1" ]; then
     changed_files=$(git diff-tree --no-commit-id --name-only -r "$1" "$2")
 
     # Get changed `.changefile`s
-    changefiles_changed_between_commits=$(echo "$changed_files" | grep -i '\.changefile$')
+    changefiles_changed_between_commits=$(printf '%s\n' "$changed_files" | grep -i -- '\.changefile$')
 
     echo -e "\nDEBUG: checking changed changefiles: '$(echo $changefiles_changed_between_commits | xargs)'" >&2
 
@@ -63,7 +63,7 @@ elif [ "$3" = "1" ]; then
     for changefile in "${changefiles_changed_between_commits[@]}"; do
         [ -z "$changefile" ] && continue
         
-        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+        echo -e "\nDEBUG: checking '$changefile'....$(grep -F -- 'File Last Exported On:' "$changefile")" >&2
 
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
@@ -83,7 +83,7 @@ elif [ "$3" = "1" ]; then
         lockfile="$FCStd_dir_path/.lockfile"
 
         if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-            if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
+            if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile"; then
                 # User has lock, set .FCStd file to writable
                 make_writable "$FCStd_file_path"
                 echo "DEBUG: set '$FCStd_file_path' writable." >&2

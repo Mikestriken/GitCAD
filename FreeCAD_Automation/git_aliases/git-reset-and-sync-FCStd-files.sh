@@ -32,11 +32,11 @@ fi
 # ==============================================================================================
 # Get modified .FCStd files before reset
 "$git_path" update-index --refresh -q >/dev/null 2>&1
-BEFORE_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+BEFORE_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
 
 # Get modified `.changefile`s before reset
 "$git_path" update-index --refresh -q >/dev/null 2>&1
-BEFORE_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
+BEFORE_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 
 # Get original HEAD before reset
 ORIGINAL_HEAD=$("$git_path" rev-parse HEAD) || {
@@ -78,21 +78,21 @@ fi
 # Append files changed between commits to BEFORE_RESET lists
 files_changed_files_between_commits=$("$git_path" diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
 
-FCStd_files_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.fcstd$')
-changefiles_changed_between_commits=$(echo "$files_changed_files_between_commits" | grep -i '\.changefile$')
+FCStd_files_changed_between_commits=$(printf '%s\n' "$files_changed_files_between_commits" | grep -i -- '\.fcstd$')
+changefiles_changed_between_commits=$(printf '%s\n' "$files_changed_files_between_commits" | grep -i -- '\.changefile$')
 
 BEFORE_RESET_MODIFIED_FCSTD=$(echo -e "$BEFORE_RESET_MODIFIED_FCSTD\n$FCStd_files_changed_between_commits" | sort | uniq)
 BEFORE_RESET_MODIFIED_CHANGEFILES=$(echo -e "$BEFORE_RESET_MODIFIED_CHANGEFILES\n$changefiles_changed_between_commits" | sort | uniq)
 
 # Filter to list of valid files to process
 "$git_path" update-index --refresh -q >/dev/null 2>&1
-AFTER_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i '\.fcstd$' | sort)
+AFTER_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
 
 previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
 # echo "DEBUG: FULL FCStd files to import: '$(echo $previously_modified_FCStd_files_currently_shows_no_modification | xargs)'" >&2
 
 "$git_path" update-index --refresh -q >/dev/null 2>&1
-AFTER_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i '\.changefile$' | sort)
+AFTER_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 previously_modified_changefiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_CHANGEFILES") <(echo "$AFTER_RESET_MODIFIED_CHANGEFILES"))
 # echo "DEBUG: FULL .changefile files to import: '$(echo $previously_modified_changefiles_currently_shows_no_modification | xargs)'" >&2
 
@@ -105,7 +105,7 @@ for FCStd_file_path in "${previously_modified_FCStd_files_currently_shows_no_mod
     echo -n "DECONFLICTING: '$FCStd_file_path'...." >&2
     FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$("$git_path" rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || continue
     
-    if echo "$previously_modified_changefiles_currently_shows_no_modification" | grep -q "^$FCStd_dir_path/.changefile$"; then
+    if printf '%s\n' "$previously_modified_changefiles_currently_shows_no_modification" | grep -Fxq -- "$FCStd_dir_path/.changefile"; then
         echo "REMOVED" >&2
         continue  # Skip, changefile will handle it
     fi
@@ -143,7 +143,7 @@ for FCStd_file_path in "${FCStd_files_to_process[@]}"; do
     "$git_path" fcmod "$FCStd_file_path"
 
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-        if echo "$CURRENT_LOCKS" | grep -q "$lockfile_path"; then
+        if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile_path"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
             # echo "DEBUG: set '$FCStd_file_path' writable." >&2
@@ -179,7 +179,7 @@ for changefile in "${changefiles_to_process[@]}"; do
     lockfile="$FCStd_dir_path/.lockfile"
 
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-        if echo "$CURRENT_LOCKS" | grep -q "$lockfile"; then
+        if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
             # echo "DEBUG: set '$FCStd_file_path' writable." >&2
