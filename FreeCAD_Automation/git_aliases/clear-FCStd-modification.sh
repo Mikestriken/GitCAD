@@ -1,5 +1,5 @@
 #!/bin/bash
-# echo "DEBUG: clear-FCStd-modification.sh trap-card triggered!" >&2
+echo "DEBUG: clear-FCStd-modification.sh trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -33,7 +33,7 @@ shift
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
 parsed_file_path_args=()
 while [ $# -gt 0 ]; do
-    # echo "DEBUG: parsing '$1'..." >&2
+    echo "DEBUG: parsing '$1'..." >&2
     case $1 in
         # Set boolean flag if arg is a valid flag
         -*)
@@ -45,16 +45,16 @@ while [ $# -gt 0 ]; do
             if [ -n "$CALLER_SUBDIR" ]; then
                 case $1 in
                     ".")
-                        # echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
+                        echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
                         parsed_file_path_args+=("$CALLER_SUBDIR")
                         ;;
                     *)
-                        # echo "DEBUG: prepend '$1'" >&2
+                        echo "DEBUG: prepend '$1'" >&2
                         parsed_file_path_args+=("${CALLER_SUBDIR}${1}")
                         ;;
                 esac
             else
-                # echo "DEBUG: Don't prepend '$1'" >&2
+                echo "DEBUG: Don't prepend '$1'" >&2
                 parsed_file_path_args+=("$1")
             fi
             ;;

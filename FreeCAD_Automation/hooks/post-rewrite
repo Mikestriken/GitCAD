@@ -1,5 +1,5 @@
 #!/bin/bash
-# echo "DEBUG: post-rewrite hook trap-card triggered!" >&2
+echo "DEBUG: post-rewrite hook trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -22,7 +22,7 @@ fi
 #                                     Pull LFS files
 # ==============================================================================================
 git lfs pull
-# echo "DEBUG: Pulled lfs files" >&2
+echo "DEBUG: Pulled lfs files" >&2
 
 # ==============================================================================================
 #                         Update .FCStd files with uncompressed files
@@ -39,19 +39,19 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     }
 fi
 
-# echo "DEBUG: diffing <remote sha1>='ORIG_HEAD'..'HEAD'=<local sha1>" >&2
+echo "DEBUG: diffing <remote sha1>='ORIG_HEAD'..'HEAD'=<local sha1>" >&2
 changed_files=$(git diff-tree --no-commit-id --name-only -r "ORIG_HEAD" "HEAD")
 
 # Get changed `.changefile`s
 changed_changefiles=$(printf '%s\n' "$changed_files" | grep -i -- '\.changefile$')
 
-# echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_changefiles | xargs)'" >&2
+echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_changefiles | xargs)'" >&2
 
 mapfile -t changed_changefiles <<<"$changed_changefiles"
 for changefile in "${changed_changefiles[@]}"; do
     [ -z "$changefile" ] && continue
     
-    # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+    echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
     FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
@@ -78,7 +78,7 @@ for changefile in "${changed_changefiles[@]}"; do
         else
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
-            # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
         fi
     fi
 done

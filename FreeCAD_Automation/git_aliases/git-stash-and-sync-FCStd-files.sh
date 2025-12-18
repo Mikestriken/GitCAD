@@ -363,13 +363,13 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         mapfile -t CHANGEFILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.fcstd$' || true)
         mapfile -t FCSTD_FILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.changefile$' || true)
         
-        # echo -e "\nDEBUG: checking stashed changefiles: '$(echo ${CHANGEFILES_IN_STASH_BEING_APPLIED[@]})'" >&2
-        # echo -e "\nDEBUG: checking stashed FCStd files: '$(echo ${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]})'" >&2
+        echo -e "\nDEBUG: checking stashed changefiles: '$(echo ${CHANGEFILES_IN_STASH_BEING_APPLIED[@]})'" >&2
+        echo -e "\nDEBUG: checking stashed FCStd files: '$(echo ${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]})'" >&2
 
         # Note 1: If a user stashes both a .FCStd file and its associated .changefile at the same time, the .FCStd file will be overwritten with .changefile data during the import stage later.
         # Note 2: User is prevented from stashing .FCStd files using this script.
         for changefile_path in "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}"; do
-            # echo -e "\nDEBUG: checking '$changefile_path'....$(grep 'File Last Exported On:' "$changefile_path")" >&2
+            echo -e "\nDEBUG: checking '$changefile_path'....$(grep 'File Last Exported On:' "$changefile_path")" >&2
 
             # Note: code mostly copied from utils `get_FCStd_file_from_changefile()` except we check the stashed .changefile instead of the working dir .changefile
                 # Read the line with FCStd_file_relpath
@@ -404,7 +404,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         done
         
         for FCStd_file_path in "${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]}"; do
-            # echo -e -n "\nDEBUG: checking '$FCStd_file_path'...." >&2
+            echo -e -n "\nDEBUG: checking '$FCStd_file_path'...." >&2
             FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
             # echo -e "$(grep 'File Last Exported On:' "$FCStd_dir_path/.changefile")" >&2
 

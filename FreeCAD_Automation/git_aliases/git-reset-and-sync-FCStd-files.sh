@@ -1,5 +1,5 @@
 #!/bin/bash
-# echo "DEBUG: git-reset-and-sync-FCStd-files.sh trap-card triggered!" >&2
+echo "DEBUG: git-reset-and-sync-FCStd-files.sh trap-card triggered!" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -89,12 +89,12 @@ BEFORE_RESET_MODIFIED_CHANGEFILES=$(echo -e "$BEFORE_RESET_MODIFIED_CHANGEFILES\
 AFTER_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
 
 previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
-# echo "DEBUG: FULL FCStd files to import: '$(echo $previously_modified_FCStd_files_currently_shows_no_modification | xargs)'" >&2
+echo "DEBUG: FULL FCStd files to import: '$(echo $previously_modified_FCStd_files_currently_shows_no_modification | xargs)'" >&2
 
 "$git_path" update-index --refresh -q >/dev/null 2>&1
 AFTER_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 previously_modified_changefiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_CHANGEFILES") <(echo "$AFTER_RESET_MODIFIED_CHANGEFILES"))
-# echo "DEBUG: FULL .changefile files to import: '$(echo $previously_modified_changefiles_currently_shows_no_modification | xargs)'" >&2
+echo "DEBUG: FULL .changefile files to import: '$(echo $previously_modified_changefiles_currently_shows_no_modification | xargs)'" >&2
 
 # Deconflict: skip FCStd if corresponding changefile is being processed
 FCStd_files_to_process=()
@@ -115,13 +115,13 @@ for FCStd_file_path in "${previously_modified_FCStd_files_currently_shows_no_mod
 done
 changefiles_to_process=("${previously_modified_changefiles_currently_shows_no_modification[@]}")
 
-# echo "DEBUG: MERGED FCStd files to import: '$(echo ${FCStd_files_to_process[@]})'" >&2
-# echo "DEBUG: MERGED .changefile files to import: '$(echo ${changefiles_to_process[@]})'" >&2
+echo "DEBUG: MERGED FCStd files to import: '$(echo ${FCStd_files_to_process[@]})'" >&2
+echo "DEBUG: MERGED .changefile files to import: '$(echo ${changefiles_to_process[@]})'" >&2
 
 # Process FCStd files
 for FCStd_file_path in "${FCStd_files_to_process[@]}"; do
     [ -z "$FCStd_file_path" ] && continue
-    # echo -e "\nDEBUG: processing FCStd '$FCStd_file_path'...." >&2
+    echo -e "\nDEBUG: processing FCStd '$FCStd_file_path'...." >&2
 
     # Get lockfile path
     FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$("$git_path" rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
@@ -146,11 +146,11 @@ for FCStd_file_path in "${FCStd_files_to_process[@]}"; do
         if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile_path"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
-            # echo "DEBUG: set '$FCStd_file_path' writable." >&2
+            echo "DEBUG: set '$FCStd_file_path' writable." >&2
         else
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
-            # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
         fi
     fi
 done
@@ -159,7 +159,7 @@ done
 for changefile in "${changefiles_to_process[@]}"; do
     # Skip empty entries
     [ -z "$changefile" ] && continue
-    # echo -e "\nDEBUG: processing changefile '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+    echo -e "\nDEBUG: processing changefile '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
     FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
@@ -182,11 +182,11 @@ for changefile in "${changefiles_to_process[@]}"; do
         if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
-            # echo "DEBUG: set '$FCStd_file_path' writable." >&2
+            echo "DEBUG: set '$FCStd_file_path' writable." >&2
         else
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
-            # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
         fi
     fi
 done
