@@ -48,8 +48,9 @@ git fcmod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/test
 # ==============================================================================================
 #                                          Test Functions
 # ==============================================================================================
-TEST_BRANCH="active test"
-TEST_DIR="FreeCAD_Automation/tests/$TEST_BRANCH"
+TEST_BRANCH="active_test"
+TEST_FOLDER="active test"
+TEST_DIR="FreeCAD_Automation/tests/$TEST_FOLDER"
 setup() {
     local test_name="$1"
     echo 
@@ -830,7 +831,7 @@ test_post_checkout_hook() {
     assert_command_succeeds "cd \"$TEST_DIR\""
 
     echo "TEST: git_file_checkout active_test_branch1 -- \`AssemblyExample.FCStd\` \`BIMExample.FCStd\` \`.\` \`*\` \`../TEST_BRANCH\` (multiple files)" >&2
-    assert_command_succeeds "git_file_checkout active_test_branch1 -- \"AssemblyExample.FCStd\" \"BIMExample.FCStd\" \".\" \"*\" \"../$TEST_BRANCH\""; echo
+    assert_command_succeeds "git_file_checkout active_test_branch1 -- \"AssemblyExample.FCStd\" \"BIMExample.FCStd\" \".\" \"*\" \"../$TEST_FOLDER\""; echo
 
     echo "TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from subdir cd'ed checkout" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from subdir cd'ed checkout." "test_post_checkout_hook" "./AssemblyExample.FCStd"
