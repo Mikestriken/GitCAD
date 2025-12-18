@@ -62,10 +62,10 @@ setup() {
     # push active_test to remote
     assert_command_succeeds "git push -u origin \"$TEST_BRANCH\" > /dev/null 2>&1"
 
-    assert_command_succeeds "mkdir -p $TEST_DIR"
+    assert_command_succeeds "mkdir -p \"$TEST_DIR\""
 
     # Copies binaries into active_test dir (already done globally, but ensure)
-    assert_command_succeeds "cp $TEST_DIR/../AssemblyExample.FCStd $TEST_DIR/../BIMExample.FCStd $TEST_DIR"
+    assert_command_succeeds "cp \"$TEST_DIR/../AssemblyExample.FCStd\" \"$TEST_DIR/../BIMExample.FCStd\" \"$TEST_DIR\""
 
     echo ">>>> Setup Complete <<<<"
     echo 
