@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: pre-commit hook trap-card triggered!" >&2
+echo "DEBUG: ============== pre-commit hook trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                 Verify and Retrieve Dependencies
 # ==============================================================================================

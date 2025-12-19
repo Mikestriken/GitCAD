@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: git-reset-and-sync-FCStd-files.sh trap-card triggered!" >&2
+echo "DEBUG: ============== git-reset-and-sync-FCStd-files.sh trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================

@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: git-stash-and-sync-FCStd-files trap-card triggered!" >&2
+echo "DEBUG: ============== git-stash-and-sync-FCStd-files trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
