@@ -45,6 +45,7 @@ elif [ "$3" = "1" ]; then
             exit $FAIL
         }
 
+        # ToDO:
         CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
             echo "Error: failed to list of active lock info." >&2
             exit $FAIL
@@ -57,7 +58,7 @@ elif [ "$3" = "1" ]; then
     # Get changed `.changefile`s
     changefiles_changed_between_commits=$(printf '%s\n' "$changed_files" | grep -i -- '\.changefile$')
 
-    echo -e "\nDEBUG: checking changed changefiles: '$(echo $changefiles_changed_between_commits | xargs)'" >&2
+    echo -e "\nDEBUG: checking changed changefiles: '$(echo "$changefiles_changed_between_commits" | xargs)'" >&2
 
     mapfile -t changefiles_changed_between_commits <<<"$changefiles_changed_between_commits"
     for changefile in "${changefiles_changed_between_commits[@]}"; do
@@ -79,7 +80,7 @@ elif [ "$3" = "1" ]; then
 
         git fcmod "$FCStd_file_path"
 
-        FCStd_dir_path=$(dirname $changefile)
+        FCStd_dir_path=$(dirname "$changefile")
         lockfile="$FCStd_dir_path/.lockfile"
 
         if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then

@@ -196,7 +196,7 @@ get_FCStd_dir() {
 # DESCRIPTION: Function to check if FCStd file has valid lock. Returns $TRUE (0) if valid (no lock required or lock held), $FALSE (1) if invalid (lock required but not held)
 # USAGE:
     # `FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "path/to/file.FCStd") || exit $FAIL`
-    # `if [ "$FILE_HAS_VALID_LOCK" = "$TRUE" ]; then echo "File has valid lock"; elif [ $FILE_HAS_VALID_LOCK = $FALSE ]; then echo "File has invalid lock"; fi`
+    # `if [ "$FILE_HAS_VALID_LOCK" = "$TRUE" ]; then echo "File has valid lock"; elif [ "$FILE_HAS_VALID_LOCK" = "$FALSE" ]; then echo "File has invalid lock"; fi`
 FCStd_file_has_valid_lock() {
     local FCStd_file_path="$1"
 
@@ -292,7 +292,7 @@ get_FCStd_file_from_changefile() {
 # DESCRIPTION: Function to check if a directory has changes between two commits
 # USAGE:
     # `DIR_HAS_CHANGES=$(dir_has_changes "path/to/dir") || exit $FAIL`
-    # `if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then echo "dir has changed files"; elif [ $DIR_HAS_CHANGES = $FALSE ]; then echo "No changed files in dir"; fi`
+    # `if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then echo "dir has changed files"; elif [ "$DIR_HAS_CHANGES" = "$FALSE" ]; then echo "No changed files in dir"; fi`
 dir_has_changes() {
     local dir_path="$1"
     local old_sha="$2"

@@ -11,10 +11,10 @@ echo "DEBUG: ============== pre-push hook trap-card triggered! ==============" >
 # ==============================================================================================
 TEMP_DIR=".git/tempfiles"
 mkdir -p "$TEMP_DIR"
-stdin_tempfile=$(mktemp $TEMP_DIR/pre-push.XXXXXX)
+stdin_tempfile=$(mktemp "$TEMP_DIR/pre-push.XXXXXX")
 echo "DEBUG: Created Tempfile: '$stdin_tempfile'" >&2
 cat >"$stdin_tempfile"
-echo "DEBUG: stdin='$(cat $stdin_tempfile)'" >&2
+echo "DEBUG: stdin='$(cat "$stdin_tempfile")'" >&2
 
 read -r local_ref local_sha remote_ref remote_sha < <(tail -n1 "$stdin_tempfile")
 echo "DEBUG: Local ref:   $local_ref" >&2
@@ -48,6 +48,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         exit $FAIL
     }
 
+    # ToDo:
     CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
         echo "Error: failed to list of active lock info." >&2
         exit $FAIL
@@ -59,7 +60,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     # Get changed `.changefile`s
     changed_changefiles=$(printf '%s\n' "$changed_files" | grep -i -- '\.changefile$')
 
-    echo -e "\nDEBUG: checking changed changefiles: '$(echo $changed_changefiles | xargs)'" >&2
+    echo -e "\nDEBUG: checking changed changefiles: '$(echo "$changed_changefiles" | xargs)'" >&2
 
     mapfile -t changed_changefiles <<<"$changed_changefiles"
     for changefile in "${changed_changefiles[@]}"; do
@@ -67,7 +68,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         
         echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
-        FCStd_dir_path=$(dirname $changefile)
+        FCStd_dir_path=$(dirname "$changefile")
         lockfile="$FCStd_dir_path/.lockfile"
 
         if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile"; then

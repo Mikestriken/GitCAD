@@ -33,6 +33,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         exit $FAIL
     }
 
+    # ToDo:
     CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
         echo "Error: failed to list of active lock info." >&2
         exit $FAIL
@@ -45,7 +46,7 @@ changed_files=$(git diff-tree --no-commit-id --name-only -r "ORIG_HEAD" "HEAD")
 # Get changed `.changefile`s
 changed_changefiles=$(printf '%s\n' "$changed_files" | grep -i -- '\.changefile$')
 
-echo -e "\nDEBUG: checking changed lockfiles: '$(echo $changed_changefiles | xargs)'" >&2
+echo -e "\nDEBUG: checking changed lockfiles: '$(echo "$changed_changefiles" | xargs)'" >&2
 
 mapfile -t changed_changefiles <<<"$changed_changefiles"
 for changefile in "${changed_changefiles[@]}"; do
@@ -67,7 +68,7 @@ for changefile in "${changed_changefiles[@]}"; do
 
     git fcmod "$FCStd_file_path"
 
-    FCStd_dir_path=$(dirname $changefile)
+    FCStd_dir_path=$(dirname "$changefile")
     lockfile="$FCStd_dir_path/.lockfile"
 
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then

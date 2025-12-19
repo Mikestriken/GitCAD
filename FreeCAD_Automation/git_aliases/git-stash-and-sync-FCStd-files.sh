@@ -57,6 +57,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         exit_fstash $FAIL
     }
 
+    # ToDO:
     CURRENT_LOCKS=$("$git_path" lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
         echo "Error: failed to list of active lock info." >&2
         exit_fstash $FAIL
@@ -368,8 +369,8 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         mapfile -t CHANGEFILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.fcstd$' || true)
         mapfile -t FCSTD_FILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.changefile$' || true)
         
-        echo -e "\nDEBUG: checking stashed changefiles: '$(echo ${CHANGEFILES_IN_STASH_BEING_APPLIED[@]})'" >&2
-        echo -e "\nDEBUG: checking stashed FCStd files: '$(echo ${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]})'" >&2
+        echo -e "\nDEBUG: checking stashed changefiles: '$(echo "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
+        echo -e "\nDEBUG: checking stashed FCStd files: '$(echo "${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
 
         # Note 1: If a user stashes both a .FCStd file and its associated .changefile at the same time, the .FCStd file will be overwritten with .changefile data during the import stage later.
         # Note 2: User is prevented from stashing .FCStd files using this script.

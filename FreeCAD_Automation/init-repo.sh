@@ -49,7 +49,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         OWNER=$(whoami)
     fi
 
-    if ! chown -R $OWNER:$OWNER $(pwd); then
+    if ! chown -R "$OWNER":"$OWNER" $(pwd); then
         echo "Error: Permission denied for chown. Please run this script with sudo." >&2
         exit $FAIL
     fi

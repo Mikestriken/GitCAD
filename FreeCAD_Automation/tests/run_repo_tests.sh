@@ -202,7 +202,7 @@ await_user_modification() {
             read -r dummy
             if git status --porcelain -z | grep -q -- "^.M $file$"; then
                 freecad_pid=$(pgrep -n -i FreeCAD)
-                kill $freecad_pid
+                kill "$freecad_pid"
                 break
             else
                 echo "No changes detected in '$file'. Please make sure to save your modifications."
@@ -237,7 +237,7 @@ confirm_user() {
             disown
             read -r response
             freecad_pid=$(pgrep -n -i FreeCAD)
-            kill $freecad_pid
+            kill "$freecad_pid"
 
             case $response in
                 [Yy]* ) return;;
@@ -358,7 +358,7 @@ test_FCStd_clean_filter() {
     echo
 
     echo ">>>>>> TEST: remove \`BIMExample.FCStd\` (not used for this test)" >&2
-    assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
+    assert_command_succeeds "rm \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo ">>>>>> TEST: \`git_add\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
     assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\" > /dev/null"; echo
@@ -393,9 +393,9 @@ test_FCStd_clean_filter() {
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo ">>>>>> TEST: attempt to git_add changes (expect error)" >&2
         if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
-            assert_command_fails "git add $TEST_DIR/AssemblyExample.FCStd"; echo
+            assert_command_fails "git add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
         else
-            assert_command_fails "git fadd $TEST_DIR/AssemblyExample.FCStd"; echo
+            assert_command_fails "git fadd \"$TEST_DIR/AssemblyExample.FCStd\""; echo
         fi
 
         echo ">>>>>> TEST: git lock \`AssemblyExample.FCStd\` (git alias)" >&2
@@ -428,7 +428,7 @@ test_pre_commit_hook() {
     echo
 
     echo ">>>>>> TEST: remove \`BIMExample.FCStd\` (not used for this test)" >&2
-    assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
+    assert_command_succeeds "rm \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo ">>>>>> TEST: \`git_add\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
     assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
@@ -869,7 +869,7 @@ test_stashing() {
     echo
 
     echo ">>>>>> TEST: remove \`BIMExample.FCStd\` (not used for this test)" >&2
-    assert_command_succeeds "rm $TEST_DIR/BIMExample.FCStd"; echo
+    assert_command_succeeds "rm \"$TEST_DIR/BIMExample.FCStd\""; echo
 
     echo ">>>>>> TEST: \`git_add\` \`AssemblyExample.FCStd\` (file copied during setup)" >&2
     assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo

@@ -69,6 +69,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         exit $FAIL
     }
 
+    # ToDo: Awk $2 is not reliable
     CURRENT_LOCKS=$("$git_path" lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
         echo "Error: failed to list of active lock info." >&2
         exit $FAIL
@@ -89,12 +90,12 @@ BEFORE_RESET_MODIFIED_CHANGEFILES=$(echo -e "$BEFORE_RESET_MODIFIED_CHANGEFILES\
 AFTER_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
 
 previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
-echo "DEBUG: FULL FCStd files to import: '$(echo $previously_modified_FCStd_files_currently_shows_no_modification | xargs)'" >&2
+echo "DEBUG: FULL FCStd files to import: '$(echo "$previously_modified_FCStd_files_currently_shows_no_modification" | xargs)'" >&2
 
 "$git_path" update-index --refresh -q >/dev/null 2>&1
 AFTER_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 previously_modified_changefiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_CHANGEFILES") <(echo "$AFTER_RESET_MODIFIED_CHANGEFILES"))
-echo "DEBUG: FULL .changefile files to import: '$(echo $previously_modified_changefiles_currently_shows_no_modification | xargs)'" >&2
+echo "DEBUG: FULL .changefile files to import: '$(echo "$previously_modified_changefiles_currently_shows_no_modification" | xargs)'" >&2
 
 # Deconflict: skip FCStd if corresponding changefile is being processed
 FCStd_files_to_process=()
@@ -115,8 +116,8 @@ for FCStd_file_path in "${previously_modified_FCStd_files_currently_shows_no_mod
 done
 changefiles_to_process=("${previously_modified_changefiles_currently_shows_no_modification[@]}")
 
-echo "DEBUG: MERGED FCStd files to import: '$(echo ${FCStd_files_to_process[@]})'" >&2
-echo "DEBUG: MERGED .changefile files to import: '$(echo ${changefiles_to_process[@]})'" >&2
+echo "DEBUG: MERGED FCStd files to import: '$(echo "${FCStd_files_to_process[@]}")'" >&2
+echo "DEBUG: MERGED .changefile files to import: '$(echo "${changefiles_to_process[@]}")'" >&2
 
 # Process FCStd files
 for FCStd_file_path in "${FCStd_files_to_process[@]}"; do

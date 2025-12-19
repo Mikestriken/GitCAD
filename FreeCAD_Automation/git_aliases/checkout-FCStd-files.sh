@@ -111,10 +111,10 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
 
     # List of all modified changefiles
     changefiles_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$')
-    echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo $changefiles_with_modifications_not_yet_committed | xargs)" >&2
+    echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo "$changefiles_with_modifications_not_yet_committed" | xargs)" >&2
     
     FCStd_files_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$')
-    echo "DEBUG: Found modified FCStd files for HEAD checkout: $(echo $FCStd_files_with_modifications_not_yet_committed | xargs)" >&2
+    echo "DEBUG: Found modified FCStd files for HEAD checkout: $(echo "$FCStd_files_with_modifications_not_yet_committed" | xargs)" >&2
     
     # For each modified FCStd file, find its changefile and add it to the list of modified changefiles
     mapfile -t FCStd_files_with_modifications_not_yet_committed <<<"$FCStd_files_with_modifications_not_yet_committed"
@@ -134,7 +134,7 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
         fi
     done
 
-    echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo $changefiles_with_modifications_not_yet_committed | xargs)" >&2
+    echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo "$changefiles_with_modifications_not_yet_committed" | xargs)" >&2
 fi
 
 # ==============================================================================================
