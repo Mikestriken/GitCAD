@@ -138,9 +138,11 @@ make_readonly() {
     fi
 
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "Debug: chmod 444 \"$file\""  >&2
         chmod 444 "$file"
     
     elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
+        echo "Debug: attrib +r \"$file\""  >&2
         attrib +r "$file"
     
     else
@@ -162,9 +164,11 @@ make_writable() {
     fi
 
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "Debug: chmod 644 \"$file\""  >&2
         chmod 644 "$file"
     
     elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
+        echo "Debug: attrib -r \"$file\""  >&2
         attrib -r "$file"
     
     else
