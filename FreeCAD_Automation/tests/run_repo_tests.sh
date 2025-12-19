@@ -79,7 +79,7 @@ tearDown() {
     echo ">>>> Tearing Down '$1' <<<<"
 
     # remove any locks in test dir
-    git lfs locks | grep -- "^$TEST_DIR" | awk '{print $3}' | sed 's/ID://' | xargs -r -I {} git lfs unlock --id {} --force || true
+    git lfs locks | grep -- "^$TEST_DIR" | sed -n 's/.*ID:\([0-9]\+\).*/\1/p' | xargs -r -I {} git lfs unlock --id {} --force || true
     
     # Clear working dir changes
     git reset --hard >/dev/null 2>&1
