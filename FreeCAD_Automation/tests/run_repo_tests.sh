@@ -200,7 +200,7 @@ await_user_modification() {
             xdg-open "$file" > /dev/null &
             disown
             read -r dummy
-            if git status --porcelain | grep -q -- "^.M $file$"; then
+            if git status --porcelain -z | grep -q -- "^.M $file$"; then
                 freecad_pid=$(pgrep -n -i FreeCAD)
                 kill $freecad_pid
                 break
@@ -212,7 +212,7 @@ await_user_modification() {
             echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
             start "$file"
             read -r dummy
-            if git status --porcelain | grep -q -- "^.M $file$"; then
+            if git status --porcelain -z | grep -q -- "^.M $file$"; then
                 taskkill //IM freecad.exe //F
                 break
             else
