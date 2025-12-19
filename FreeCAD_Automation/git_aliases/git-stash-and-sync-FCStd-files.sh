@@ -84,6 +84,11 @@ STASH_COMMAND=""
 BRANCH_NAME=""
 STASH_REF=""
 FILE_SEPARATOR_FLAG=$FALSE
+
+if [ $# -eq 0 ]; then
+    STASH_COMMAND="push"
+fi
+
 while [ $# -gt 0 ]; do
     echo "DEBUG: parsing '$1'..." >&2
     case $1 in
