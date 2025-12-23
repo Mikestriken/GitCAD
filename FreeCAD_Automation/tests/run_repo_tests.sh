@@ -340,7 +340,7 @@ test_sandbox() {
     echo ">>>>>> TEST: git push origin active_test" >&2
     assert_command_succeeds "git push origin active_test"; echo
     
-    echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+    echo -n ">>>>>> Sandbox Setup, Press ENTER to exit and reset to main....."; read -r dummy; echo
     
     tearDown "test_sandbox" || exit $FAIL
 

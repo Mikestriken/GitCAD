@@ -62,5 +62,29 @@
         -- `xdg-open ./FreeCAD_Automation/tests/AssemblyExample.FCStd`
 16. Setup ssh for git credentials -- Ask Google or ChatGPT
 17. Run `./FreeCAD_Automation/tests/run_repo_tests.sh --sandbox`
-18. If the terminal says `` then your all clear!
+    1.  When the terminal says `>>>> START SANDBOX TEST? <<<<` press ENTER
+    2.  If the terminal says:  
+        - `>>>>>> Sandbox Setup, Press ENTER to exit and reset to main.....`  
+        - And you can run `xdg-open ./FreeCAD_Automation/tests/AssemblyExample.FCStd` in another terminal to open the file in FreeCAD  
+    3.  Then everything is setup correctly.
 ### Windows Install
+1. Download the FreeCAD from the [FreeCAD website](https://www.freecad.org/downloads.php)
+2.  install git-lfs if needed  
+3.  fork and clone the repo  
+4.  Run the init repo script for GitCAD twice (and specify the FreeCAD python file in the config), as per the install instructions in the [README](README.md) file.  
+    -- `./FreeCAD_Automation/init-repo.sh`
+5.  Run `./FreeCAD_Automation/tests/run_repo_tests.sh --sandbox`
+    1.  When the terminal says `>>>> START SANDBOX TEST? <<<<` press ENTER
+    2.  If the terminal says:  
+        - `>>>>>> Sandbox Setup, Press ENTER to exit and reset to main.....`  
+        - And you can run `start ./FreeCAD_Automation/tests/AssemblyExample.FCStd` in another terminal to open the file in FreeCAD  
+    3.  Then everything is setup correctly.
+## How to contribute
+1. Fork the repository.
+2. Create a feature branch
+3. Code your contribution
+4. If modifying the `/FreeCAD_Automation/FCStdFileTool.py` then
+   - Run and complete all the python tests in `/FreeCAD_Automation/tests/run_python_test.sh > run_python_tests.txt`
+   - Run and complete `/FreeCAD_Automation/tests/run_repo_tests.sh --python > run_repo_tests_python.txt`
+5. Push your changes to your fork
+6. Submit and create a Pull Request to merge your feature branch into GitCAD.
