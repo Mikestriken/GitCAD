@@ -72,9 +72,9 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     mapfile -t CURRENT_LOCKS < <(
         "$git_path" lfs locks |
         awk -v user="$CURRENT_USER" '
-            $0 ~ ("[[:space:]]" user "[[:space:]]+ID:") {
-                sub(/[[:space:]]+[^[:space:]]+[[:space:]]+ID:.*/, "", $0)
-                print
+            match($0, /^(.*)[[:space:]]+([^[:space:]]+)[[:space:]]+ID:[0-9]+$/, m) &&
+            m[2] == user {
+                print m[1]
             }
         '
     ) || {
