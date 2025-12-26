@@ -69,8 +69,15 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         exit $FAIL
     }
 
-    # ToDo: Awk $2 is not reliable
-    CURRENT_LOCKS=$("$git_path" lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
+    mapfile -t CURRENT_LOCKS < <(
+        "$git_path" lfs locks |
+        awk -v user="$CURRENT_USER" '
+            $0 ~ ("[[:space:]]" user "[[:space:]]+ID:") {
+                sub(/[[:space:]]+[^[:space:]]+[[:space:]]+ID:.*/, "", $0)
+                print
+            }
+        '
+    ) || {
         echo "Error: failed to list of active lock info." >&2
         exit $FAIL
     }
@@ -144,7 +151,7 @@ for FCStd_file_path in "${FCStd_files_to_process[@]}"; do
     "$git_path" fcmod "$FCStd_file_path"
 
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-        if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile_path"; then
+        if printf '%s\n' "${CURRENT_LOCKS[@]}" | grep -Fxq -- "$lockfile_path"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
             echo "DEBUG: set '$FCStd_file_path' writable." >&2
@@ -180,7 +187,7 @@ for changefile in "${changefiles_to_process[@]}"; do
     lockfile="$FCStd_dir_path/.lockfile"
 
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-        if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile"; then
+        if printf '%s\n' "${CURRENT_LOCKS[@]}" | grep -Fxq -- "$lockfile"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
             echo "DEBUG: set '$FCStd_file_path' writable." >&2

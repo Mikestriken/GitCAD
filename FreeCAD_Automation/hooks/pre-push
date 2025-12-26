@@ -48,8 +48,15 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         exit $FAIL
     }
 
-    # ToDo: Awk $2 is not reliable
-    CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
+    mapfile -t CURRENT_LOCKS < <(
+        git lfs locks |
+        awk -v user="$CURRENT_USER" '
+            $0 ~ ("[[:space:]]" user "[[:space:]]+ID:") {
+                sub(/[[:space:]]+[^[:space:]]+[[:space:]]+ID:.*/, "", $0)
+                print
+            }
+        '
+    ) || {
         echo "Error: failed to list of active lock info." >&2
         exit $FAIL
     }
@@ -71,7 +78,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         FCStd_dir_path=$(dirname "$changefile")
         lockfile="$FCStd_dir_path/.lockfile"
 
-        if printf '%s\n' "$CURRENT_LOCKS" | grep -Fq -- "$lockfile"; then
+        if printf '%s\n' "${CURRENT_LOCKS[@]}" | grep -Fxq -- "$lockfile"; then
             echo "DEBUG: User has valid lock for '$lockfile'" >&2
             :
         else

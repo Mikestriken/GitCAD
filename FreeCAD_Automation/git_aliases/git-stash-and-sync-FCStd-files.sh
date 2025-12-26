@@ -57,10 +57,17 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         exit_fstash $FAIL
     }
 
-    # ToDO: Awk $2 is not reliable
-    CURRENT_LOCKS=$("$git_path" lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
+    mapfile -t CURRENT_LOCKS < <(
+        "$git_path" lfs locks |
+        awk -v user="$CURRENT_USER" '
+            $0 ~ ("[[:space:]]" user "[[:space:]]+ID:") {
+                sub(/[[:space:]]+[^[:space:]]+[[:space:]]+ID:.*/, "", $0)
+                print
+            }
+        '
+    ) || {
         echo "Error: failed to list of active lock info." >&2
-        exit_fstash $FAIL
+        exit $FAIL
     }
 fi
 
