@@ -57,7 +57,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         exit_fstash $FAIL
     }
 
-    # ToDO:
+    # ToDO: Awk $2 is not reliable
     CURRENT_LOCKS=$("$git_path" lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
         echo "Error: failed to list of active lock info." >&2
         exit_fstash $FAIL

@@ -45,7 +45,7 @@ elif [ "$3" = "1" ]; then
             exit $FAIL
         }
 
-        # ToDO:
+        # ToDO: Awk $2 is not reliable
         CURRENT_LOCKS=$(git lfs locks | awk '$2 == "'$CURRENT_USER'" {print $1}') || {
             echo "Error: failed to list of active lock info." >&2
             exit $FAIL
