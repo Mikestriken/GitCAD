@@ -111,7 +111,6 @@
 4.  Test your changes:
     - If modifying the `/FreeCAD_Automation/FCStdFileTool.py`:
         - Run and complete all the python tests in `/FreeCAD_Automation/tests/run_python_test.sh`
-        - Run and complete `/FreeCAD_Automation/tests/run_repo_tests.sh --python`
     - If modifying one of the bash `.sh` scripts:
         - Run and complete `/FreeCAD_Automation/tests/run_repo_tests.sh`
 
