@@ -955,6 +955,7 @@ test_stashing() {
     
     
     # TEST: Remove checked out file
+    echo ">>>>>> TEST: git reset --hard" >&2
     assert_command_succeeds "git reset --hard"; echo
     assert_no_uncommitted_changes; echo
     
