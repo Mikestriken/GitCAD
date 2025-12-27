@@ -46,6 +46,8 @@ fi
 #                                 Register Deactivate Function
 # ==============================================================================================
 deactivate_GitCAD() {
+    trap - EXIT
+    
     # Restore original PATH
     if [ -n "$PATH_ENVIRONMENT_BACKUP" ]; then
         export PATH="$PATH_ENVIRONMENT_BACKUP"
@@ -67,7 +69,7 @@ deactivate_GitCAD() {
     echo "GitCAD git wrapper deactivated"
 }
 
-trap 'deactivate_GitCAD 2>/dev/null' EXIT
+trap 'deactivate_GitCAD' EXIT
 
 # ==============================================================================================
 #         Add Wrapper Script to PATH Environment Variable, Ahead Of The Real `git.exe`

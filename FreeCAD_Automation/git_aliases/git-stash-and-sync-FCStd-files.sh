@@ -30,6 +30,8 @@ if [ -z "$GIT_COMMAND" ]; then
 fi
 
 exit_fstash() {
+    trap - EXIT
+    
     if [ "$GIT_COMMAND_ALREADY_SET" = "$FALSE" ]; then 
         unset GIT_COMMAND
     fi
@@ -45,7 +47,7 @@ exit_fstash() {
             ;;
     esac
 }
-trap "exit_fstash $FAIL 2>/dev/null" EXIT
+trap "exit_fstash $FAIL" EXIT
 
 if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
     echo "Error: Config file missing or invalid; cannot proceed." >&2
