@@ -192,6 +192,17 @@ assert_no_uncommitted_changes() {
     fi
 }
 
+assert_file_modified() {
+    local file="$1"
+    git update-index --refresh -q >/dev/null 2>&1
+    if ! git diff-index --name-only HEAD | grep -Fxq "$file"; then
+        echo "Assertion failed: File '$file' has not been modified" >&2
+        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+        tearDown
+        exit $FAIL
+    fi
+}
+
 await_user_modification() {
     local file="$1"
     while true; do
@@ -899,10 +910,13 @@ test_stashing() {
     assert_writable "$TEST_DIR/AssemblyExample.FCStd"; echo
 
 
-    # TEST: Stashing changes in working directory
+    # TEST: Stashing all changes in working directory
     echo ">>>>>> TEST: Request user modify \`AssemblyExample.FCStd\`" >&2
     assert_no_uncommitted_changes; echo
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
+
+    echo ">>>>>> TEST: git_stash the file, should error as .FCStd files cannot be stashed" >&2
+    assert_command_fails "git_stash -- \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo ">>>>>> TEST: git_add \`AssemblyExample.FCStd\`" >&2
     assert_command_succeeds "git_add \"$TEST_DIR/AssemblyExample.FCStd\""; echo
@@ -918,6 +932,33 @@ test_stashing() {
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
 
 
+    # TEST: Popping the stashed changes and Stashing the specified .FCStd file (should redirect to the FCStd_dir_path)
+    echo ">>>>>> TEST: git_stash pop" >&2
+    assert_no_uncommitted_changes; echo
+    assert_command_succeeds "git_stash pop"; echo
+
+    echo ">>>>>> TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
+
+    echo ">>>>>> TEST: git_stash the changes" >&2
+    assert_command_succeeds "git_stash -- \"$TEST_DIR/AssemblyExample.FCStd\""; echo
+    assert_no_uncommitted_changes; echo
+
+    echo ">>>>>> TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes reverted" >&2
+    confirm_user "Please confirm that 'AssemblyExample.FCStd' changes have been reverted." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
+    
+    
+    # TEST: git checkout stash file
+    echo ">>>>>> TEST: git checkout stash@{0} -- \"$FCStd_dir_path/.changefile\"" >&2
+    assert_command_succeeds "git checkout stash@{0} -- \"$FCStd_dir_path/.changefile\""; echo
+    assert_file_modified "$FCStd_dir_path/.changefile"; echo
+    
+    
+    # TEST: Remove checked out file
+    assert_command_succeeds "git reset --hard"; echo
+    assert_no_uncommitted_changes; echo
+    
+    
     # TEST: git unlock checks for stashed changes not yet committed (fails if so)
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         echo ">>>>>> TEST: git unlock \`AssemblyExample.FCStd\` (git alias) -- should fail because changes haven't been pushed" >&2
@@ -1207,8 +1248,8 @@ elif [ -z "$1" ]; then
     # test_FCStd_clean_filter
     # test_pre_commit_hook
     # test_pre_push_hook
-    test_post_checkout_hook
-    # test_stashing
+    # test_post_checkout_hook
+    test_stashing
     # test_post_merge_hook
 
     echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo

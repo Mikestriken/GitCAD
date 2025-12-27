@@ -279,8 +279,6 @@ done
 # ==============================================================================================
 #                                   Execute Stash n' Import
 # ==============================================================================================
-# ToDo TEST: git unlocking with a stashed .FCStd file change
-# ToDo TEST: git checkout stash@{0} -- path/to/file
 if [ "$STASH_COMMAND_DOES_NOT_MODIFY_WORKING_DIR_OR_CREATE_STASHES" = "$TRUE" ]; then
     echo "DEBUG: stash command does not modify working directory or create stashes. Passing command directly to git stash." >&2
     echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
