@@ -27,16 +27,23 @@ fi
 echo "DEBUG: All args: '$@'" >&2
 
 # $RESET_MOD is an environment variable set by the alias `git fcmod`
-if [ -n "$RESET_MOD" ]; then
-    echo "DEBUG: Reset modification call from fcmod alias, showing empty file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+if [ "$RESET_MOD" = "$TRUE" ]; then
+    echo "DEBUG: Reset modification call from fcmod alias, showing empty .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 
 # $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when activated via `source FreeCAD_Automation/activate.sh`
     # It is also set by the fstash script to "stash" when the GitCAD wrapper script is not active
+    # It is also set by the fadd alias to "add" to specify the user's intention to export added .FCStd files
+    # It is also set by the stat alias to "status" to specify the user's intention to see what files git thinks are modified and aren't (don't make .FCStd files appear unmodified if git thinks they're modified)
 # Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files for this case
 elif [ "$GIT_COMMAND" = "stash" ]; then
-    echo "DEBUG: stash call from fstash alias or git wrapper, showing modified file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    echo "DEBUG: stash call from fstash alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    cat
+    exit $SUCCESS
+
+elif [ "$GIT_COMMAND" = "status" ]; then
+    echo "DEBUG: status call from stat alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat
     exit $SUCCESS
 
@@ -66,51 +73,45 @@ if [ -f "$changefile_path" ]; then
     fi
 fi
 
-if [ -n "$GITCAD_ACTIVATED" ]; then
-    # $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when activated via `source FreeCAD_Automation/activate.sh`
-        # It is also set by the fstash script to "stash" when the GitCAD wrapper script is not active
-    if [ "$GIT_COMMAND" = "add" ]; then
-        :
-    
-    # Note: The following git commands are known to also trigger this clean filter: checkout, reset, stash, unlock, pull
-        # In the above scenarios (that aren't `git add`), we disable the clean filter and make the .FCStd file show up as having no modification (git POV)
-    else
-        cat /dev/null
-        exit $SUCCESS
-    fi
+# Note: Cannot move this conditional logic up as we needed to first check if the file had already been exported prior
+# $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when activated via `source FreeCAD_Automation/activate.sh`
+    # It is also set by the fstash alias script to "stash" when the GitCAD wrapper script is not active
+    # It is also set by the fadd alias to "add" to specify the user's intention to export added .FCStd files
+if [ "$GIT_COMMAND" = "add" ]; then
+    :
 
-# If GitCAD is not activated the user must then use the git aliases.
+# If GitCAD is not activated then the clean filter cannot be sure of what git command triggered this filter unless the user use aliases.
+    # As a default response to an unknown git command, the clean filter should be disabled and simply show the file as empty.
+elif [ -z "$GITCAD_ACTIVATED" ]; then
+    echo "============================================================ WARNING ============================================================" >&2
+    echo "Export flag not set. Removed Modification (git POV only) for '$1'." >&2
+    echo >&2
+    echo "If you didn't run \`git add\` then ignore this warning." >&2
+    echo "The following git commands are known to erroneously trigger this warning on Linux: checkout, freset, fstash, fco, unlock, pull" >&2
+    echo >&2
+    echo "If you DID run \`git add\` Run \`git fexport\` to manually export the file." >&2
+    echo "Use \`git fadd\` instead of \`git add\` next time to set the export flag." >&2
+    echo >&2
+    echo "ALTERNATIVELY: Activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands" >&2
+    echo "=================================================================================================================================" >&2
+    
+    cat /dev/null
+    exit $SUCCESS
+
+# Note: The following git commands are known to also trigger this clean filter: checkout, reset, stash, unlock, pull
+    # In the above scenarios (that aren't `git add`), we disable the clean filter and make the .FCStd file show up as having no modification (git POV)
 else
-    # $EXPORT_ENABLED is an environment variable set by the alias `git fadd`
-    if [ -n "$EXPORT_ENABLED" ]; then
-        :
-    
-    # If none of the above, the clean filter should be disabled and simply show the file as empty.
-    else
-        echo "============================================================ WARNING ============================================================" >&2
-        echo "Export flag not set. Removed Modification (git POV only) for '$1'." >&2
-        echo >&2
-        echo "If you didn't run \`git add\` then ignore this warning." >&2
-        echo "The following git commands are known to erroneously trigger this warning on Linux: checkout, freset, fstash, fco, unlock, pull" >&2
-        echo >&2
-        echo "If you DID run \`git add\` Run \`git fexport\` to manually export the file." >&2
-        echo "Use \`git fadd\` instead of \`git add\` next time to set the export flag." >&2
-        echo >&2
-        echo "ALTERNATIVELY: Activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands" >&2
-        echo "=================================================================================================================================" >&2
-        
-        cat /dev/null
-        exit $SUCCESS
-    fi
+    cat /dev/null
+    exit $SUCCESS
 fi
-
 
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
 if [ "$BYPASS_LOCK" = "$TRUE" ]; then
-    echo "DEBUG: BYPASS_LOCK=0, bypassing lock check." >&2
+    echo "DEBUG: BYPASS_LOCK=$TRUE, bypassing lock check." >&2
     :
+
 else
     FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
 
