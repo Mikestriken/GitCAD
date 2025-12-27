@@ -226,6 +226,10 @@ while [ $# -gt 0 ]; do
         # ===== Capture FILE_SEPARATOR =====
         # Note: As of git v2.52.0, the FILE_SEPARATOR is only valid for the "push" STASH_COMMAND
         "--")
+            if [ -z "$STASH_COMMAND" ]; then
+                STASH_COMMAND="push"
+            fi
+
             FILE_SEPARATOR_FLAG=$TRUE
             echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
             ;;
