@@ -915,7 +915,7 @@ test_stashing() {
     assert_no_uncommitted_changes; echo
     await_user_modification "$TEST_DIR/AssemblyExample.FCStd"; echo
 
-    echo ">>>>>> TEST: git_stash the file, should error as .FCStd files cannot be stashed" >&2
+    echo ">>>>>> TEST: git_stash -- \"$TEST_DIR/AssemblyExample.FCStd\", should error as .FCStd files cannot be stashed" >&2
     assert_command_fails "git_stash -- \"$TEST_DIR/AssemblyExample.FCStd\""; echo
 
     echo ">>>>>> TEST: git_add \`AssemblyExample.FCStd\`" >&2
@@ -940,7 +940,7 @@ test_stashing() {
     echo ">>>>>> TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
 
-    echo ">>>>>> TEST: git_stash the changes" >&2
+    echo ">>>>>> TEST: git_stash -- \"$TEST_DIR/AssemblyExample.FCStd\"" >&2
     assert_command_succeeds "git_stash -- \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     assert_no_uncommitted_changes; echo
 
@@ -982,7 +982,7 @@ test_stashing() {
 
         
         # TEST: Unstashing changes without a lock for changes fails
-        echo ">>>>>> TEST: git_stash pop -- should fail need lock to modify AssemblyExample.FCStd" >&2
+        echo ">>>>>> TEST: git_stash pop, should fail need lock to modify AssemblyExample.FCStd" >&2
         assert_no_uncommitted_changes; echo
         assert_command_fails "git_stash pop"; echo
         assert_no_uncommitted_changes; echo
