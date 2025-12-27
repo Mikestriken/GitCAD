@@ -461,6 +461,8 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
             echo "Failed to import $FCStd_file_path" >&2
         }
         echo "SUCCESS" >&2
+
+        "$git_path" fcmod "$FCStd_file_path"
     done
 
 
