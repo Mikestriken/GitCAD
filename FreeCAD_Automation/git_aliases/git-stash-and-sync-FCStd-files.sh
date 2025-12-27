@@ -40,6 +40,7 @@ exit_fstash() {
             exit $FAIL
             ;;
         *)
+            echo "DEBUG: exiting with code '$1'..." >&2
             exit $1
             ;;
     esac
