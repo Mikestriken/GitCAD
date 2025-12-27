@@ -374,8 +374,8 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
             fi
         done
     else
-        mapfile -t CHANGEFILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.fcstd$' || true)
-        mapfile -t FCSTD_FILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.changefile$' || true)
+        mapfile -t CHANGEFILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.changefile$' || true)
+        mapfile -t FCSTD_FILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.fcstd$' || true)
         
         echo -e "\nDEBUG: checking stashed changefiles: '$(echo "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
         echo -e "\nDEBUG: checking stashed FCStd files: '$(echo "${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
