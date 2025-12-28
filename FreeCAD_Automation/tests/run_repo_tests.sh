@@ -1258,8 +1258,8 @@ elif [ -z "$1" ]; then
     # test_pre_commit_hook
     # test_pre_push_hook
     # test_post_checkout_hook
-    # test_stashing
-    test_post_merge_hook
+    test_stashing
+    # test_post_merge_hook
 
     echo -n ">>>> END OF TESTING <<<<" >&2; read -r dummy; echo
 

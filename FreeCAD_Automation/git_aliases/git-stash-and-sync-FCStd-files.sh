@@ -463,11 +463,14 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         echo "SUCCESS" >&2
 
         # ToDo: For some reason, although this runs successfully the file tends to show up as modified still after the fcmod operation.
-        "$git_path" update-index --refresh -q >/dev/null 2>&1
-        sync
-        "$git_path" update-index --refresh -q >/dev/null 2>&1
-        sync
+        # "$git_path" fcmod "$FCStd_file_path"
+    done
+    for changefile_path in "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}"; do
+        echo -e "\nDEBUG: clearing associated FCStd file from '$changefile_path'....$(grep -F -- 'File Last Exported On:' "$changefile_path")" >&2
         
+        FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || continue
+        
+        # ToDo: For some reason, although this runs successfully the file tends to show up as modified still after the fcmod operation.
         "$git_path" fcmod "$FCStd_file_path"
     done
 
