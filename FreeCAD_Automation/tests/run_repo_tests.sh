@@ -937,8 +937,9 @@ test_stashing() {
     assert_no_uncommitted_changes; echo
     assert_command_succeeds "git_stash pop"; echo
     
-    # Note: Stopgap solution to issue #19
+    # ToDo: This is a Stopgap solution to issue #19, find a better solution
     while git stat | grep -Fq -- "$TEST_DIR/AssemblyExample.FCStd"; do
+        echo ">>>>>> TEST WARNING: git stash did not clear the modification for the popped .FCStd file." >&2
         assert_command_succeeds "git fcmod \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     done
 
