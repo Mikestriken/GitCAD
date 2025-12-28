@@ -463,6 +463,11 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         echo "SUCCESS" >&2
 
         # ToDo: For some reason, although this runs successfully the file tends to show up as modified still after the fcmod operation.
+        "$git_path" update-index --refresh -q >/dev/null 2>&1
+        sync
+        "$git_path" update-index --refresh -q >/dev/null 2>&1
+        sync
+        
         "$git_path" fcmod "$FCStd_file_path"
     done
 
