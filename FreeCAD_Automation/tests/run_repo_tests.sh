@@ -122,7 +122,7 @@ assert_dir_exists() {
     local dir="$1"
     if [ ! -d "$dir" ]; then
         echo "Assertion failed: Directory '$dir' does not exist" >&2
-        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+        echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -132,7 +132,7 @@ assert_readonly() {
     local file="$1"
     if [ -w "$file" ]; then
         echo "Assertion failed: File '$file' is writable" >&2
-        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+        echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -142,7 +142,7 @@ assert_writable() {
     local file="$1"
     if [ ! -w "$file" ]; then
         echo "Assertion failed: File '$file' is readonly" >&2
-        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+        echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -153,7 +153,7 @@ assert_dir_has_changes() {
     git update-index --refresh -q >/dev/null 2>&1
     if ! git diff-index --name-only HEAD | grep -q -- "^$dir/"; then
         echo "Assertion failed: Directory '$dir' has no changes" >&2
-        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+        echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -163,7 +163,7 @@ assert_command_fails() {
     local cmd="$1"
     if eval "$cmd"; then
         echo "Assertion failed: Command '$cmd' succeeded but expected to fail" >&2
-        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+        echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -173,7 +173,7 @@ assert_command_succeeds() {
     local cmd="$1"
     if ! eval "$cmd"; then
         echo "Assertion failed: Command '$cmd' failed but expected to succeed" >&2
-        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+        echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -185,7 +185,7 @@ assert_no_uncommitted_changes() {
 
         if [ -n "$(git status --porcelain)" ]; then
             echo "Assertion failed: There are uncommitted changes" >&2
-            echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+            echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
             tearDown
             exit $FAIL
         fi
@@ -197,7 +197,7 @@ assert_file_modified() {
     git update-index --refresh -q >/dev/null 2>&1
     if ! git diff-index --name-only HEAD | grep -Fxq "$file"; then
         echo "Assertion failed: File '$file' has not been modified" >&2
-        echo -n ">>>>>> Paused for user testing. Press enter when done....."; read -r dummy; echo
+        echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
         tearDown
         exit $FAIL
     fi
@@ -351,7 +351,7 @@ test_sandbox() {
     echo ">>>>>> TEST: git push origin active_test" >&2
     assert_command_succeeds "git push origin active_test"; echo
     
-    echo -n ">>>>>> Sandbox Setup, Press ENTER when done testing to exit and reset to main....."; read -r dummy; echo
+    echo -n ">>>>>> Sandbox Setup, Press ENTER when done testing to exit and reset to main....." >&2; read -r dummy; echo
     
     tearDown "test_sandbox" || exit $FAIL
 
@@ -939,7 +939,9 @@ test_stashing() {
     
     # ToDo: This is a Stopgap solution to issue #19, find a better solution
     while git stat | grep -Fq -- "$TEST_DIR/AssemblyExample.FCStd"; do
-        echo ">>>>>> TEST WARNING: git stash did not clear the modification for the popped .FCStd file." >&2
+        echo -n ">>>>>> TEST WARNING/ERROR: git stash did not clear the modification for the popped .FCStd file." >&2; read -r dummy; echo
+        tearDown
+        exit $FAIL
         assert_command_succeeds "git fcmod \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     done
 
@@ -1240,17 +1242,17 @@ test_post_merge_hook() {
 # Note: Expect user to press Ctrl + C to opt out of test
 
 if [ "$1" = "--sandbox" ]; then
-    echo -n ">>>> START SANDBOX TEST? <<<<"; read -r dummy; echo
+    echo -n ">>>> START SANDBOX TEST? <<<<" >&2; read -r dummy; echo
     
     test_sandbox
 
-    echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
+    echo -n ">>>> END OF TESTING <<<<" >&2; read -r dummy; echo
 
     rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git checkout test_binaries
     exit $SUCCESS
 
 elif [ -z "$1" ]; then
-    echo -n ">>>> START STANDARD TEST? <<<<"; read -r dummy; echo
+    echo -n ">>>> START STANDARD TEST? <<<<" >&2; read -r dummy; echo
     
     # test_FCStd_clean_filter
     # test_pre_commit_hook
@@ -1259,7 +1261,7 @@ elif [ -z "$1" ]; then
     test_stashing
     # test_post_merge_hook
 
-    echo -n ">>>> END OF TESTING <<<<"; read -r dummy; echo
+    echo -n ">>>> END OF TESTING <<<<" >&2; read -r dummy; echo
 
     rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git checkout test_binaries
     exit $SUCCESS
