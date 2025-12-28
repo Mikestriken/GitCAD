@@ -938,7 +938,7 @@ test_stashing() {
     assert_command_succeeds "git_stash pop"; echo
     
     # Note: Stopgap solution to issue #19
-    while git ls-files -m | grep -Fxq "$TEST_DIR/AssemblyExample.FCStd"; do
+    while git stat | grep -Fq -- "$TEST_DIR/AssemblyExample.FCStd"; do
         assert_command_succeeds "git fcmod \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     done
 

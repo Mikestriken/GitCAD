@@ -341,7 +341,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                         CHANGEFILES_IN_STASH_BEING_APPLIED+=("$file")
 
                     fi
-                done < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep "$file_path")
+                done < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -F -- "$file_path")
             
             # Check for (exit early if true)
                 # If specified FCStd file is modified
