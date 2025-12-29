@@ -63,10 +63,10 @@ FCStd_dir_path=$(get_FCStd_dir "$1") || exit $FAIL
 changefile_path="$FCStd_dir_path/.changefile"
 
 if [ -f "$changefile_path" ]; then
-    FCStd_file_modification_time=$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)
-    changefile_modification_time=$(stat -c %Y "$changefile_path" 2>/dev/null || stat -f %m "$changefile_path" 2>/dev/null)
+    FCStd_file_modification_time=$(date -u -d @"$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')
+    changefile_modification_time=$(date -u -d @"$(stat -c %Y "$changefile_path" 2>/dev/null || stat -f %m "$changefile_path" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')
     
-    if [ "$changefile_modification_time" -ge "$FCStd_file_modification_time" ]; then
+    if [[ "$changefile_modification_time" > "$FCStd_file_modification_time" || "$changefile_modification_time" == "$FCStd_file_modification_time" ]]; then
         echo "DEBUG: \`$1\` already exported, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat /dev/null
         exit $SUCCESS

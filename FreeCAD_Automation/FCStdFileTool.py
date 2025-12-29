@@ -465,7 +465,7 @@ def create_lockfile_and_changefile(FCStd_dir_path:str, FCStd_file_path:str):
     change_file_path:str = os.path.join(FCStd_dir_path, '.changefile')
     FCStd_file_relpath:str = os.path.relpath(FCStd_file_path, start=FCStd_dir_path).replace(os.sep, '/')
     
-    current_time:str = datetime.datetime.now().isoformat()
+    current_time:str = datetime.datetime.now(datetime.timezone.utc).isoformat()
     
     # Create .changefile with FCStd_file_relpath and timestamp file was created
     with open(change_file_path, 'w') as f:

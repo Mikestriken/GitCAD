@@ -117,3 +117,12 @@
 5.  Push your changes to your fork
 
 6.  Submit and create a Pull Request to merge your feature branch into GitCAD.
+
+## Standards
+-   Timestamps should all match *ISO 8601 extended format with offset from UTC* IE: `2025-12-29T01:24:31.998058+00:00`. To compare timestamps use lexical comparisons (NOT numerical).
+    -   Python: `import datetime; print(datetime.datetime.now(datetime.timezone.utc).isoformat())`
+        -   Comparison: `if t1 < t2:`
+    
+    -   Bash: `echo "$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")"`
+        -   Comparison: `if [[ "$t1" < "$t2" ]]; then`  
+            *Note: Must use [[ ]]. Single brackets don't work.*
