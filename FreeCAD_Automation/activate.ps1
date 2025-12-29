@@ -9,8 +9,8 @@
 # ==============================================================================================
 $SUCCESS = 0
 $FAIL = 1
-$TRUE = 0
-$FALSE = 1
+$BASH_TRUE = 0
+$BASH_FALSE = 1
 $GitCAD_Prompt = "(GitCAD)"
 
 # ==============================================================================================
@@ -49,7 +49,7 @@ Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action $global:GitCAD
 # ==============================================================================================
 #                                  Prevent Infinite Recursion
 # ==============================================================================================
-if ($env:GITCAD_ACTIVATED -eq $TRUE) {
+if ($env:GITCAD_ACTIVATED -eq $BASH_TRUE) {
     deactivate_GitCAD
 }
 
@@ -91,7 +91,7 @@ if (-not $env:GITCAD_REPO_ROOT) {
 $env:REAL_GIT = (Get-Command git).Source
 
 # Add git wrapper script to PATH Environment variable
-$env:GITCAD_ACTIVATED = $TRUE
+$env:GITCAD_ACTIVATED = $BASH_TRUE
 $env:GIT_WRAPPER_PATH = "$env:GITCAD_REPO_ROOT/FreeCAD_Automation"
 $env:PATH = "$env:GIT_WRAPPER_PATH;$env:PATH"
 
