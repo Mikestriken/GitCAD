@@ -20,7 +20,7 @@ if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
 fi
 
 # Check for uncommitted work in working directory, exit early if so with error message
-if [ -n "$(git status --porcelain)" ]; then
+if [ -n "$(GIT_COMMAND="status" git status --porcelain)" ]; then
     exit $FAIL
 fi
 
@@ -180,10 +180,10 @@ assert_command_succeeds() {
 }
 
 assert_no_uncommitted_changes() {
-    if [ -n "$(git status --porcelain)" ]; then
+    if [ -n "$(GIT_COMMAND="status" git status --porcelain)" ]; then
         rm -rf FreeCAD_Automation/tests/uncompressed/ # Note: Dir spontaneously appears after git checkout test_binaries
 
-        if [ -n "$(git status --porcelain)" ]; then
+        if [ -n "$(GIT_COMMAND="status" git status --porcelain)" ]; then
             echo "Assertion failed: There are uncommitted changes" >&2
             echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
             tearDown
@@ -211,7 +211,7 @@ await_user_modification() {
             xdg-open "$file" > /dev/null &
             disown
             read -r dummy
-            if git status --porcelain -z | grep -q -- "^.M $file$"; then
+            if GIT_COMMAND="status" git status --porcelain -z | grep -q -- "^.M $file$"; then
                 freecad_pid=$(pgrep -n -i FreeCAD)
                 kill "$freecad_pid"
                 break
@@ -223,7 +223,7 @@ await_user_modification() {
             echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
             start "$file"
             read -r dummy
-            if git status --porcelain -z | grep -q -- "^.M $file$"; then
+            if GIT_COMMAND="status" git status --porcelain -z | grep -q -- "^.M $file$"; then
                 taskkill //IM freecad.exe //F
                 break
             else

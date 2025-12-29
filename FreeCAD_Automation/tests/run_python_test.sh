@@ -16,7 +16,7 @@ if [ -z "$PYTHON_PATH" ]; then
 fi
 
 # Check for uncommitted work in working directory, exit early if so with error message
-if [ -n "$(git status --porcelain)" ]; then
+if [ -n "$(GIT_COMMAND="status" git status --porcelain)" ]; then
     echo "Error: There are uncommitted changes in the working directory. Please commit or stash them before running tests."
     exit $FAIL
 fi
