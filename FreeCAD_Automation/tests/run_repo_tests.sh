@@ -29,12 +29,10 @@ elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ "$GITCAD_ACTIVATED" = "$TR
         unset -f deactivate_GitCAD
         
         # Restore original PATH
-        if [ -n "$PATH_ENVIRONMENT_BACKUP" ]; then
-            export PATH="$PATH_ENVIRONMENT_BACKUP"
-            unset PATH_ENVIRONMENT_BACKUP
-        else
-            echo "Error: Unable to restore original PATH, cannot find backup... skipping restore." >&2
-        fi
+        PATH="${PATH#$GIT_WRAPPER_PATH:}"      # Remove $GIT_WRAPPER_PATH (if found) from beginning of $PATH
+        PATH="${PATH%:$GIT_WRAPPER_PATH}"      # Remove $GIT_WRAPPER_PATH (if found) from end of $PATH
+        PATH="${PATH//:$GIT_WRAPPER_PATH:/:}"  # Remove $GIT_WRAPPER_PATH (if found) from middle of $PATH
+        export PATH
         
         # Unset environment variables
         unset GITCAD_REPO_ROOT

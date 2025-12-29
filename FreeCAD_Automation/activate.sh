@@ -22,12 +22,10 @@ deactivate_GitCAD() {
     unset -f deactivate_GitCAD
     
     # Restore original PATH
-    if [ -n "$PATH_ENVIRONMENT_BACKUP" ]; then
-        export PATH="$PATH_ENVIRONMENT_BACKUP"
-        unset PATH_ENVIRONMENT_BACKUP
-    else
-        echo "Error: Unable to restore original PATH, cannot find backup... skipping restore." >&2
-    fi
+    PATH="${PATH#$GIT_WRAPPER_PATH:}"      # Remove $GIT_WRAPPER_PATH (if found) from beginning of $PATH
+    PATH="${PATH%:$GIT_WRAPPER_PATH}"      # Remove $GIT_WRAPPER_PATH (if found) from end of $PATH
+    PATH="${PATH//:$GIT_WRAPPER_PATH:/:}"  # Remove $GIT_WRAPPER_PATH (if found) from middle of $PATH
+    export PATH
     
     # Unset environment variables
     unset GITCAD_REPO_ROOT
@@ -86,9 +84,8 @@ fi
 # Note: Used by FreeCAD_Automation/git to call the appropriate git executable.
 export REAL_GIT="$(command -v git)"
 
-# Add git wrapper script to PATH Environment variable and create a backup to restore on deactivation
+# Add git wrapper script to PATH Environment variable
 export GITCAD_ACTIVATED="$TRUE"
-export PATH_ENVIRONMENT_BACKUP="$PATH"
 export GIT_WRAPPER_PATH="$GITCAD_REPO_ROOT/FreeCAD_Automation"
 export PATH="$GIT_WRAPPER_PATH:$PATH"
 
