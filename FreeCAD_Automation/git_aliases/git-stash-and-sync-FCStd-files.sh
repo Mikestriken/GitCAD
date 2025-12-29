@@ -82,12 +82,8 @@ fi
     # If caller's pwd is $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
     # If caller's pwd is $GIT_ROOT, $(GIT_PREFIX) = ""
 
-echo "DEBUG: All args '$@'..." >&2
-
 CALLER_SUBDIR=$1
 shift
-
-echo "DEBUG: All args after removing CALLER_SUBDIR '$@'..." >&2
 
 stash_args=("$@")
 

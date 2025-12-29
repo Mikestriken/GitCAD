@@ -32,6 +32,11 @@ fi
     # In some cases this is not desired such as when initializing the repository with init-repo.sh, in that case the --ignore-GitCAD-activation flag can be used when sourcing this script
 ignore_GitCAD_activation=$FALSE
 
+# Note: shifting in here will shift the args for both this script and the parent script sourcing this script.
+    # This array will save a backup of all args that aren't used by this script. Later the unused args will be restored to "$@"
+UNPROCESSED_ARGS=()
+
+# ! WARNING: If a global flag intended for the script sourcing this script matches a flag being processed by utils.sh and that flag isn't add to UNPROCESSED_ARGS, then the calling script will lose access to that flag.
 while [ $# -gt 0 ]; do
     # echo "DEBUG: parsing '$1'..." >&2
     case $1 in
@@ -42,11 +47,15 @@ while [ $# -gt 0 ]; do
             ;;
         
         *)
-            echo "Error: '$1' is not recognized, skipping..." >&2
+            # echo "DEBUG: '$1' is not recognized by utils.sh, skipping..." >&2
+            UNPROCESSED_ARGS+=("$1")
             ;;
     esac
     shift
 done
+
+# Restore UNPROCESSED_ARGS to "$@"
+set -- "${UNPROCESSED_ARGS[@]}"
 
 # ==============================================================================================
 #                                           Functions
