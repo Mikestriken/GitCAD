@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: ============== utils.sh trap-card triggered! ==============" >&2
+# echo "DEBUG: ============== utils.sh trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -38,16 +38,16 @@ UNPROCESSED_ARGS=()
 
 # ! WARNING: If a global flag intended for the script sourcing this script matches a flag being processed by utils.sh and that flag isn't add to UNPROCESSED_ARGS, then the calling script will lose access to that flag.
 while [ $# -gt 0 ]; do
-    echo "DEBUG: parsing '$1'..." >&2
+    # echo "DEBUG: parsing '$1'..." >&2
     case $1 in
         # Set boolean flag if arg is a valid flag
         "--ignore-GitCAD-activation")
             ignore_GitCAD_activation=$TRUE
-            echo "DEBUG: ignore_GitCAD_activation flag set" >&2
+            # echo "DEBUG: ignore_GitCAD_activation flag set" >&2
             ;;
         
         *)
-            echo "DEBUG: '$1' is not recognized by utils.sh, skipping..." >&2
+            # echo "DEBUG: '$1' is not recognized by utils.sh, skipping..." >&2
             UNPROCESSED_ARGS+=("$1")
             ;;
     esac
@@ -56,7 +56,7 @@ done
 
 # Restore UNPROCESSED_ARGS to "$@"
 if [ "${#UNPROCESSED_ARGS[@]}" -gt 0 ]; then
-    echo "DEBUG: Restoring Global Args: '${UNPROCESSED_ARGS[@]}'" >&2
+    # echo "DEBUG: Restoring Global Args: '${UNPROCESSED_ARGS[@]}'" >&2
     set -- "${UNPROCESSED_ARGS[@]}"
 fi
 
