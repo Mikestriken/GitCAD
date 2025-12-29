@@ -845,6 +845,7 @@ test_post_checkout_hook() {
     assert_command_succeeds "git_file_checkout active_test_branch1 -- \"AssemblyExample.FCStd\" \"BIMExample.FCStd\" \".\" \"*\" \"../$TEST_FOLDER\""; echo
 
     echo ">>>>>> TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back from subdir cd'ed checkout" >&2
+    echo ">>>>>> TEST NOTE: If debug prints are active, check that all arg patterns correctly matched files (there is overlap in files matched by patterns)." >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back from subdir cd'ed checkout." "test_post_checkout_hook" "./AssemblyExample.FCStd"
 
     echo ">>>>>> TEST: Reverting directory change to '$Original_Working_Directory'"
@@ -937,17 +938,13 @@ test_stashing() {
     assert_no_uncommitted_changes; echo
     assert_command_succeeds "git_stash pop"; echo
     
-    # ToDo: This is a Stopgap solution to issue #19, find a better solution
-    while git stat | grep -Fq -- "$TEST_DIR/AssemblyExample.FCStd"; do
-        echo -n ">>>>>> TEST WARNING/ERROR: git stash did not clear the modification for the popped .FCStd file." >&2
-        
-        # Note: Uncomment below if you want this warning to fail/exit early
-            read -r dummy; echo
-            tearDown
-            exit $FAIL
-        
-        assert_command_succeeds "git fcmod \"$TEST_DIR/AssemblyExample.FCStd\""; echo
-    done
+    if git stat | grep -Fq -- "$TEST_DIR/AssemblyExample.FCStd"; then
+        echo "Assertion failed: git stash did not clear the modification for the popped .FCStd file." >&2
+        echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
+
+        tearDown
+        exit $FAIL
+    fi
 
     echo ">>>>>> TEST: Ask user to confirm \`AssemblyExample.FCStd\` changes are back" >&2
     confirm_user "Please confirm that 'AssemblyExample.FCStd' changes are back." "test_stashing" "$TEST_DIR/AssemblyExample.FCStd"
