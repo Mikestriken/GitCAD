@@ -26,51 +26,7 @@ fi
 
 echo "DEBUG: All args: '$@'" >&2
 
-# $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when the user activates it via `source FreeCAD_Automation/activate.sh`
-    # Certain aliases also set it:
-        # The fstash script sets $GIT_COMMAND to "stash" when the GitCAD wrapper script is not active
-        # The fadd alias sets $GIT_COMMAND to "add" to specify the user's intention to export added .FCStd files
-        # The stat alias sets $GIT_COMMAND to "status" to specify the user's intention to see what files git thinks are modified and aren't (don't make .FCStd files appear unmodified if git thinks they're modified)
-    # It is also set manually by scripts that expect to trigger this clean filter
-case $GIT_COMMAND in
-    # Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files for this case
-    "stash")
-        echo "DEBUG: stash call from fstash alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-        cat
-        exit $SUCCESS
-        ;;
-    
-    "status")
-        echo "DEBUG: status call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-        cat
-        exit $SUCCESS
-        ;;
-    
-    "ls-files")
-        echo "DEBUG: ls-files call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-        cat
-        exit $SUCCESS
-        ;;
-    
-    "update-index")
-        echo "DEBUG: update-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-        cat
-        exit $SUCCESS
-        ;;
-    
-    "diff-index")
-        echo "DEBUG: diff-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-        cat
-        exit $SUCCESS
-        ;;
-    
-    "diff-tree")
-        echo "DEBUG: diff-tree call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-        cat
-        exit $SUCCESS
-        ;;
-esac
-
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Cannot Export Edgecases <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 # Note: When doing a file checkout the clean filter will parse the current file in the working dir (even if git shows no changes)
     # Solution: If file is empty don't export and exit early with success
 if [ ! -s "$1" ]; then
@@ -114,40 +70,81 @@ if [ -f "$changefile_path" ]; then
     fi
 fi
 
-# Note: Cannot move this conditional logic up as we needed to first check if the file had already been exported prior
+# >>>>>>>>>>>>>>>>>>> GIT_COMMAND Check (what triggered this clean filter) <<<<<<<<<<<<<<<<<<<
 # $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when the user activates it via `source FreeCAD_Automation/activate.sh`
     # Certain aliases also set it:
         # The fstash script sets $GIT_COMMAND to "stash" when the GitCAD wrapper script is not active
         # The fadd alias sets $GIT_COMMAND to "add" to specify the user's intention to export added .FCStd files
         # The stat alias sets $GIT_COMMAND to "status" to specify the user's intention to see what files git thinks are modified and aren't (don't make .FCStd files appear unmodified if git thinks they're modified)
     # It is also set manually by scripts that expect to trigger this clean filter
-if [ "$GIT_COMMAND" = "add" ]; then
-    :
-
-# If GitCAD is not activated then the clean filter cannot be sure of what git command triggered this filter unless the user use aliases.
-    # As a default response to an unknown git command, the clean filter should be disabled and simply show the file as empty.
-elif [ -z "$GITCAD_ACTIVATED" ]; then
-    echo "============================================================ WARNING ============================================================" >&2
-    echo "Export flag not set. Removed Modification (git POV only) for '$1'." >&2
-    echo >&2
-    echo "If you didn't run \`git add\` then ignore this warning." >&2
-    echo "The following git commands are known to erroneously trigger this warning on Linux: checkout, freset, fstash, fco, unlock, pull" >&2
-    echo >&2
-    echo "If you DID run \`git add\` Run \`git fexport\` to manually export the file." >&2
-    echo "Use \`git fadd\` instead of \`git add\` next time to set the export flag." >&2
-    echo >&2
-    echo "ALTERNATIVELY: Activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands" >&2
-    echo "=================================================================================================================================" >&2
+case $GIT_COMMAND in
+    # Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files for this case
+    "stash")
+        echo "DEBUG: stash call from fstash alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
     
-    cat /dev/null
-    exit $SUCCESS
+    "status")
+        echo "DEBUG: status call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+    
+    "ls-files")
+        echo "DEBUG: ls-files call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+    
+    "update-index")
+        echo "DEBUG: update-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+    
+    "diff-index")
+        echo "DEBUG: diff-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+    
+    "diff-tree")
+        echo "DEBUG: diff-tree call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+    
+    "add")
+        :
+        ;;
+    *)
+        # If GitCAD is not activated then the clean filter cannot be sure of what git command triggered this filter unless the user use aliases.
+            # As a default response to an unknown git command, the clean filter should be disabled and simply show the file as empty.
+        if [ -z "$GITCAD_ACTIVATED" ]; then
+            echo "============================================================ WARNING ============================================================" >&2
+            echo "Export flag not set. Removed Modification (git POV only) for '$1'." >&2
+            echo >&2
+            echo "If you didn't run \`git add\` then ignore this warning." >&2
+            echo "The following git commands are known to erroneously trigger this warning on Linux: checkout, freset, fstash, fco, unlock, pull" >&2
+            echo >&2
+            echo "If you DID run \`git add\` Run \`git fexport\` to manually export the file." >&2
+            echo "Use \`git fadd\` instead of \`git add\` next time to set the export flag." >&2
+            echo >&2
+            echo "ALTERNATIVELY: Activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands" >&2
+            echo "=================================================================================================================================" >&2
+            
+            cat /dev/null
+            exit $SUCCESS
 
-# Note: The following git commands are known to also trigger this clean filter: checkout, reset, stash, unlock, pull
-    # In the above scenarios (that aren't `git add`), we disable the clean filter and make the .FCStd file show up as having no modification (git POV)
-else
-    cat /dev/null
-    exit $SUCCESS
-fi
+        # Note: The following git commands are known to also trigger this clean filter: checkout, reset, stash, unlock, pull
+            # In the above scenarios (that aren't `git add`), we disable the clean filter and make the .FCStd file show up as having no modification (git POV)
+        else
+            cat /dev/null
+            exit $SUCCESS
+        fi
+        ;;
+esac
 
 # ==============================================================================================
 #                         Check if user allowed to modify .FCStd file
@@ -173,11 +170,11 @@ fi
 # Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
 # Export the .FCStd file
-echo "DEBUG: START@'$(date +"%Y-%m-%dT%H:%M:%S.%6N")'" >&2
+echo "DEBUG: START@'$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")'" >&2
 echo -n "EXPORTING: '$1'...." >&2
 if "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
     echo "SUCCESS" >&2
-    echo "DEBUG: END@'$(date +"%Y-%m-%dT%H:%M:%S.%6N")'" >&2
+    echo "DEBUG: END@'$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")'" >&2
 
     echo "DEBUG: $(grep 'File Last Exported On:' "$changefile_path")" >&2
 
