@@ -2,22 +2,77 @@
 # ==============================================================================================
 #                                  Verify and Retrieve Dependencies
 # ==============================================================================================
+# Handle case where this script is executed with GitCAD already active
+
+# Note: Copy of deactivate_GitCAD function in /FreeCAD_Automation/activate.sh
+deactivate_GitCAD() {
+    # Restore original PATH
+    if [ -n "$PATH_ENVIRONMENT_BACKUP" ]; then
+        export PATH="$PATH_ENVIRONMENT_BACKUP"
+        unset PATH_ENVIRONMENT_BACKUP
+    fi
+    
+    # Unset environment variables
+    unset GITCAD_REPO_ROOT
+    unset GITCAD_ACTIVATED
+    unset REAL_GIT
+    unset -f deactivate_GitCAD
+    
+    # Restore original PS1 prompt
+    if [ -n "$PS1_ENVIRONMENT_BACKUP" ]; then
+        export PS1="$PS1_ENVIRONMENT_BACKUP"
+        unset PS1_ENVIRONMENT_BACKUP
+    fi
+    
+    echo "GitCAD git wrapper deactivated"
+}
+
+reactivate_GitCAD() {
+    trap - EXIT
+    source FreeCAD_Automation/activate.sh
+}
+
+if [ -n "$GITCAD_ACTIVATED" ]; then
+    git_path="$REAL_GIT"
+else
+    git_path="git"
+fi
+
 # Ensure working dir is the root of the repo
-GIT_ROOT=$(git rev-parse --show-toplevel)
+GIT_ROOT=$("$git_path" rev-parse --show-toplevel)
 cd "$GIT_ROOT"
 
 # Import code used in this script
-export GITCAD_ACTIVATED="not really lol" # Note: Suppress crash from sourcing the functions file without activating GitCAD
+if [ -n "$GITCAD_ACTIVATED" ]; then
+    FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
+    source "$FUNCTIONS_FILE"
+else
+    export GITCAD_ACTIVATED="not really lol" # Note: Suppress crash from sourcing the functions file without activating GitCAD
 
-FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
-source "$FUNCTIONS_FILE"
+    FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
+    source "$FUNCTIONS_FILE"
 
-unset GITCAD_ACTIVATED
+    unset GITCAD_ACTIVATED
+fi
 
 # Activate GitCAD to wrap git exe if config requires it
-if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
+if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ -z "$GITCAD_ACTIVATED" ]; then
     source FreeCAD_Automation/activate.sh
+
+elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ -n "$GITCAD_ACTIVATED" ]; then
+    # Implicitly already done above
+    :
+
+elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ -z "$GITCAD_ACTIVATED" ]; then
+    # Do leave it unactivated.
+    :
+
+elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ -n "$GITCAD_ACTIVATED" ]; then
+    deactivate_GitCAD
+    trap 'reactivate_GitCAD' EXIT
 fi
+
+# Note: GitCAD wrapper now fully activated, so user doesn't need to use "$git_path" to reference git
 
 # Check for uncommitted work in working directory, exit early if so with error message
 if [ -n "$(GIT_COMMAND="status" git status --porcelain)" ]; then
