@@ -23,9 +23,6 @@ fi
 #                     Call Real `git.exe` With GIT_COMMAND Environment Variable
 # ==============================================================================================
 case $1 in
-  # Note: Unfortunately I cannot pass args directly to post-checkout hook directly. For this reason checkout case has extra logic to extract additional information for the file checkout and 
-  # Note: One cannot simply redirect checkout to the `git fco` alias because `git fco` DOES NOT handle branch checkouts. Determining checkout type is ambiguous if `--` is omitted, by the time checkout type is determined one may as well, call the post-checkout hook to prevent duplicate code.
-  # Note: `git switch` does NOT support file checkout, it only handles branch checkouts and thus is completely handled by the post-checkout hook, no alias required.
   "checkout")
     shift
 
