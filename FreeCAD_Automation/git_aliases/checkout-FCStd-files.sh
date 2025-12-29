@@ -107,7 +107,7 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
     echo "DEBUG: Detected HEAD checkout (resetting modified files)" >&2
     
     IS_HEAD_CHECKOUT=$TRUE
-    "$git_path" update-index --refresh -q >/dev/null 2>&1
+    GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
 
     # List of all modified changefiles
     changefiles_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$')

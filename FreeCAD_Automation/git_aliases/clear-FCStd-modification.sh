@@ -90,7 +90,7 @@ done
 # ==============================================================================================
 # Get staged `.FCStd` files
 # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
-git update-index --refresh -q >/dev/null 2>&1
+GIT_COMMAND="update-index" git update-index --refresh -q >/dev/null 2>&1
 STAGED_FCSTD_FILES=$(git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.fcstd$')
 
 if [ -n "$STAGED_FCSTD_FILES" ]; then

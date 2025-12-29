@@ -476,7 +476,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
 elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH_COMMAND" = "create" ]; then
     echo "DEBUG: Stash push/save/create detected" >&2
     
-    "$git_path" update-index --refresh -q >/dev/null 2>&1
+    GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
     mapfile -t MODIFIED_FCSTD_FILES < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' || true)
     mapfile -t MODIFIED_CHANGEFILES < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' || true)
     
@@ -579,7 +579,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
     fi
     
     # Get modified changefiles before stash
-    "$git_path" update-index --refresh -q >/dev/null 2>&1
+    GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
     mapfile -t BEFORE_STASH_CHANGEFILES < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
     
     echo "DEBUG: retrieved before stash changefiles..." >&2
@@ -602,7 +602,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
     fi
 
     # Get modified lockfiles after stash
-    "$git_path" update-index --refresh -q >/dev/null 2>&1
+    GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
     mapfile -t AFTER_STASH_CHANGEFILE < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 
     # Find files present before stash but not after stash (files that were stashed)

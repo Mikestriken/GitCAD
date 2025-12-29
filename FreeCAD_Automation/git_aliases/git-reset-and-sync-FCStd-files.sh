@@ -31,11 +31,11 @@ fi
 #                                      Execute Git Reset
 # ==============================================================================================
 # Get modified .FCStd files before reset
-"$git_path" update-index --refresh -q >/dev/null 2>&1
+GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
 BEFORE_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
 
 # Get modified `.changefile`s before reset
-"$git_path" update-index --refresh -q >/dev/null 2>&1
+GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
 BEFORE_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 
 # Get original HEAD before reset
@@ -93,13 +93,13 @@ BEFORE_RESET_MODIFIED_FCSTD=$(echo -e "$BEFORE_RESET_MODIFIED_FCSTD\n$FCStd_file
 BEFORE_RESET_MODIFIED_CHANGEFILES=$(echo -e "$BEFORE_RESET_MODIFIED_CHANGEFILES\n$changefiles_changed_between_commits" | sort | uniq)
 
 # Filter to list of valid files to process
-"$git_path" update-index --refresh -q >/dev/null 2>&1
+GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
 AFTER_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
 
 previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
 echo "DEBUG: FULL FCStd files to import: '$(echo "$previously_modified_FCStd_files_currently_shows_no_modification" | xargs)'" >&2
 
-"$git_path" update-index --refresh -q >/dev/null 2>&1
+GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
 AFTER_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 previously_modified_changefiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_CHANGEFILES") <(echo "$AFTER_RESET_MODIFIED_CHANGEFILES"))
 echo "DEBUG: FULL .changefile files to import: '$(echo "$previously_modified_changefiles_currently_shows_no_modification" | xargs)'" >&2

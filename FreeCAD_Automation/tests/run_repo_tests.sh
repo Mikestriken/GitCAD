@@ -150,7 +150,7 @@ assert_writable() {
 
 assert_dir_has_changes() {
     local dir="$1"
-    git update-index --refresh -q >/dev/null 2>&1
+    GIT_COMMAND="update-index" git update-index --refresh -q >/dev/null 2>&1
     if ! git diff-index --name-only HEAD | grep -q -- "^$dir/"; then
         echo "Assertion failed: Directory '$dir' has no changes" >&2
         echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
@@ -194,7 +194,7 @@ assert_no_uncommitted_changes() {
 
 assert_file_modified() {
     local file="$1"
-    git update-index --refresh -q >/dev/null 2>&1
+    GIT_COMMAND="update-index" git update-index --refresh -q >/dev/null 2>&1
     if ! git diff-index --name-only HEAD | grep -Fxq "$file"; then
         echo "Assertion failed: File '$file' has not been modified" >&2
         echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
