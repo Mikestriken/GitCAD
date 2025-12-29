@@ -62,7 +62,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     }
 
     echo "DEBUG: diffing <remote sha1>='$remote_sha'..'$local_sha'=<local sha1>" >&2
-    changed_files=$(git diff-tree --no-commit-id --name-only -r "$remote_sha" "$local_sha")
+    changed_files=$(GIT_COMMAND="diff-tree" git diff-tree --no-commit-id --name-only -r "$remote_sha" "$local_sha")
 
     # Get changed `.changefile`s
     changed_changefiles=$(printf '%s\n' "$changed_files" | grep -i -- '\.changefile$')

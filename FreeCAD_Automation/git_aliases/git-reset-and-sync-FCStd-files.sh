@@ -84,7 +84,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
 fi
 
 # Append files changed between commits to BEFORE_RESET lists
-files_changed_files_between_commits=$("$git_path" diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
+files_changed_files_between_commits=$(GIT_COMMAND="diff-tree" "$git_path" diff-tree --no-commit-id --name-only -r "$ORIGINAL_HEAD" "$NEW_HEAD")
 
 FCStd_files_changed_between_commits=$(printf '%s\n' "$files_changed_files_between_commits" | grep -i -- '\.fcstd$')
 changefiles_changed_between_commits=$(printf '%s\n' "$files_changed_files_between_commits" | grep -i -- '\.changefile$')

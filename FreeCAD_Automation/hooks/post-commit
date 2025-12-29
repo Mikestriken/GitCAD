@@ -40,7 +40,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         exit $FAIL
     }
 
-    COMMITTED_CHANGEFILES=$(git diff-tree --no-commit-id --name-only -r HEAD | grep -i -- '\.changefile$')
+    COMMITTED_CHANGEFILES=$(GIT_COMMAND="diff-tree" git diff-tree --no-commit-id --name-only -r HEAD | grep -i -- '\.changefile$')
 
     mapfile -t COMMITTED_CHANGEFILES <<<"$COMMITTED_CHANGEFILES"
     for changefile in "${COMMITTED_CHANGEFILES[@]}"; do

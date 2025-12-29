@@ -298,7 +298,7 @@ dir_has_changes() {
     local old_sha="$2"
     local new_sha="$3"
     
-    if git diff-tree --no-commit-id --name-only -r "$old_sha" "$new_sha" | grep -q -- "^$dir_path/"; then
+    if GIT_COMMAND="diff-tree" git diff-tree --no-commit-id --name-only -r "$old_sha" "$new_sha" | grep -q -- "^$dir_path/"; then
         # echo "DEBUG: '$dir_path/' HAS changes" >&2
         echo $TRUE
         return $SUCCESS

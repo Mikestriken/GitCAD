@@ -192,7 +192,7 @@ fi
     # We'll only checkout dirs for files that will actually change between commits OR if it's currently modified (HEAD checkout case).
 FCStd_dirs_to_checkout=()
 declare -A FCStd_dir_to_file_dict # Bash Dictionary
-changefiles_changed_between_commits=$("$git_path" diff-tree --no-commit-id --name-only -r "$CHECKOUT_COMMIT" HEAD | grep -i -- '\.changefile$')
+changefiles_changed_between_commits=$(GIT_COMMAND="diff-tree" "$git_path" diff-tree --no-commit-id --name-only -r "$CHECKOUT_COMMIT" HEAD | grep -i -- '\.changefile$')
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
     

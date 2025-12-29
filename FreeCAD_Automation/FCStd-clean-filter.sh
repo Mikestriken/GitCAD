@@ -63,6 +63,12 @@ case $GIT_COMMAND in
         cat
         exit $SUCCESS
         ;;
+    
+    "diff-tree")
+        echo "DEBUG: diff-tree call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
 esac
 
 # Note: When doing a file checkout the clean filter will parse the current file in the working dir (even if git shows no changes)
