@@ -942,9 +942,9 @@ test_stashing() {
         echo -n ">>>>>> TEST WARNING/ERROR: git stash did not clear the modification for the popped .FCStd file." >&2
         
         # Note: Uncomment below if you want this warning to fail/exit early
-            # read -r dummy; echo
-            # tearDown
-            # exit $FAIL
+            read -r dummy; echo
+            tearDown
+            exit $FAIL
         
         assert_command_succeeds "git fcmod \"$TEST_DIR/AssemblyExample.FCStd\""; echo
     done
