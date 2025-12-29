@@ -75,7 +75,7 @@ for file_path in "${parsed_file_path_args[@]}"; do
                 echo "DEBUG: Matched '$file'" >&2
                 MATCHED_FCStd_file_paths+=("$file")
             fi
-        done < <(git ls-files -m "$file_path")
+        done < <(GIT_COMMAND="ls-files" git ls-files -m "$file_path")
 
     elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
         echo "DEBUG: file_path is an FCStd file" >&2
