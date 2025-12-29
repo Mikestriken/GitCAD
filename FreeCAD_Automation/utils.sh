@@ -352,7 +352,7 @@ if [ -f "$CONFIG_FILE" ]; then
     REQUIRE_GITCAD_ACTIVATION=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL
 
     if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ "$ignore_GitCAD_activation" = "$FALSE" ]; then
-        if [ -z "$GITCAD_ACTIVATED" ]; then
+        if [ -z "$GITCAD_ACTIVATED" ] || [ "$GITCAD_ACTIVATED" = "$FALSE" ]; then
             echo "Error: GitCAD activation is required but not active." >&2
             echo "Please activate GitCAD by running: source FreeCAD_Automation/activate.sh" >&2
             exit $FAIL

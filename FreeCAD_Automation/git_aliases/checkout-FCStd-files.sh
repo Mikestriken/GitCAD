@@ -22,7 +22,7 @@ if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
 fi
 
 # Note: Controlled by "FreeCAD_Automation/activate.sh" and "FreeCAD_Automation/git"
-if [ -n "$GITCAD_ACTIVATED" ]; then
+if [ "$GITCAD_ACTIVATED" = "$TRUE" ]; then
     git_path="$REAL_GIT"
 else
     git_path="git"

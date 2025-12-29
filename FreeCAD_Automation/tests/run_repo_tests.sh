@@ -11,32 +11,36 @@ FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE" --ignore-GitCAD-activation
 
 # Activate/Deactivate GitCAD to match config file setting
-if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ -z "$GITCAD_ACTIVATED" ]; then
+if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && { [ -z "$GITCAD_ACTIVATED" ] || [ "$GITCAD_ACTIVATED" = "$FALSE" ]; }; then
     source FreeCAD_Automation/activate.sh
 
-elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ -n "$GITCAD_ACTIVATED" ]; then
+elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ "$GITCAD_ACTIVATED" = "$TRUE" ]; then
     # Implicitly already done by user calling this script
     :
 
-elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ -z "$GITCAD_ACTIVATED" ]; then
+elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && { [ -z "$GITCAD_ACTIVATED" ] || [ "$GITCAD_ACTIVATED" = "$FALSE" ]; }; then
     # Do leave it unactivated.
     :
 
-elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ -n "$GITCAD_ACTIVATED" ]; then
+elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ "$GITCAD_ACTIVATED" = "$TRUE" ]; then
     deactivate_GitCAD() {
+        # Remove deactivate_GitCAD EXIT callback and definition
         trap - EXIT
+        unset -f deactivate_GitCAD
         
         # Restore original PATH
         if [ -n "$PATH_ENVIRONMENT_BACKUP" ]; then
             export PATH="$PATH_ENVIRONMENT_BACKUP"
             unset PATH_ENVIRONMENT_BACKUP
+        else
+            echo "Error: Unable to restore original PATH, cannot find backup... skipping restore." >&2
         fi
         
         # Unset environment variables
         unset GITCAD_REPO_ROOT
-        unset GITCAD_ACTIVATED
         unset REAL_GIT
-        unset -f deactivate_GitCAD
+        unset GITCAD_ACTIVATED
+        unset GIT_WRAPPER_PATH
         
         # Restore original PS1 prompt
         if [ -n "$PS1_ENVIRONMENT_BACKUP" ]; then

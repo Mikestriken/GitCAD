@@ -129,7 +129,7 @@ case $GIT_COMMAND in
         # Note: Since then it works, but I'm going to leave the section below commented out instead of removed in case the instability occurs again.
             # # If GitCAD is not activated then the clean filter cannot be sure of what git command triggered this filter unless the user use aliases.
             #     # As a default response to an unknown git command, the clean filter should be disabled and simply show the file as empty.
-            # if [ -z "$GITCAD_ACTIVATED" ]; then
+            # if [ -z "$GITCAD_ACTIVATED" ] || [ "$GITCAD_ACTIVATED" = "$FALSE" ]; then
             #     echo "============================================================ WARNING ============================================================" >&2
             #     echo "Export flag not set. Removed Modification (git POV only) for '$1'." >&2
             #     echo >&2

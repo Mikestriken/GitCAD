@@ -17,7 +17,9 @@ FALSE=1
 #                                 Register Deactivate Function
 # ==============================================================================================
 deactivate_GitCAD() {
+    # Remove deactivate_GitCAD EXIT callback and definition
     trap - EXIT
+    unset -f deactivate_GitCAD
     
     # Restore original PATH
     if [ -n "$PATH_ENVIRONMENT_BACKUP" ]; then
@@ -29,9 +31,9 @@ deactivate_GitCAD() {
     
     # Unset environment variables
     unset GITCAD_REPO_ROOT
-    unset GITCAD_ACTIVATED
     unset REAL_GIT
-    unset -f deactivate_GitCAD
+    unset GITCAD_ACTIVATED
+    unset GIT_WRAPPER_PATH
     
     # Restore original PS1 prompt
     if [ -n "$PS1_ENVIRONMENT_BACKUP" ]; then
@@ -47,7 +49,7 @@ trap 'deactivate_GitCAD' EXIT
 # ==============================================================================================
 #                                  Prevent Infinite Recursion
 # ==============================================================================================
-if [ -n "$GITCAD_ACTIVATED" ]; then
+if [ "$GITCAD_ACTIVATED" = "$TRUE" ]; then
     deactivate_GitCAD
 fi
 
@@ -85,9 +87,10 @@ fi
 export REAL_GIT="$(command -v git)"
 
 # Add git wrapper script to PATH Environment variable and create a backup to restore on deactivation
-export GITCAD_ACTIVATED="$GITCAD_REPO_ROOT/FreeCAD_Automation"
+export GITCAD_ACTIVATED="$TRUE"
 export PATH_ENVIRONMENT_BACKUP="$PATH"
-export PATH="$GITCAD_ACTIVATED:$PATH"
+export GIT_WRAPPER_PATH="$GITCAD_REPO_ROOT/FreeCAD_Automation"
+export PATH="$GIT_WRAPPER_PATH:$PATH"
 
 # Add `(GitCAD)` to terminal prompt to note activation.
 if [ -n "$PS1" ]; then
