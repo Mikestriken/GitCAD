@@ -316,8 +316,8 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
             if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
                 echo "DEBUG: file_path contains wildcards or is a directory" >&2
         
-                mapfile -t files_matching_pattern < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -F -- "$file_path")
-                for file in "${files_matching_pattern[@]}"; do
+                mapfile -t stashed_files_matching_pattern < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -F -- "$file_path")
+                for file in "${stashed_files_matching_pattern[@]}"; do
                     if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                         FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file") || exit_fstash $FAIL
 
@@ -499,8 +499,8 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
             if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
                 echo "DEBUG: file_path contains wildcards or is a directory" >&2
         
-                mapfile -t files_matching_pattern < <(GIT_COMMAND="ls-files" "$git_path" ls-files -m "$file_path")
-                for file in "${files_matching_pattern[@]}"; do
+                mapfile -t modified_files_matching_pattern < <(GIT_COMMAND="ls-files" "$git_path" ls-files -m "$file_path")
+                for file in "${modified_files_matching_pattern[@]}"; do
                     if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                         echo "Error: Cannot stash '$file', export it first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
                         exit_fstash $FAIL
