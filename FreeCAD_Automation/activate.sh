@@ -20,7 +20,9 @@ GitCAD_Prompt="(GitCAD)"
 deactivate_GitCAD() {
     # Remove deactivate_GitCAD EXIT callback and definition
     trap - EXIT
-    unset -f deactivate_GitCAD
+    if [ ! "$1" = "--keep-function-definition" ]; then
+        unset -f deactivate_GitCAD
+    fi
     
     # Restore original PATH
     PATH="${PATH#$GIT_WRAPPER_PATH:}"      # Remove $GIT_WRAPPER_PATH (if found) from beginning of $PATH
@@ -48,7 +50,7 @@ trap 'deactivate_GitCAD' EXIT
 #                                  Prevent Infinite Recursion
 # ==============================================================================================
 if [ "$GITCAD_ACTIVATED" = "$TRUE" ]; then
-    deactivate_GitCAD
+    deactivate_GitCAD --keep-function-definition
 fi
 
 # ==============================================================================================
