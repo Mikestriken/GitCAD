@@ -23,6 +23,8 @@ deactivate_GitCAD() {
     if [ -n "$PATH_ENVIRONMENT_BACKUP" ]; then
         export PATH="$PATH_ENVIRONMENT_BACKUP"
         unset PATH_ENVIRONMENT_BACKUP
+    else
+        echo "Error: Unable to restore original PATH, cannot find backup... skipping restore." >&2
     fi
     
     # Unset environment variables
