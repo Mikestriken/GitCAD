@@ -118,17 +118,8 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 cd "$GIT_ROOT"
 
 # Import code used in this script
-if [ -n "$GITCAD_ACTIVATED" ]; then
-    FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
-    source "$FUNCTIONS_FILE"
-else
-    export GITCAD_ACTIVATED="not really lol" # Note: Suppress crash from sourcing the functions file without activating GitCAD
-
-    FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
-    source "$FUNCTIONS_FILE"
-
-    unset GITCAD_ACTIVATED
-fi
+FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
+source "$FUNCTIONS_FILE" --ignore-GitCAD-activation
 
 # Extract Python path
 echo "Extracted Python path: $PYTHON_PATH"

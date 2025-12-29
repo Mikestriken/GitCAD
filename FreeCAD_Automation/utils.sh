@@ -1,4 +1,5 @@
 #!/bin/bash
+# echo "DEBUG: ============== utils.sh trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -15,6 +16,37 @@ FALSE=1
 CONFIG_FILE="FreeCAD_Automation/config.json"
 FCStdFileTool="FreeCAD_Automation/FCStdFileTool.py"
 PYTHON_EXEC="FreeCAD_Automation/python.sh"
+
+# ==============================================================================================
+#                                      Sourcing Only Check                                      
+# ==============================================================================================
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    echo "Error: User did not source this script correctly" >&2
+    exit $FAIL
+fi
+
+# ==============================================================================================
+#                                          Parse Args
+# ==============================================================================================
+# Note: This script will exit the script sourcing this script early if config requires GitCAD be activated, but it is not active.
+    # In some cases this is not desired such as when initializing the repository with init-repo.sh, in that case the --ignore-GitCAD-activation flag can be used when sourcing this script
+ignore_GitCAD_activation=$FALSE
+
+while [ $# -gt 0 ]; do
+    # echo "DEBUG: parsing '$1'..." >&2
+    case $1 in
+        # Set boolean flag if arg is a valid flag
+        "--ignore-GitCAD-activation")
+            ignore_GitCAD_activation=$TRUE
+            # echo "DEBUG: ignore_GitCAD_activation flag set" >&2
+            ;;
+        
+        *)
+            echo "Error: '$1' is not recognized, skipping..." >&2
+            ;;
+    esac
+    shift
+done
 
 # ==============================================================================================
 #                                           Functions
@@ -319,7 +351,7 @@ if [ -f "$CONFIG_FILE" ]; then
     REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL
     REQUIRE_GITCAD_ACTIVATION=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL
 
-    if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
+    if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ "$ignore_GitCAD_activation" = "$FALSE" ]; then
         if [ -z "$GITCAD_ACTIVATED" ]; then
             echo "Error: GitCAD activation is required but not active." >&2
             echo "Please activate GitCAD by running: source FreeCAD_Automation/activate.sh" >&2
