@@ -64,6 +64,7 @@ case $1 in
             break
           fi
           ;;
+          
       esac
       shift
     done
@@ -75,20 +76,23 @@ case $1 in
       echo "DEBUG: calling 'GIT_COMMAND=\"checkout\" \"$REAL_GIT\" checkout \"${checkout_args[@]}\"'" >&2
       exec env GIT_COMMAND="checkout" "$REAL_GIT" checkout "${checkout_args[@]}"
     fi
-    
     ;;
+
   "reset")
     shift
     echo "DEBUG: calling 'GIT_COMMAND=\"reset\" \"$REAL_GIT\" freset \"$@\"'" >&2
     exec env GIT_COMMAND="reset" "$REAL_GIT" freset "$@"
     ;;
+
   "stash")
     shift
     echo "DEBUG: calling 'GIT_COMMAND=\"stash\" \"$REAL_GIT\" fstash \"$@\"'" >&2
     exec env GIT_COMMAND="stash" "$REAL_GIT" fstash "$@"
     ;;
+
   *)
     echo "DEBUG: calling 'GIT_COMMAND=\"$1\" \"$REAL_GIT\" \"$@\"'" >&2
     exec env GIT_COMMAND="$1" "$REAL_GIT" "$@"
     ;;
+
 esac
