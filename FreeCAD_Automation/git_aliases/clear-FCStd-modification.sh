@@ -3,9 +3,8 @@ echo "DEBUG: ============== clear-FCStd-modification.sh trap-card triggered! ===
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
-# Script to make git see a .FCStd file as empty (despite it containing data).
-# If the file is already empty then to git it will show as not having any modifications in the working directory.
-# First it makes sure there are no added .FCStd files then it calls `RESET_MOD=$TRUE git add` to clear the modification.
+# Script to create .fcmod files with current timestamp to mark when .FCStd file modifications were cleared.
+# First it makes sure there are no added .FCStd files, then creates/updates .fcmod files for specified .FCStd files.
 
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
@@ -63,6 +62,30 @@ while [ $# -gt 0 ]; do
 done
 
 # ==============================================================================================
+#                                   Match Args to FCStd Files
+# ==============================================================================================
+MATCHED_FCStd_file_paths=()
+for file_path in "${parsed_file_path_args[@]}"; do
+    echo "DEBUG: Matching file_path: '$file_path'...." >&2
+
+    if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
+        echo "DEBUG: file_path contains wildcards or is a directory" >&2
+        while IFS= read -r file; do
+            if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+                echo "DEBUG: Matched '$file'" >&2
+                MATCHED_FCStd_file_paths+=("$file")
+            fi
+        done < <(git ls-files -m "$file_path")
+
+    elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+        echo "DEBUG: file_path is an FCStd file" >&2
+        MATCHED_FCStd_file_paths+=("$file_path")
+    else
+        echo "DEBUG: file_path '$file_path' is not an FCStd file, directory, or wildcard..... skipping" >&2
+    fi
+done
+
+# ==============================================================================================
 #                                   Restore Staged FCStd files
 # ==============================================================================================
 # Get staged `.FCStd` files
@@ -76,6 +99,21 @@ if [ -n "$STAGED_FCSTD_FILES" ]; then
 fi
 
 # ==============================================================================================
+#                              Create .fcmod Files For Matched FCStd Files
+# ==============================================================================================
+current_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")
+
+for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
+    echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
+
+    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+    fcmod_path="$FCStd_dir_path/.fcmod"
+
+    echo "$current_timestamp" > "$fcmod_path"
+    echo "DEBUG: Created/updated .fcmod for '$FCStd_file_path' with timestamp '$current_timestamp'" >&2
+done
+
+# ==============================================================================================
 #                              Clear Modifications For Specified Files
 # ==============================================================================================
-RESET_MOD=$TRUE git add "${parsed_file_path_args[@]}"
+git add "${parsed_file_path_args[@]}"

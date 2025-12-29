@@ -26,18 +26,12 @@ fi
 # print all args to stderr
 echo "DEBUG: All args: '$@'" >&2
 
-# $RESET_MOD is an environment variable set by the alias `git fcmod`
-if [ "$RESET_MOD" = "$TRUE" ]; then
-    echo "DEBUG: Reset modification call from fcmod alias, showing empty .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-    cat /dev/null
-    exit $SUCCESS
-
 # $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when activated via `source FreeCAD_Automation/activate.sh`
     # It is also set by the fstash script to "stash" when the GitCAD wrapper script is not active
     # It is also set by the fadd alias to "add" to specify the user's intention to export added .FCStd files
     # It is also set by the stat alias to "status" to specify the user's intention to see what files git thinks are modified and aren't (don't make .FCStd files appear unmodified if git thinks they're modified)
 # Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files for this case
-elif [ "$GIT_COMMAND" = "stash" ]; then
+if [ "$GIT_COMMAND" = "stash" ]; then
     echo "DEBUG: stash call from fstash alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat
     exit $SUCCESS
@@ -55,11 +49,28 @@ elif [ ! -s "$1" ]; then
     exit $SUCCESS
 fi
 
+# Check if this `.FCStd` file has been modified since last clear by comparing OS modification timestamps between it and the `.fcmod`
+    # If `.fcmod` timestamp is newer or equal, show as not modified.
+    # If `.fcmod` timestamp is older, then proceed.
+    # If `.fcmod` doesn't exist then proceed.
+FCStd_dir_path=$(get_FCStd_dir "$1") || exit $FAIL
+fcmod_path="$FCStd_dir_path/.fcmod"
+
+if [ -f "$fcmod_path" ]; then
+    FCStd_file_modification_time=$(date -u -d @"$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')
+    fcmod_timestamp=$(cat "$fcmod_path")
+
+    if [[ "$fcmod_timestamp" > "$FCStd_file_modification_time" || "$fcmod_timestamp" == "$FCStd_file_modification_time" ]]; then
+        echo "DEBUG: '$1' not modified since last clear, showing empty .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat /dev/null
+        exit $SUCCESS
+    fi
+fi
+
 # Check if this `.FCStd` file has been modified since last export by comparing OS modification timestamps between it and the `.changefile`
     # If `.changefile` is newer, don't export.
     # If `.changefile` is older, then export.
     # If `.changefile` doesn't exist then export.
-FCStd_dir_path=$(get_FCStd_dir "$1") || exit $FAIL
 changefile_path="$FCStd_dir_path/.changefile"
 
 if [ -f "$changefile_path" ]; then
