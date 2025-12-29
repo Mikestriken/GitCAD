@@ -21,35 +21,59 @@ fi
 # ==============================================================================================
 #                           Early Exits Before Exporting .FCStd file
 # ==============================================================================================
-# Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
+# Note 1: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
+# Note 2: cat prints the entire stdin (the file contents) to stdout (shows the file contents to git)
 
-# print all args to stderr
 echo "DEBUG: All args: '$@'" >&2
 
-# $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when activated via `source FreeCAD_Automation/activate.sh`
-    # It is also set by the fstash script to "stash" when the GitCAD wrapper script is not active
-    # It is also set by the fadd alias to "add" to specify the user's intention to export added .FCStd files
-    # It is also set by the stat alias to "status" to specify the user's intention to see what files git thinks are modified and aren't (don't make .FCStd files appear unmodified if git thinks they're modified)
-# Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files for this case
-if [ "$GIT_COMMAND" = "stash" ]; then
-    echo "DEBUG: stash call from fstash alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-    cat
-    exit $SUCCESS
-
-elif [ "$GIT_COMMAND" = "status" ]; then
-    echo "DEBUG: status call from stat alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
-    cat
-    exit $SUCCESS
+# $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when the user activates it via `source FreeCAD_Automation/activate.sh`
+    # Certain aliases also set it:
+        # The fstash script sets $GIT_COMMAND to "stash" when the GitCAD wrapper script is not active
+        # The fadd alias sets $GIT_COMMAND to "add" to specify the user's intention to export added .FCStd files
+        # The stat alias sets $GIT_COMMAND to "status" to specify the user's intention to see what files git thinks are modified and aren't (don't make .FCStd files appear unmodified if git thinks they're modified)
+    # It is also set manually by scripts that expect to trigger this clean filter
+case $GIT_COMMAND in
+    # Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files for this case
+    "stash")
+        echo "DEBUG: stash call from fstash alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+    
+    "status")
+        echo "DEBUG: status call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+    
+    "ls-files")
+        echo "DEBUG: ls-files call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+    
+    "update-index")
+        echo "DEBUG: update-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+    
+    "diff-index")
+        echo "DEBUG: diff-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        cat
+        exit $SUCCESS
+        ;;
+esac
 
 # Note: When doing a file checkout the clean filter will parse the current file in the working dir (even if git shows no changes)
     # Solution: If file is empty don't export and exit early with success
-elif [ ! -s "$1" ]; then
+if [ ! -s "$1" ]; then
     echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
 
-# Check if this `.FCStd` file has been modified since last clear by comparing OS modification timestamps between it and the `.fcmod`
+# Check if this `.FCStd` file has been modified since last `git fcmod` clear by comparing OS modification timestamps between it and the `.fcmod`
     # If `.fcmod` timestamp is newer or equal, show as not modified.
     # If `.fcmod` timestamp is older, then proceed.
     # If `.fcmod` doesn't exist then proceed.
@@ -85,9 +109,12 @@ if [ -f "$changefile_path" ]; then
 fi
 
 # Note: Cannot move this conditional logic up as we needed to first check if the file had already been exported prior
-# $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when activated via `source FreeCAD_Automation/activate.sh`
-    # It is also set by the fstash alias script to "stash" when the GitCAD wrapper script is not active
-    # It is also set by the fadd alias to "add" to specify the user's intention to export added .FCStd files
+# $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when the user activates it via `source FreeCAD_Automation/activate.sh`
+    # Certain aliases also set it:
+        # The fstash script sets $GIT_COMMAND to "stash" when the GitCAD wrapper script is not active
+        # The fadd alias sets $GIT_COMMAND to "add" to specify the user's intention to export added .FCStd files
+        # The stat alias sets $GIT_COMMAND to "status" to specify the user's intention to see what files git thinks are modified and aren't (don't make .FCStd files appear unmodified if git thinks they're modified)
+    # It is also set manually by scripts that expect to trigger this clean filter
 if [ "$GIT_COMMAND" = "add" ]; then
     :
 
