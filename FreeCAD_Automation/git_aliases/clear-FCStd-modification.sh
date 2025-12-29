@@ -88,6 +88,8 @@ for file_path in "${parsed_file_path_args[@]}"; do
     fi
 done
 
+mapfile -t MATCHED_FCStd_file_paths < <(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u) # Remove duplicates
+
 # ==============================================================================================
 #                                   Restore Staged FCStd files
 # ==============================================================================================
