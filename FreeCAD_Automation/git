@@ -20,7 +20,7 @@ if [ -z "$REAL_GIT" ]; then
 fi
 
 if [ "$REAL_GIT" = "$0" ]; then
-  echo "Error, infinite recursion detected: activate.sh or something else set REAL_GIT environment variable to this wrapper script instead of the real git executable" >&2
+  echo "Error, infinite recursion detected: activate.sh or something else set REAL_GIT environment variable to this wrapper script instead of the real git executable." >&2
   exit $FAIL
 fi
 

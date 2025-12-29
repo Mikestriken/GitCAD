@@ -14,40 +14,6 @@ TRUE=0
 FALSE=1
 
 # ==============================================================================================
-#                               Verify and Retrieve Dependencies
-# ==============================================================================================
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    echo "Error: User did not source this script correctly" >&2
-    exit $FAIL
-fi
-
-# Check if inside a Git repository
-if ! git rev-parse --git-dir > /dev/null; then
-    echo "Error: Not inside a Git repository" >&2
-    return $FAIL
-fi
-
-# Store the repository root
-if [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
-    gitcad_repo_root="$(git rev-parse --show-toplevel 2>/dev/null)"
-    export GITCAD_REPO_ROOT="$(echo "$gitcad_repo_root" | sed -E 's#^([A-Za-z]):/#/\L\1/#')" # Note: Convert drive letters IE `D:/` to `/d/`
-else
-    export GITCAD_REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
-fi
-
-if [ -z "$GITCAD_REPO_ROOT" ]; then
-    echo "Error: Not in a git repository" >&2
-    return $FAIL
-fi
-
-# ==============================================================================================
-#                                  Prevent Infinite Recursion
-# ==============================================================================================
-if [ -n "$GITCAD_ACTIVATED" ]; then
-    deactivate_GitCAD
-fi
-
-# ==============================================================================================
 #                                 Register Deactivate Function
 # ==============================================================================================
 deactivate_GitCAD() {
@@ -75,6 +41,40 @@ deactivate_GitCAD() {
 }
 
 trap 'deactivate_GitCAD' EXIT
+
+# ==============================================================================================
+#                                  Prevent Infinite Recursion
+# ==============================================================================================
+if [ -n "$GITCAD_ACTIVATED" ]; then
+    deactivate_GitCAD
+fi
+
+# ==============================================================================================
+#                               Verify and Retrieve Dependencies
+# ==============================================================================================
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    echo "Error: User did not source this script correctly" >&2
+    exit $FAIL
+fi
+
+# Check if inside a Git repository
+if ! git rev-parse --git-dir > /dev/null; then
+    echo "Error: Not inside a Git repository" >&2
+    return $FAIL
+fi
+
+# Store the repository root
+if [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
+    gitcad_repo_root="$(git rev-parse --show-toplevel 2>/dev/null)"
+    export GITCAD_REPO_ROOT="$(echo "$gitcad_repo_root" | sed -E 's#^([A-Za-z]):/#/\L\1/#')" # Note: Convert drive letters IE `D:/` to `/d/`
+else
+    export GITCAD_REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+fi
+
+if [ -z "$GITCAD_REPO_ROOT" ]; then
+    echo "Error: Not in a git repository" >&2
+    return $FAIL
+fi
 
 # ==============================================================================================
 #         Add Wrapper Script to PATH Environment Variable, Ahead Of The Real `git.exe`
