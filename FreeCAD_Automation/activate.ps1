@@ -17,8 +17,12 @@ $GitCAD_Prompt = "(GitCAD)"
 #                                 Register Deactivate Function
 # ==============================================================================================
 function deactivate_GitCAD {
+    param([string]$function_arg1 = "")
+
     # Remove deactivate_GitCAD function
-    Remove-Item Function:\deactivate_GitCAD -ErrorAction SilentlyContinue
+    if ($function_arg1 -ne "--keep-function-definition") {
+        Remove-Item Function:\deactivate_GitCAD -ErrorAction SilentlyContinue
+    }
 
     # Restore original PATH
     $path = $env:PATH -split ';'                 # Split PATH into parts
@@ -50,7 +54,7 @@ Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action $global:GitCAD
 #                                  Prevent Infinite Recursion
 # ==============================================================================================
 if ($env:GITCAD_ACTIVATED -eq $BASH_TRUE) {
-    deactivate_GitCAD
+    deactivate_GitCAD --keep-function-definition
 }
 
 # ==============================================================================================
