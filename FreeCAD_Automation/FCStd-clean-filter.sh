@@ -123,30 +123,34 @@ case $GIT_COMMAND in
         echo "DEBUG: Unknown git call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat 
         exit $SUCCESS
-        # # If GitCAD is not activated then the clean filter cannot be sure of what git command triggered this filter unless the user use aliases.
-        #     # As a default response to an unknown git command, the clean filter should be disabled and simply show the file as empty.
-        # if [ -z "$GITCAD_ACTIVATED" ]; then
-        #     echo "============================================================ WARNING ============================================================" >&2
-        #     echo "Export flag not set. Removed Modification (git POV only) for '$1'." >&2
-        #     echo >&2
-        #     echo "If you didn't run \`git add\` then ignore this warning." >&2
-        #     echo "The following git commands are known to erroneously trigger this warning on Linux: checkout, freset, fstash, fco, unlock, pull" >&2
-        #     echo >&2
-        #     echo "If you DID run \`git add\` Run \`git fexport\` to manually export the file." >&2
-        #     echo "Use \`git fadd\` instead of \`git add\` next time to set the export flag." >&2
-        #     echo >&2
-        #     echo "ALTERNATIVELY: Activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands" >&2
-        #     echo "=================================================================================================================================" >&2
-            
-        #     cat /dev/null
-        #     exit $SUCCESS
 
-        # # Note: The following git commands are known to also trigger this clean filter: checkout, reset, stash, unlock, pull
-        #     # In the above scenarios (that aren't `git add`), we disable the clean filter and make the .FCStd file show up as having no modification (git POV)
-        # else
-        #     cat /dev/null
-        #     exit $SUCCESS
-        # fi
+        # Note: In the past (pre fcmod rework ((fcmod now creates .fcmod files instead of calling add with RESET_MOD=0 env variable)) ) 
+        # Note: It was found that showing git the original file contents in all cases except "add" caused a lot of instability and sometimes soft locked you out of calling git status.
+        # Note: Since then it works, but I'm going to leave the section below commented out instead of removed in case the instability occurs again.
+            # # If GitCAD is not activated then the clean filter cannot be sure of what git command triggered this filter unless the user use aliases.
+            #     # As a default response to an unknown git command, the clean filter should be disabled and simply show the file as empty.
+            # if [ -z "$GITCAD_ACTIVATED" ]; then
+            #     echo "============================================================ WARNING ============================================================" >&2
+            #     echo "Export flag not set. Removed Modification (git POV only) for '$1'." >&2
+            #     echo >&2
+            #     echo "If you didn't run \`git add\` then ignore this warning." >&2
+            #     echo "The following git commands are known to erroneously trigger this warning on Linux: checkout, freset, fstash, fco, unlock, pull" >&2
+            #     echo >&2
+            #     echo "If you DID run \`git add\` Run \`git fexport\` to manually export the file." >&2
+            #     echo "Use \`git fadd\` instead of \`git add\` next time to set the export flag." >&2
+            #     echo >&2
+            #     echo "ALTERNATIVELY: Activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands" >&2
+            #     echo "=================================================================================================================================" >&2
+                
+            #     cat /dev/null
+            #     exit $SUCCESS
+
+            # # Note: The following git commands are known to also trigger this clean filter: checkout, reset, stash, unlock, pull
+            #     # In the above scenarios (that aren't `git add`), we disable the clean filter and make the .FCStd file show up as having no modification (git POV)
+            # else
+            #     cat /dev/null
+            #     exit $SUCCESS
+            # fi
         ;;
 esac
 

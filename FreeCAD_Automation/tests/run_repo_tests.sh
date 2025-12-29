@@ -938,7 +938,7 @@ test_stashing() {
     assert_no_uncommitted_changes; echo
     assert_command_succeeds "git_stash pop"; echo
     
-    if git stat | grep -Fq -- "$TEST_DIR/AssemblyExample.FCStd"; then
+    if GIT_COMMAND="status" git status | grep -Fq -- "$TEST_DIR/AssemblyExample.FCStd"; then
         echo "Assertion failed: git stash did not clear the modification for the popped .FCStd file." >&2
         echo -n ">>>>>> Paused for user testing. Press enter when done....." >&2; read -r dummy; echo
 

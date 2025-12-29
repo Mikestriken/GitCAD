@@ -451,7 +451,7 @@ setup_git_alias() {
 
 setup_git_alias "fcmod" "!bash FreeCAD_Automation/git_aliases/clear-FCStd-modification.sh \"\${GIT_PREFIX}\"" "Clears passed FCStd file modification making git think it's empty."
 setup_git_alias "fadd" "!GIT_COMMAND=\"add\" git add" "Allows FCStd clean filter to export \`.FCStd\` files."
-setup_git_alias "stat" "!GIT_COMMAND=\"status\" git status" "Lets clean filter know that status call triggered it, leave .FCStd files untouched and don't clear their modification flag."
+# setup_git_alias "stat" "!GIT_COMMAND=\"status\" git status" "Lets clean filter know that status call triggered it, leave .FCStd files untouched and don't clear their modification flag." # Note: See note in *) case of clear-FCStd-modification.sh for more information.
 setup_git_alias "fco" "!bash FreeCAD_Automation/git_aliases/checkout-FCStd-files.sh \"\${GIT_PREFIX}\"" "Adds \`git fco\` as alias to run checkout-FCStd-files.sh"
 setup_git_alias "lock" "!bash FreeCAD_Automation/git_aliases/lock.sh \"\${GIT_PREFIX}\"" "Adds \`git lock\` as alias to run lock.sh"
 setup_git_alias "unlock" "!bash FreeCAD_Automation/git_aliases/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh"
