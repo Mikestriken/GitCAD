@@ -40,10 +40,9 @@ elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ "$GITCAD_ACTIVATED" = "$TR
         unset GITCAD_ACTIVATED
         unset GIT_WRAPPER_PATH
         
-        # Restore original PS1 prompt
-        if [ -n "$PS1_ENVIRONMENT_BACKUP" ]; then
-            export PS1="$PS1_ENVIRONMENT_BACKUP"
-            unset PS1_ENVIRONMENT_BACKUP
+        # Remove `(GitCAD)` from PS1 prompt
+        if [ -n "$PS1" ]; then
+            PS1="${PS1//"$GitCAD_Prompt "/}"
         fi
         
         echo "GitCAD git wrapper deactivated"

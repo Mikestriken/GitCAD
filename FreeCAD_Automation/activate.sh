@@ -12,6 +12,7 @@ SUCCESS=0
 FAIL=1
 TRUE=0
 FALSE=1
+GitCAD_Prompt="(GitCAD)"
 
 # ==============================================================================================
 #                                 Register Deactivate Function
@@ -33,10 +34,9 @@ deactivate_GitCAD() {
     unset GITCAD_ACTIVATED
     unset GIT_WRAPPER_PATH
     
-    # Restore original PS1 prompt
-    if [ -n "$PS1_ENVIRONMENT_BACKUP" ]; then
-        export PS1="$PS1_ENVIRONMENT_BACKUP"
-        unset PS1_ENVIRONMENT_BACKUP
+    # Remove `(GitCAD)` from PS1 prompt
+    if [ -n "$PS1" ]; then
+        PS1="${PS1//"$GitCAD_Prompt "/}"
     fi
     
     echo "GitCAD git wrapper deactivated"
@@ -89,10 +89,9 @@ export GITCAD_ACTIVATED="$TRUE"
 export GIT_WRAPPER_PATH="$GITCAD_REPO_ROOT/FreeCAD_Automation"
 export PATH="$GIT_WRAPPER_PATH:$PATH"
 
-# Add `(GitCAD)` to terminal prompt to note activation.
-if [ -n "$PS1" ]; then
-    export PS1_ENVIRONMENT_BACKUP="$PS1"
-    export PS1="(GitCAD) $PS1"
+# Add $GitCAD_Prompt (GitCAD) to terminal prompt to note activation.
+if [ -n "$PS1" ] && [[ "$PS1" != *"$GitCAD_Prompt"* ]]; then
+    PS1="$GitCAD_Prompt $PS1"
 fi
 
 echo "=============================================================================================="
