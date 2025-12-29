@@ -16,10 +16,15 @@ FALSE=1
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    echo "Error: User did not source this script correctly" >&2
+    exit $FAIL
+fi
+
 # Check if inside a Git repository
 if ! git rev-parse --git-dir > /dev/null; then
     echo "Error: Not inside a Git repository" >&2
-    exit $FAIL
+    return $FAIL
 fi
 
 # Store the repository root
@@ -32,7 +37,7 @@ fi
 
 if [ -z "$GITCAD_REPO_ROOT" ]; then
     echo "Error: Not in a git repository" >&2
-    exit $FAIL
+    return $FAIL
 fi
 
 # ==============================================================================================
