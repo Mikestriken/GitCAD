@@ -26,7 +26,9 @@ elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ "$GITCAD_ACTIVATED" = "$TR
     deactivate_GitCAD() {
         # Remove deactivate_GitCAD EXIT callback and definition
         trap - EXIT
-        unset -f deactivate_GitCAD
+        if [ ! "$1" = "--keep-function-definition" ]; then
+            unset -f deactivate_GitCAD
+        fi
         
         # Restore original PATH
         PATH="${PATH#$GIT_WRAPPER_PATH:}"      # Remove $GIT_WRAPPER_PATH (if found) from beginning of $PATH
