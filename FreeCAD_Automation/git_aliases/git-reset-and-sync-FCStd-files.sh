@@ -32,11 +32,11 @@ fi
 # ==============================================================================================
 # Get modified .FCStd files before reset
 GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
-BEFORE_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
+BEFORE_RESET_MODIFIED_FCSTD=$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
 
 # Get modified `.changefile`s before reset
 GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
-BEFORE_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
+BEFORE_RESET_MODIFIED_CHANGEFILES=$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 
 # Get original HEAD before reset
 ORIGINAL_HEAD=$("$git_path" rev-parse HEAD) || {
@@ -94,13 +94,13 @@ BEFORE_RESET_MODIFIED_CHANGEFILES=$(echo -e "$BEFORE_RESET_MODIFIED_CHANGEFILES\
 
 # Filter to list of valid files to process
 GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
-AFTER_RESET_MODIFIED_FCSTD=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
+AFTER_RESET_MODIFIED_FCSTD=$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' | sort)
 
 previously_modified_FCStd_files_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_FCSTD") <(echo "$AFTER_RESET_MODIFIED_FCSTD"))
 echo "DEBUG: FULL FCStd files to import: '$(echo "$previously_modified_FCStd_files_currently_shows_no_modification" | xargs)'" >&2
 
 GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
-AFTER_RESET_MODIFIED_CHANGEFILES=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
+AFTER_RESET_MODIFIED_CHANGEFILES=$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 previously_modified_changefiles_currently_shows_no_modification=$(comm -23 <(echo "$BEFORE_RESET_MODIFIED_CHANGEFILES") <(echo "$AFTER_RESET_MODIFIED_CHANGEFILES"))
 echo "DEBUG: FULL .changefile files to import: '$(echo "$previously_modified_changefiles_currently_shows_no_modification" | xargs)'" >&2
 

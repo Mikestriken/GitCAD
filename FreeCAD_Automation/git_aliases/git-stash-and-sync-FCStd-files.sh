@@ -477,8 +477,8 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
     echo "DEBUG: Stash push/save/create detected" >&2
     
     GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
-    mapfile -t MODIFIED_FCSTD_FILES < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' || true)
-    mapfile -t MODIFIED_CHANGEFILES < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' || true)
+    mapfile -t MODIFIED_FCSTD_FILES < <(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' || true)
+    mapfile -t MODIFIED_CHANGEFILES < <(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' || true)
     
     # Check that:
         # User is not trying to stash any .FCStd files
@@ -580,7 +580,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
     
     # Get modified changefiles before stash
     GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
-    mapfile -t BEFORE_STASH_CHANGEFILES < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
+    mapfile -t BEFORE_STASH_CHANGEFILES < <(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
     
     echo "DEBUG: retrieved before stash changefiles..." >&2
 
@@ -603,7 +603,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
 
     # Get modified lockfiles after stash
     GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
-    mapfile -t AFTER_STASH_CHANGEFILE < <("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
+    mapfile -t AFTER_STASH_CHANGEFILE < <(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 
     # Find files present before stash but not after stash (files that were stashed)
     STASHED_CHANGEFILES=$(comm -23 <(printf '%s\n' "${BEFORE_STASH_CHANGEFILES[@]}") <(printf '%s\n' "${AFTER_STASH_CHANGEFILE[@]}"))

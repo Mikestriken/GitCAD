@@ -110,10 +110,10 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
     GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
 
     # List of all modified changefiles
-    changefiles_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$')
+    changefiles_with_modifications_not_yet_committed=$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$')
     echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo "$changefiles_with_modifications_not_yet_committed" | xargs)" >&2
     
-    FCStd_files_with_modifications_not_yet_committed=$("$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$')
+    FCStd_files_with_modifications_not_yet_committed=$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$')
     echo "DEBUG: Found modified FCStd files for HEAD checkout: $(echo "$FCStd_files_with_modifications_not_yet_committed" | xargs)" >&2
     
     # For each modified FCStd file, find its changefile and add it to the list of modified changefiles
