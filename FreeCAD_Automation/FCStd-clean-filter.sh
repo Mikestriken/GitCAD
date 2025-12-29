@@ -77,6 +77,7 @@ fi
         # The fadd alias sets $GIT_COMMAND to "add" to specify the user's intention to export added .FCStd files
         # The stat alias sets $GIT_COMMAND to "status" to specify the user's intention to see what files git thinks are modified and aren't (don't make .FCStd files appear unmodified if git thinks they're modified)
     # It is also set manually by scripts that expect to trigger this clean filter
+# ToDo: It might be possible to make the default do `cat` instead of `cat /dev/null`. Last time I tried it seriously bugged everything but maybe with the new way of handling `git fcmod` it might work now.
 case $GIT_COMMAND in
     # Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files for this case
     "stash")

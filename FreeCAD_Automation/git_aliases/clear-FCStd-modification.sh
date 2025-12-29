@@ -31,6 +31,7 @@ shift
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
 parsed_file_path_args=()
+echo "DEBUG: parsing '$@'" >&2
 while [ $# -gt 0 ]; do
     echo "DEBUG: parsing '$1'..." >&2
     case $1 in
@@ -109,6 +110,7 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
     fcmod_path="$FCStd_dir_path/.fcmod"
 
+    mkdir -p "$(dirname "$fcmod_path")"
     echo "$current_timestamp" > "$fcmod_path"
     echo "DEBUG: Created/updated .fcmod for '$FCStd_file_path' with timestamp '$current_timestamp'" >&2
 done
