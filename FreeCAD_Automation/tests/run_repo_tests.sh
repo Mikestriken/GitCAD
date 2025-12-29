@@ -1258,12 +1258,12 @@ if [ "$1" = "--sandbox" ]; then
 elif [ -z "$1" ]; then
     echo -n ">>>> START STANDARD TEST? <<<<" >&2; read -r dummy; echo
     
-    # test_FCStd_clean_filter
-    # test_pre_commit_hook
-    # test_pre_push_hook
-    # test_post_checkout_hook
+    test_FCStd_clean_filter
+    test_pre_commit_hook
+    test_pre_push_hook
+    test_post_checkout_hook
     test_stashing
-    # test_post_merge_hook
+    test_post_merge_hook
 
     echo -n ">>>> END OF TESTING <<<<" >&2; read -r dummy; echo
 
