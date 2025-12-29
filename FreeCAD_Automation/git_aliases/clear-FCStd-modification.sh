@@ -21,6 +21,19 @@ if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
 fi
 
 # ==============================================================================================
+#                                   Restore Staged FCStd files
+# ==============================================================================================
+# Get staged `.FCStd` files
+# Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
+GIT_COMMAND="update-index" git update-index --refresh -q >/dev/null 2>&1
+STAGED_FCSTD_FILES=$(GIT_COMMAND="diff-index" git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.fcstd$')
+
+if [ -n "$STAGED_FCSTD_FILES" ]; then
+    mapfile -t STAGED_FCSTD_FILES <<<"$STAGED_FCSTD_FILES"
+    git restore --staged "${STAGED_FCSTD_FILES[@]}"
+fi
+
+# ==============================================================================================
 #                                          Parse Args
 # ==============================================================================================
 # CALLER_SUBDIR=${GIT_PREFIX}:
@@ -92,20 +105,7 @@ if [ ${#MATCHED_FCStd_file_paths[@]} -gt 0 ]; then
     mapfile -t MATCHED_FCStd_file_paths < <(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u) # Remove duplicates (creates an empty element if no elements)
 fi
 
-echo "DEBUG: matched '${#MATCHED_FCStd_file_paths[@]}' FCStd dirs: '${MATCHED_FCStd_file_paths[@]}'" >&2
-
-# ==============================================================================================
-#                                   Restore Staged FCStd files
-# ==============================================================================================
-# Get staged `.FCStd` files
-# Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
-GIT_COMMAND="update-index" git update-index --refresh -q >/dev/null 2>&1
-STAGED_FCSTD_FILES=$(GIT_COMMAND="diff-index" git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.fcstd$')
-
-if [ -n "$STAGED_FCSTD_FILES" ]; then
-    mapfile -t STAGED_FCSTD_FILES <<<"$STAGED_FCSTD_FILES"
-    git restore --staged "${STAGED_FCSTD_FILES[@]}"
-fi
+echo "DEBUG: matched '${#MATCHED_FCStd_file_paths[@]}' .FCStd files: '${MATCHED_FCStd_file_paths[@]}'" >&2
 
 # ==============================================================================================
 #                              Create .fcmod Files For Matched FCStd Files
