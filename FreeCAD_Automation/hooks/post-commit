@@ -32,6 +32,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         awk -v user="$CURRENT_USER" '
             match($0, /^(.*)[[:space:]]+([^[:space:]]+)[[:space:]]+ID:[0-9]+$/, m) &&
             m[2] == user {
+                gsub(/[[:space:]]+$/, "", m[1])
                 print m[1]
             }
         '
