@@ -161,12 +161,14 @@ for file_path in "${parsed_file_path_args[@]}"; do
     
     if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
         echo "DEBUG: file_path contains wildcards or is a directory" >&2
-        while IFS= read -r file; do
+        
+        mapfile -t files_matching_pattern < <(GIT_COMMAND="ls-files" "$git_path" ls-files "$file_path")
+        for file in "${files_matching_pattern[@]}"; do
             if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                 echo "DEBUG: Matched '$file'" >&2
                 MATCHED_FCStd_file_paths+=("$file")
             fi
-        done < <(GIT_COMMAND="ls-files" "$git_path" ls-files "$file_path")
+        done
         
     elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
         echo "DEBUG: file_path is an FCStd file" >&2

@@ -315,8 +315,9 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
             # Match pattern to stashed FCStd and changefiles and ensure user has lock
             if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
                 echo "DEBUG: file_path contains wildcards or is a directory" >&2
-                
-                while IFS= read -r file; do
+        
+                mapfile -t files_matching_pattern < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -F -- "$file_path")
+                for file in "${files_matching_pattern[@]}"; do
                     if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                         FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file") || exit_fstash $FAIL
 
@@ -341,7 +342,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                         CHANGEFILES_IN_STASH_BEING_APPLIED+=("$file")
 
                     fi
-                done < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -F -- "$file_path")
+                done
             
             # Check for (exit early if true)
                 # If specified FCStd file is modified
@@ -497,8 +498,9 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
             # Ensure user has lock for changefiles being stashed
             if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
                 echo "DEBUG: file_path contains wildcards or is a directory" >&2
-                
-                while IFS= read -r file; do
+        
+                mapfile -t files_matching_pattern < <(GIT_COMMAND="ls-files" "$git_path" ls-files -m "$file_path")
+                for file in "${files_matching_pattern[@]}"; do
                     if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                         echo "Error: Cannot stash '$file', export it first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
                         exit_fstash $FAIL
@@ -514,7 +516,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
                             exit_fstash $FAIL
                         fi
                     fi
-                done < <(GIT_COMMAND="ls-files" "$git_path" ls-files -m "$file_path")
+                done
             
             # Check for (exit early if true)
                 # If specified FCStd file is modified
