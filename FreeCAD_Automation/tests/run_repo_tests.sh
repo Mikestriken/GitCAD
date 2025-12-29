@@ -25,7 +25,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # Check for stashed items, warn user they will be dropped and ask if they want to exit early
-if [ -n "$(git stash list)" ]; then
+if [ -n "$(GIT_COMMAND="stash" git stash list)" ]; then
     echo "Warning: There are stashed items in the working directory. They will all be dropped during testing."
     while true; do
         echo "Do you want to exit early to commit your stash? (y/n)"
@@ -36,7 +36,7 @@ if [ -n "$(git stash list)" ]; then
             * ) echo "Please answer y or n.";;
         esac
     done
-    git stash clear
+    GIT_COMMAND="stash" git stash clear
 fi
 
 # ==============================================================================================
@@ -292,7 +292,7 @@ git_reset() {
 
 git_stash() {
     if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ]; then
-        git stash "$@"
+        GIT_COMMAND="stash" git stash "$@"
     else
         git fstash "$@"
     fi

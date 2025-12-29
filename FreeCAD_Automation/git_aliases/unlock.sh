@@ -128,11 +128,11 @@ if [ "$FORCE_FLAG" = "$FALSE" ]; then
     fi
 
     # Check for stashed changes
-    STASH_COUNT=$(git stash list | wc -l)
+    STASH_COUNT=$(GIT_COMMAND="stash" git stash list | wc -l)
     for i in $(seq 0 $((STASH_COUNT - 1))); do
         echo "DEBUG: checking stash '$i'...." >&2
         
-        stashed_files=$(git stash show --name-only "stash@{$i}" 2>/dev/null)
+        stashed_files=$(GIT_COMMAND="stash" git stash show --name-only "stash@{$i}" 2>/dev/null)
 
         if printf '%s\n' "$stashed_files" | grep -q -- "^$FCStd_dir_path/" || \
            printf '%s\n' "$stashed_files" | grep -Fxq -- "$FCStd_file_path"; then

@@ -465,7 +465,7 @@ setup_git_alias "freset" "!bash FreeCAD_Automation/git_aliases/git-reset-and-syn
 echo "=============================================================================================="
 echo "                               Synchronizing \`.FCStd\` Files"
 echo "=============================================================================================="
-FCStd_file_paths=$(git ls-files | grep -i -- '\.fcstd$')
+FCStd_file_paths=$(GIT_COMMAND="ls-files" git ls-files | grep -i -- '\.fcstd$')
 
 if [ -n "$FCStd_file_paths" ]; then
     echo "Do you want to import data from all uncompressed FreeCAD dirs to their respective \`.FCStd\` files?: "

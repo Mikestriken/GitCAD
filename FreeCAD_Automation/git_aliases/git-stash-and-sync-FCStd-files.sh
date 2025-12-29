@@ -289,7 +289,7 @@ done
 if [ "$STASH_COMMAND_DOES_NOT_MODIFY_WORKING_DIR_OR_CREATE_STASHES" = "$TRUE" ]; then
     echo "DEBUG: stash command does not modify working directory or create stashes. Passing command directly to git stash." >&2
     echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
-    "$git_path" stash "${stash_args[@]}"
+    GIT_COMMAND="stash" "$git_path" stash "${stash_args[@]}"
 
 
 
@@ -341,7 +341,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                         CHANGEFILES_IN_STASH_BEING_APPLIED+=("$file")
 
                     fi
-                done < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -F -- "$file_path")
+                done < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -F -- "$file_path")
             
             # Check for (exit early if true)
                 # If specified FCStd file is modified
@@ -378,8 +378,8 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
             fi
         done
     else
-        mapfile -t CHANGEFILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.changefile$' || true)
-        mapfile -t FCSTD_FILES_IN_STASH_BEING_APPLIED < <("$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.fcstd$' || true)
+        mapfile -t CHANGEFILES_IN_STASH_BEING_APPLIED < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.changefile$' || true)
+        mapfile -t FCSTD_FILES_IN_STASH_BEING_APPLIED < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.fcstd$' || true)
         
         echo -e "\nDEBUG: checking stashed changefiles: '$(echo "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
         echo -e "\nDEBUG: checking stashed FCStd files: '$(echo "${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
@@ -439,9 +439,9 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         # Note: `git stash` sometimes calls clean filter...
         # Note: As of git v2.52.0, the FILE_SEPARATOR is only valid for the "push" STASH_COMMAND
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
-        "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
+        GIT_COMMAND="stash" "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
-        "$git_path" stash "${stash_args[@]}"
+        GIT_COMMAND="stash" "$git_path" stash "${stash_args[@]}"
     fi
     STASH_RESULT=$?
 
@@ -514,7 +514,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
                             exit_fstash $FAIL
                         fi
                     fi
-                done < <("$git_path" ls-files -m "$file_path")
+                done < <(GIT_COMMAND="ls-files" "$git_path" ls-files -m "$file_path")
             
             # Check for (exit early if true)
                 # If specified FCStd file is modified
@@ -589,10 +589,10 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
         # Note: As of git v2.52.0, the FILE_SEPARATOR is only valid for the "push" STASH_COMMAND
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
         echo "DEBUG: '$git_path stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"'" >&2
-        "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
+        GIT_COMMAND="stash" "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
         echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
-        "$git_path" stash "${stash_args[@]}"
+        GIT_COMMAND="stash" "$git_path" stash "${stash_args[@]}"
     fi
     STASH_RESULT=$?
 
