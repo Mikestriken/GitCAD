@@ -21,6 +21,7 @@ fi
 
 # Check for uncommitted work in working directory, exit early if so with error message
 if [ -n "$(GIT_COMMAND="status" git status --porcelain)" ]; then
+    echo "Error: You have uncommitted changes, commit or remove them to run this test." >&2
     exit $FAIL
 fi
 
