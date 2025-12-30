@@ -408,7 +408,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                 
                 FCStd_file_path=$(realpath "$FCStd_dir_path/$FCStd_file_relpath")
 
-                if [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
+                if [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
                     FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
                 fi
 

@@ -19,7 +19,7 @@ fi
 
 HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push") # Note: This array is used again in the `Setup Git Hooks` section
 
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
     echo "=============================================================================================="
     echo "                                    Set Linux Permissions"
     echo "=============================================================================================="
@@ -210,7 +210,7 @@ echo "==========================================================================
 echo "                                   Initializing Git-LFS"
 echo "=============================================================================================="
 # Configure locksverify for .lockfile
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then 
+if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then 
     sudo -u "$OWNER" git config lfs.locksverify true
 
 else
@@ -243,7 +243,7 @@ setup_git_FCStd_filter() {
             echo
             
             if [[ $REPLY =~ ^[Yy]$ ]]; then
-                if [[ "$OSTYPE" == "linux-gnu"* ]]; then 
+                if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then 
                     sudo -u "$OWNER" git config "filter.FCStd.$filter_type" "$desired_value"
                 else
                     git config "filter.FCStd.$filter_type" "$desired_value"
@@ -257,7 +257,7 @@ setup_git_FCStd_filter() {
             fi
         fi
     else
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then 
+        if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then 
             sudo -u "$OWNER" git config "filter.FCStd.$filter_type" "$desired_value"
         
         else
@@ -419,7 +419,7 @@ setup_git_alias() {
             echo
             
             if [[ $REPLY =~ ^[Yy]$ ]]; then
-                if [[ "$OSTYPE" == "linux-gnu"* ]]; then 
+                if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then 
                     sudo -u "$OWNER" git config "alias.$alias" "$desired_value"
                 
                 else
@@ -434,7 +434,7 @@ setup_git_alias() {
             fi
         fi
     else
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then 
+        if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then 
             sudo -u "$OWNER" git config "alias.$alias" "$desired_value"
         
         else

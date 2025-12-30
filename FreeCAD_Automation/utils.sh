@@ -181,10 +181,10 @@ make_readonly() {
         return $FAIL
     fi
 
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
         chmod 444 "$file"
     
-    elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
+    elif [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
         attrib +r "$file"
     
     else
@@ -205,10 +205,10 @@ make_writable() {
         return $FAIL
     fi
 
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
         chmod 644 "$file"
     
-    elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
+    elif [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
         attrib -r "$file"
     
     else
@@ -323,7 +323,7 @@ get_FCStd_file_from_changefile() {
     
     local FCStd_file_path=$(realpath "$FCStd_dir_path/$FCStd_file_relpath")
 
-    if [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
+    if [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
         FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
     fi
 

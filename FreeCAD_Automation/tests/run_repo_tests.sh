@@ -247,7 +247,7 @@ assert_file_modified() {
 await_user_modification() {
     local file="$1"
     while true; do
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
             echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
             xdg-open "$file" > /dev/null &
             disown
@@ -260,7 +260,7 @@ await_user_modification() {
                 echo "No changes detected in '$file'. Please make sure to save your modifications."
             fi
         
-        elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
+        elif [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
             echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
             start "$file"
             read -r dummy
@@ -283,7 +283,7 @@ confirm_user() {
     local test_name="$2"
     local file="$3"
     while true; do
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
             echo "$message (y/n)"
             xdg-open "$file" > /dev/null &
             disown
@@ -297,7 +297,7 @@ confirm_user() {
                 * ) echo "Please answer y or n.";;
             esac
         
-        elif [ "$OSTYPE" = "msys" ] || [ "$OSTYPE" = "win32" ]; then
+        elif [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
             echo "$message (y/n)"
             start "$file"
             read -r response
