@@ -366,7 +366,8 @@ if [ -f "$CONFIG_FILE" ]; then
     if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ "$ignore_GitCAD_activation" = "$FALSE" ]; then
         if [ -z "$GITCAD_ACTIVATED" ] || [ "$GITCAD_ACTIVATED" = "$FALSE" ]; then
             echo "Error: GitCAD activation is required but not active." >&2
-            echo "Please activate GitCAD by running: source FreeCAD_Automation/user_scripts/activate" >&2
+            echo "       This git operation may go through but may also have undefined behavior." >&2
+            echo "       Please activate GitCAD by running: source FreeCAD_Automation/user_scripts/activate" >&2
             exit $FAIL
         fi
     fi
