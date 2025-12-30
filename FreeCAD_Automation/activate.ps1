@@ -7,21 +7,23 @@
 # ==============================================================================================
 #                                       Constant Globals
 # ==============================================================================================
-$SUCCESS = 0
-$FAIL = 1
-$BASH_TRUE = 0
-$BASH_FALSE = 1
-$GitCAD_Prompt = "(GitCAD)"
+if (-not $global:GITCAD_GLOBALS_EXIST) {
+    New-Variable -Name SUCCESS -Description "Bash exit success value" -Scope Global -Option ReadOnly -Visibility Public -Value 0
+    New-Variable -Name FAIL -Description "Bash exit failure value" -Scope Global -Option ReadOnly -Visibility Public -Value 1
+    New-Variable -Name BASH_TRUE -Description "Bash true value" -Scope Global -Option ReadOnly -Visibility Public -Value 0
+    New-Variable -Name BASH_FALSE -Description "Bash false value" -Scope Global -Option ReadOnly -Visibility Public -Value 1
+    New-Variable -Name GitCAD_Prompt -Description "GitCAD activation prompt prefix" -Scope Global -Option ReadOnly -Visibility Public -Value "(GitCAD)"
+    $global:GITCAD_GLOBALS_EXIST = $true
+}
 
 # ==============================================================================================
 #                                 Register Deactivate Function
 # ==============================================================================================
-function deactivate_GitCAD {
-    param([string]$function_arg1 = "")
+function global:deactivate_GitCAD ([switch]$Keep_Function_Definition) {
 
     # Remove deactivate_GitCAD function
-    if ($function_arg1 -ne "--keep-function-definition") {
-        Remove-Item Function:\deactivate_GitCAD -ErrorAction SilentlyContinue
+    if (-not $Keep_Function_Definition) {
+        Remove-Item Function:deactivate_GitCAD -ErrorAction SilentlyContinue
     }
 
     # Restore original PATH
@@ -35,10 +37,10 @@ function deactivate_GitCAD {
     Remove-Item Env:\GITCAD_ACTIVATED -ErrorAction SilentlyContinue
     Remove-Item Env:\GIT_WRAPPER_PATH -ErrorAction SilentlyContinue
 
-    # Restore original prompt
-    if ($PS1_ENVIRONMENT_BACKUP) {
-        $function:prompt = $PS1_ENVIRONMENT_BACKUP
-        Remove-Item Variable:\PS1_ENVIRONMENT_BACKUP -ErrorAction SilentlyContinue
+    # The prior prompt:
+    if (Test-Path -Path Function:original_prompt) {
+        Copy-Item -Path Function:original_prompt -Destination Function:prompt
+        Remove-Item -Path Function:original_prompt
     }
 
     Write-Host "GitCAD git wrapper deactivated"
@@ -54,18 +56,12 @@ Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action $global:GitCAD
 #                                  Prevent Infinite Recursion
 # ==============================================================================================
 if ($env:GITCAD_ACTIVATED -eq $BASH_TRUE) {
-    deactivate_GitCAD --keep-function-definition
+    deactivate_GitCAD -Keep_Function_Definition
 }
 
 # ==============================================================================================
 #                               Verify and Retrieve Dependencies
 # ==============================================================================================
-# Check if script is dot-sourced (PowerShell equivalent of checking if sourced)
-if ($MyInvocation.InvocationName -ne '.') {
-    Write-Error "Error: User did not dot-source this script correctly. Use: . .\FreeCAD_Automation\activate.ps1"
-    exit $FAIL
-}
-
 # Check if inside a Git repository
 try {
     $null = & git rev-parse --git-dir 2>$null
@@ -99,10 +95,14 @@ $env:GITCAD_ACTIVATED = $BASH_TRUE
 $env:GIT_WRAPPER_PATH = "$env:GITCAD_REPO_ROOT/FreeCAD_Automation"
 $env:PATH = "$env:GIT_WRAPPER_PATH;$env:PATH"
 
-# Add $GitCAD_Prompt to PowerShell prompt
-if ($function:prompt) {
-    $global:PS1_ENVIRONMENT_BACKUP = $function:prompt
-    $function:prompt = { "$GitCAD_Prompt " + (& $global:PS1_ENVIRONMENT_BACKUP) }
+# Set the prompt to include the env name
+# Make sure original_prompt is global
+function global:original_prompt { "" }
+Copy-Item -Path function:prompt -Destination function:original_prompt
+
+function global:prompt {
+    Write-Host -NoNewline -ForegroundColor Green "$GitCAD_Prompt "
+    original_prompt
 }
 
 Write-Host "=============================================================================================="
