@@ -12,7 +12,7 @@ source "$FUNCTIONS_FILE" --ignore-GitCAD-activation
 
 # Activate/Deactivate GitCAD to match config file setting
 if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && { [ -z "$GITCAD_ACTIVATED" ] || [ "$GITCAD_ACTIVATED" = "$FALSE" ]; }; then
-    source FreeCAD_Automation/activate.sh
+    source FreeCAD_Automation/user_scripts/activate
 
 elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ "$GITCAD_ACTIVATED" = "$TRUE" ]; then
     # Implicitly already done by user calling this script
@@ -52,7 +52,7 @@ elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ "$GITCAD_ACTIVATED" = "$TR
 
     reactivate_GitCAD() {
         trap - EXIT
-        source FreeCAD_Automation/activate.sh
+        source FreeCAD_Automation/user_scripts/activate
     }
 
     deactivate_GitCAD

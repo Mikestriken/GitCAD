@@ -3,7 +3,7 @@
 #                                       Script Overview
 # ==============================================================================================
 # Source this file to activate GitCAD workflow for this terminal session
-# Usage: source FreeCAD_Automation/activate.sh
+# Usage: source FreeCAD_Automation/user_scripts/activate
 
 # ==============================================================================================
 #                                       Constant Globals

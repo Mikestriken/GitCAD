@@ -29,7 +29,7 @@ fi
 #                                          Parse Args
 # ==============================================================================================
 # Note: This script will exit the script sourcing this script early if config requires GitCAD be activated, but it is not active.
-    # In some cases this is not desired such as when initializing the repository with init-repo.sh, in that case the --ignore-GitCAD-activation flag can be used when sourcing this script
+    # In some cases this is not desired such as when initializing the repository with init-repo, in that case the --ignore-GitCAD-activation flag can be used when sourcing this script
 ignore_GitCAD_activation=$FALSE
 
 # Note: shifting in here will shift the args for both this script and the parent script sourcing this script.
@@ -366,7 +366,7 @@ if [ -f "$CONFIG_FILE" ]; then
     if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ "$ignore_GitCAD_activation" = "$FALSE" ]; then
         if [ -z "$GITCAD_ACTIVATED" ] || [ "$GITCAD_ACTIVATED" = "$FALSE" ]; then
             echo "Error: GitCAD activation is required but not active." >&2
-            echo "Please activate GitCAD by running: source FreeCAD_Automation/activate.sh" >&2
+            echo "Please activate GitCAD by running: source FreeCAD_Automation/user_scripts/activate" >&2
             exit $FAIL
         fi
     fi

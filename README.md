@@ -47,7 +47,7 @@ Video Demo:
 4. Run the initialization script:
    *Note: Linux users will need to make the script executable with `chmod`*
    ```bash
-   ./FreeCAD_Automation/init-repo.sh
+   ./FreeCAD_Automation/user_scripts/init-repo
    ```
 
 5. Configure the settings in newly added `FreeCAD_Automation/config.json` (from initialization script) as needed.  
@@ -60,7 +60,7 @@ Video Demo:
 
 6. Run the initialization script one last time:
    ```bash
-   ./FreeCAD_Automation/init-repo.sh
+   ./FreeCAD_Automation/user_scripts/init-repo
    ```
    *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
@@ -71,12 +71,12 @@ Video Demo:
       *Note: User will need to delete exported contents if they want to try a different `uncompressed-directory-structure` or `compress-non-human-readable-FreeCAD-files` config setting*  
       *See the [Changing Things](#changing-things) section for details on modifying the config file post-initialization.*
 
-8. Modify the default config file in the `Create Config File` section of the `init-repo.sh` script to match your changes to `FreeCAD_Automation/config.json`.  
+8. Modify the default config file in the `Create Config File` section of the `init-repo` script to match your changes to `FreeCAD_Automation/config.json`.  
    *Note: This is for future users and you if you clone the repository elsewhere.*
    - Assuming everyone has a different install directory for FreeCAD, you can leave `freecad-python-instance-path` empty as is.
 
 9. Update your `.gitattributes` with LFS files you want to track.  
-   - `git lfs track "*.zip"` -- This is done automatically by the `init-repo.sh` script.  
+   - `git lfs track "*.zip"` -- This is done automatically by the `init-repo` script.  
    __The following is recommended if `compress-non-human-readable-FreeCAD-files` is disabled in config:__
      - `git lfs track "**/no_extension/*"` -- folder created by this script to track files without extension
      - `git lfs track "*.brp"` -- FreeCAD binary file, stores the 3D shape data of an object
@@ -91,17 +91,17 @@ Video Demo:
 
 ## Updating
 Video Demo:  
-1. Backup/make note of the default `FreeCAD_Automation/config.json` defined in `FreeCAD_Automation/init-repo.sh`, and your `freecad-python-instance-path` in `FreeCAD_Automation/config.json`.
+1. Backup/make note of the default `FreeCAD_Automation/config.json` defined in `FreeCAD_Automation/init-repo`, and your `freecad-python-instance-path` in `FreeCAD_Automation/config.json`.
 
 2. Delete `FreeCAD_Automation/config.json`
 
 3. Download and extract the latest release into the root of your FreeCAD project's git repository.
 
-4. Manually merge (if required) your backup of the default `FreeCAD_Automation/config.json` into the new (updated?) default `FreeCAD_Automation/config.json` defined in `FreeCAD_Automation/init-repo.sh`.
+4. Manually merge (if required) your backup of the default `FreeCAD_Automation/config.json` into the new (updated?) default `FreeCAD_Automation/config.json` defined in `FreeCAD_Automation/init-repo`.
 
 5. Run the initialization script:
    ```bash
-   ./FreeCAD_Automation/init-repo.sh
+   ./FreeCAD_Automation/user_scripts/init-repo
    ```
    *This will re-create an updated `FreeCAD_Automation/config.json` file.*  
    *The Script can be ran multiple times without error (Assuming config wasn't changed).*
@@ -129,7 +129,7 @@ For examples see the [examples.md](FreeCAD_Automation/docs/examples.md) file.
 2. Use `git fcmod` to make git think your `.FCStd` file is empty (clears the modification in git's view assuming an empty `.FCStd` has already been committed).
 
 ## Changing Things
-Some configurations in `FreeCAD_Automation/config.json` cannot be changed by simply changing its value in the JSON file. After you have already initialized the repository with the `init-repo.sh` script.
+Some configurations in `FreeCAD_Automation/config.json` cannot be changed by simply changing its value in the JSON file. After you have already initialized the repository with the `init-repo` script.
 
 This section will cover how you can change certain configurations, post-initialization.
 
@@ -169,7 +169,7 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
     // TL;DR: It simulates the --lockable git lfs attribute.
 
     // If you change this post-initialization, 
-    // make sure to re-run the `init-repo.sh` script.
+    // make sure to re-run the `init-repo` script.
     "require-lock-to-modify-FreeCAD-files": true,
 
     // ------------------------------------------------------------------

@@ -71,7 +71,7 @@ if [ -f "$changefile_path" ]; then
 fi
 
 # >>>>>>>>>>>>>>>>>>> GIT_COMMAND Check (what triggered this clean filter) <<<<<<<<<<<<<<<<<<<
-# $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when the user activates it via `source FreeCAD_Automation/activate.sh`
+# $GIT_COMMAND is an environment variable set by the GitCAD wrapper script (FreeCAD_Automation/git) when the user activates it via `source FreeCAD_Automation/user_scripts/activate`
     # Certain aliases also set it:
         # The fstash script sets $GIT_COMMAND to "stash" when the GitCAD wrapper script is not active
         # The fadd alias sets $GIT_COMMAND to "add" to specify the user's intention to export added .FCStd files
@@ -139,7 +139,7 @@ case $GIT_COMMAND in
             #     echo "If you DID run \`git add\` Run \`git fexport\` to manually export the file." >&2
             #     echo "Use \`git fadd\` instead of \`git add\` next time to set the export flag." >&2
             #     echo >&2
-            #     echo "ALTERNATIVELY: Activate GitCAD with \`source FreeCAD_Automation/activate.sh\` to use standard git commands" >&2
+            #     echo "ALTERNATIVELY: Activate GitCAD with \`source FreeCAD_Automation/user_scripts/activate\` to use standard git commands" >&2
             #     echo "=================================================================================================================================" >&2
                 
             #     cat /dev/null

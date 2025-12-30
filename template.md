@@ -17,7 +17,7 @@ Video Demo:
 4. Run the initialization script:
    *Note: Linux users will need to make the script executable with `chmod`*
    ```bash
-   ./FreeCAD_Automation/init-repo.sh
+   ./FreeCAD_Automation/user_scripts/init-repo
    ```
    *This will create a `FreeCAD_Automation/config.json` file.*
    
@@ -28,7 +28,7 @@ Video Demo:
 
 6. Run the initialization script one last time to complete the initialization:
    ```bash
-   ./FreeCAD_Automation/init-repo.sh
+   ./FreeCAD_Automation/user_scripts/init-repo
    ```
    *The Script can be ran multiple times without error.*  
    *When the script asks "Do you want to import data from all uncompressed FreeCAD dirs?" in the "Synchronizing \`.FCStd\` Files" section, press `y`*
@@ -40,7 +40,7 @@ Video Demo:
    
 3. Run the initialization script:
    ```bash
-   ./FreeCAD_Automation/init-repo.sh
+   ./FreeCAD_Automation/user_scripts/init-repo
    ```
    *This will re-create an updated `FreeCAD_Automation/config.json` file.*  
    *The Script can be ran multiple times without error (Assuming config wasn't changed).*

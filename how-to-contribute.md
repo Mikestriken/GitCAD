@@ -32,7 +32,7 @@
     → *Note: Copy the ssh link instead of the https link on GitHUB under the green clone button.*
 
 12. Run the init repo script for GitCAD twice (specify the FreeCAD python file in the config file after the first run), as per the install instructions in the [README](README.md).  
-    → `./FreeCAD_Automation/init-repo.sh`
+    → `./FreeCAD_Automation/user_scripts/init-repo`
 
 13. Get a FreeCAD `.FCStd` file to test xdg-open on later  
     → `git checkout test_binaries -- ./FreeCAD_Automation/tests/AssemblyExample.FCStd`
@@ -92,7 +92,7 @@
 3.  fork and clone the repo  
 
 4.  Run the init repo script for GitCAD twice (and specify the FreeCAD python file in the config), as per the install instructions in the [README](README.md) file.  
-    → `./FreeCAD_Automation/init-repo.sh`
+    → `./FreeCAD_Automation/user_scripts/init-repo`
 
 5.  Run `./FreeCAD_Automation/tests/run_repo_tests.sh --sandbox`
     1.  When the terminal says `>>>> START SANDBOX TEST? <<<<` press ENTER
