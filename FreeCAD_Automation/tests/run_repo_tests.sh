@@ -24,8 +24,10 @@ elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && { [ -z "$GITCAD_ACTIVATED" ]
 
 elif [ "$REQUIRE_GITCAD_ACTIVATION" = "$FALSE" ] && [ "$GITCAD_ACTIVATED" = "$TRUE" ]; then
     deactivate_GitCAD() {
-        # Remove deactivate_GitCAD EXIT callback and definition
+        # Remove deactivate_GitCAD EXIT callback
         trap - EXIT
+
+        # Remove the deactivate_GitCAD function definition (this function cannot be called anymore unless redefined)
         if [ ! "$1" = "--keep-function-definition" ]; then
             unset -f deactivate_GitCAD
         fi
