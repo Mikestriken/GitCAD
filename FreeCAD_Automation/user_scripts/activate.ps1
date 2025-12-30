@@ -31,9 +31,9 @@ function global:deactivate_GitCAD ([switch]$Keep_Function_Definition) {
     }
 
     # Restore original PATH
-    $path = $env:PATH -split ';'                 # Split PATH into parts
-    $path = $path | Where-Object { $_ -ne $GIT_WRAPPER_PATH }  # Remove exact match
-    $env:PATH = ($path -join ';')                # Rejoin PATH
+    $path = $env:PATH -split ';'                                    # Split PATH into parts
+    $path = $path | Where-Object { $_ -ne $env:GIT_WRAPPER_PATH }   # Remove exact match
+    $env:PATH = ($path -join ';')                                   # Rejoin PATH
 
     # Unset environment variables
     Remove-Item Env:\GITCAD_REPO_ROOT -ErrorAction SilentlyContinue
