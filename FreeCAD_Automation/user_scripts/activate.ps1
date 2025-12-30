@@ -2,16 +2,20 @@
 #                                       Script Overview
 # ==============================================================================================
 # Source this file to activate GitCAD workflow for this PowerShell session
-# Usage: . .\FreeCAD_Automation\activate.ps1
+# Usage: .\FreeCAD_Automation\activate.ps1
 
 # ==============================================================================================
 #                                       Constant Globals
 # ==============================================================================================
-if (-not $global:GITCAD_GLOBALS_EXIST) {
+if (-not $global:BASH_GLOBALS_EXIST) {
     New-Variable -Name SUCCESS -Description "Bash exit success value" -Scope Global -Option ReadOnly -Visibility Public -Value 0
     New-Variable -Name FAIL -Description "Bash exit failure value" -Scope Global -Option ReadOnly -Visibility Public -Value 1
     New-Variable -Name BASH_TRUE -Description "Bash true value" -Scope Global -Option ReadOnly -Visibility Public -Value 0
     New-Variable -Name BASH_FALSE -Description "Bash false value" -Scope Global -Option ReadOnly -Visibility Public -Value 1
+    $global:BASH_GLOBALS_EXIST = $true
+}
+
+if (-not $global:GITCAD_GLOBALS_EXIST) {
     New-Variable -Name GitCAD_Prompt -Description "GitCAD activation prompt prefix" -Scope Global -Option ReadOnly -Visibility Public -Value "(GitCAD)"
     $global:GITCAD_GLOBALS_EXIST = $true
 }
