@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: ============== Clean filter trap-card triggered! ==============" >&2
+# echo "DEBUG: ============== Clean filter trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -24,13 +24,13 @@ fi
 # Note 1: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 # Note 2: cat prints the entire stdin (the file contents) to stdout (shows the file contents to git)
 
-echo "DEBUG: All args: '$@'" >&2
+# echo "DEBUG: All args: '$@'" >&2
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Cannot Export Edgecases <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 # Note: When doing a file checkout the clean filter will parse the current file in the working dir (even if git shows no changes)
     # Solution: If file is empty don't export and exit early with success
 if [ ! -s "$1" ]; then
-    echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+    # echo "DEBUG: '$1' is empty, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
     cat /dev/null
     exit $SUCCESS
 fi
@@ -47,7 +47,7 @@ if [ -f "$fcmod_path" ]; then
     fcmod_timestamp=$(cat "$fcmod_path")
 
     if [[ "$fcmod_timestamp" > "$FCStd_file_modification_time" || "$fcmod_timestamp" == "$FCStd_file_modification_time" ]]; then
-        echo "DEBUG: '$1' not modified since last clear, showing empty .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: '$1' not modified since last clear, showing empty .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat /dev/null
         exit $SUCCESS
     fi
@@ -64,7 +64,7 @@ if [ -f "$changefile_path" ]; then
     changefile_modification_time=$(date -u -d @"$(stat -c %Y "$changefile_path" 2>/dev/null || stat -f %m "$changefile_path" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')
     
     if [[ "$changefile_modification_time" > "$FCStd_file_modification_time" || "$changefile_modification_time" == "$FCStd_file_modification_time" ]]; then
-        echo "DEBUG: \`$1\` already exported, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: \`$1\` already exported, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat /dev/null
         exit $SUCCESS
     fi
@@ -81,37 +81,37 @@ fi
 case $GIT_COMMAND in
     # Note: Calling `git stash` sometimes calls the clean filter, for stash operations we don't want to clear modifications or export .FCStd files for this case
     "stash")
-        echo "DEBUG: stash call from fstash alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: stash call from fstash alias or git wrapper, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat
         exit $SUCCESS
         ;;
     
     "status")
-        echo "DEBUG: status call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: status call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat
         exit $SUCCESS
         ;;
     
     "ls-files")
-        echo "DEBUG: ls-files call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: ls-files call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat
         exit $SUCCESS
         ;;
     
     "update-index")
-        echo "DEBUG: update-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: update-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat
         exit $SUCCESS
         ;;
     
     "diff-index")
-        echo "DEBUG: diff-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: diff-index call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat
         exit $SUCCESS
         ;;
     
     "diff-tree")
-        echo "DEBUG: diff-tree call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: diff-tree call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat
         exit $SUCCESS
         ;;
@@ -120,7 +120,7 @@ case $GIT_COMMAND in
         :
         ;;
     *)
-        echo "DEBUG: Unknown git call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
+        # echo "DEBUG: Unknown git call, showing modified .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
         cat 
         exit $SUCCESS
 
@@ -158,13 +158,13 @@ esac
 #                         Check if user allowed to modify .FCStd file
 # ==============================================================================================
 if [ "$BYPASS_LOCK" = "$TRUE" ]; then
-    echo "DEBUG: BYPASS_LOCK=$TRUE, bypassing lock check." >&2
+    # echo "DEBUG: BYPASS_LOCK=$TRUE, bypassing lock check." >&2
     :
 
 else
     FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
 
-    echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
+    # echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 
     if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
         echo "ERROR: User doesn't have lock for '$1'... Aborting add operation..." >&2
@@ -178,13 +178,13 @@ fi
 # Note: cat /dev/null is printed to stdout, makes git think the .FCStd file is empty
 
 # Export the .FCStd file
-echo "DEBUG: START@'$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")'" >&2
+# echo "DEBUG: START@'$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")'" >&2
 echo -n "EXPORTING: '$1'...." >&2
 if "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/null; then
     echo "SUCCESS" >&2
-    echo "DEBUG: END@'$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")'" >&2
+    # echo "DEBUG: END@'$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")'" >&2
 
-    echo "DEBUG: $(grep 'File Last Exported On:' "$changefile_path")" >&2
+    # echo "DEBUG: $(grep 'File Last Exported On:' "$changefile_path")" >&2
 
     cat /dev/null
     exit $SUCCESS

@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: ============== clear-FCStd-modification.sh trap-card triggered! ==============" >&2
+# echo "DEBUG: ============== clear-FCStd-modification.sh trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -44,9 +44,9 @@ shift
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
 parsed_file_path_args=()
-echo "DEBUG: parsing '$@'" >&2
+# echo "DEBUG: parsing '$@'" >&2
 while [ $# -gt 0 ]; do
-    echo "DEBUG: parsing '$1'..." >&2
+    # echo "DEBUG: parsing '$1'..." >&2
     case $1 in
         # Set boolean flag if arg is a valid flag
         -*)
@@ -58,16 +58,16 @@ while [ $# -gt 0 ]; do
             if [ -n "$CALLER_SUBDIR" ]; then
                 case $1 in
                     ".")
-                        echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
+                        # echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
                         parsed_file_path_args+=("$CALLER_SUBDIR")
                         ;;
                     *)
-                        echo "DEBUG: prepend '$1'" >&2
+                        # echo "DEBUG: prepend '$1'" >&2
                         parsed_file_path_args+=("${CALLER_SUBDIR}${1}")
                         ;;
                 esac
             else
-                echo "DEBUG: Don't prepend '$1'" >&2
+                # echo "DEBUG: Don't prepend '$1'" >&2
                 parsed_file_path_args+=("$1")
             fi
             ;;
@@ -80,24 +80,24 @@ done
 # ==============================================================================================
 MATCHED_FCStd_file_paths=()
 for file_path in "${parsed_file_path_args[@]}"; do
-    echo "DEBUG: Matching file_path: '$file_path'...." >&2
+    # echo "DEBUG: Matching file_path: '$file_path'...." >&2
 
     if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
-        echo "DEBUG: file_path contains wildcards or is a directory" >&2
+        # echo "DEBUG: file_path contains wildcards or is a directory" >&2
         
         mapfile -t modified_files_matching_pattern < <(GIT_COMMAND="ls-files" git ls-files -m "$file_path")
         for file in "${modified_files_matching_pattern[@]}"; do
             if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
-                echo "DEBUG: Matched '$file'" >&2
+                # echo "DEBUG: Matched '$file'" >&2
                 MATCHED_FCStd_file_paths+=("$file")
             fi
         done
 
     elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
-        echo "DEBUG: file_path is an FCStd file" >&2
+        # echo "DEBUG: file_path is an FCStd file" >&2
         MATCHED_FCStd_file_paths+=("$file_path")
     else
-        echo "DEBUG: file_path '$file_path' is not an FCStd file, directory, or wildcard..... skipping" >&2
+        # echo "DEBUG: file_path '$file_path' is not an FCStd file, directory, or wildcard..... skipping" >&2
     fi
 done
 
@@ -105,7 +105,7 @@ if [ ${#MATCHED_FCStd_file_paths[@]} -gt 0 ]; then
     mapfile -t MATCHED_FCStd_file_paths < <(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u) # Remove duplicates (creates an empty element if no elements)
 fi
 
-echo "DEBUG: matched '${#MATCHED_FCStd_file_paths[@]}' .FCStd files: '${MATCHED_FCStd_file_paths[@]}'" >&2
+# echo "DEBUG: matched '${#MATCHED_FCStd_file_paths[@]}' .FCStd files: '${MATCHED_FCStd_file_paths[@]}'" >&2
 
 # ==============================================================================================
 #                              Create .fcmod Files For Matched FCStd Files
@@ -113,14 +113,14 @@ echo "DEBUG: matched '${#MATCHED_FCStd_file_paths[@]}' .FCStd files: '${MATCHED_
 current_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")
 
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
-    echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
+    # echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
 
     FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
     fcmod_path="$FCStd_dir_path/.fcmod"
 
     mkdir -p "$(dirname "$fcmod_path")"
     echo "$current_timestamp" > "$fcmod_path"
-    echo "DEBUG: Created/updated .fcmod for '$FCStd_file_path' with timestamp '$current_timestamp'" >&2
+    # echo "DEBUG: Created/updated .fcmod for '$FCStd_file_path' with timestamp '$current_timestamp'" >&2
 done
 
 # ==============================================================================================

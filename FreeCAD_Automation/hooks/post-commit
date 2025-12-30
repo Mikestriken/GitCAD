@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: ============== post-commit hook trap-card triggered! ==============" >&2
+# echo "DEBUG: ============== post-commit hook trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                         GIT LFS Hooks
 # ==============================================================================================
@@ -47,7 +47,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     for changefile in "${COMMITTED_CHANGEFILES[@]}"; do
         [ -z "$changefile" ] && continue
         
-        echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
+        # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
         FCStd_dir_path=$(dirname "$changefile")
@@ -56,11 +56,11 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         if printf '%s\n' "${CURRENT_LOCKS[@]}" | grep -Fxq -- "$lockfile"; then
             # User has lock, set .FCStd file to writable
             make_writable "$FCStd_file_path"
-            echo "DEBUG: set '$FCStd_file_path' writable." >&2
+            # echo "DEBUG: set '$FCStd_file_path' writable." >&2
         else
             # User doesn't have lock, set .FCStd file to readonly
             make_readonly "$FCStd_file_path"
-            echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+            # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
         fi
     done
 fi

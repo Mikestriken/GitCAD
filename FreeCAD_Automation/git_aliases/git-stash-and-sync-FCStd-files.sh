@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: ============== git-stash-and-sync-FCStd-files trap-card triggered! ==============" >&2
+# echo "DEBUG: ============== git-stash-and-sync-FCStd-files trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                       Script Overview
 # ==============================================================================================
@@ -42,7 +42,7 @@ exit_fstash() {
             exit $FAIL
             ;;
         *)
-            echo "DEBUG: exiting with code '$1'..." >&2
+            # echo "DEBUG: exiting with code '$1'..." >&2
             exit $1
             ;;
     esac
@@ -103,7 +103,7 @@ if [ $# -eq 0 ]; then
 fi
 
 while [ $# -gt 0 ]; do
-    echo "DEBUG: parsing '$1'..." >&2
+    # echo "DEBUG: parsing '$1'..." >&2
     case $1 in
         # ===== Capture Explicit STASH_COMMANDs that apply stashed changes =====
         pop|apply)
@@ -118,7 +118,7 @@ while [ $# -gt 0 ]; do
 
             STASH_COMMAND="$1"
             stash_command_args+=("$1")
-            echo "DEBUG: POP_OR_APPLY_FLAG set for '$STASH_COMMAND'" >&2
+            # echo "DEBUG: POP_OR_APPLY_FLAG set for '$STASH_COMMAND'" >&2
             ;;
 
         "branch")
@@ -233,7 +233,7 @@ while [ $# -gt 0 ]; do
             fi
 
             FILE_SEPARATOR_FLAG=$TRUE
-            echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
+            # echo "DEBUG: FILE_SEPARATOR_FLAG set" >&2
             ;;
         
         # ===== Capture `git stash` Flags =====
@@ -243,7 +243,7 @@ while [ $# -gt 0 ]; do
                 exit_fstash $FAIL
             fi
 
-            echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
+            # echo "DEBUG: '$1' flag is not recognized, skipping..." >&2
             stash_command_args+=("$1")
             ;;
         
@@ -263,22 +263,22 @@ while [ $# -gt 0 ]; do
                 if [ -n "$CALLER_SUBDIR" ]; then
                     case $1 in
                         ".")
-                            echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
+                            # echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
                             parsed_file_path_args+=("$CALLER_SUBDIR")
                             ;;
                         *)
-                            echo "DEBUG: prepend '$1'" >&2
+                            # echo "DEBUG: prepend '$1'" >&2
                             parsed_file_path_args+=("${CALLER_SUBDIR}${1}")
                             ;;
                     esac
                 else
-                    echo "DEBUG: Don't prepend '$1'" >&2
+                    # echo "DEBUG: Don't prepend '$1'" >&2
                     parsed_file_path_args+=("$1")
                 fi
             
             else
                 stash_command_args+=("$1")
-                echo "DEBUG: '$1' not recognized, skipping..." >&2
+                # echo "DEBUG: '$1' not recognized, skipping..." >&2
             fi
             ;;
     esac
@@ -289,8 +289,8 @@ done
 #                                   Execute Stash n' Import
 # ==============================================================================================
 if [ "$STASH_COMMAND_DOES_NOT_MODIFY_WORKING_DIR_OR_CREATE_STASHES" = "$TRUE" ]; then
-    echo "DEBUG: stash command does not modify working directory or create stashes. Passing command directly to git stash." >&2
-    echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
+    # echo "DEBUG: stash command does not modify working directory or create stashes. Passing command directly to git stash." >&2
+    # echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
     GIT_COMMAND="stash" "$git_path" stash "${stash_args[@]}"
 
 
@@ -299,7 +299,7 @@ if [ "$STASH_COMMAND_DOES_NOT_MODIFY_WORKING_DIR_OR_CREATE_STASHES" = "$TRUE" ];
 
 # ============= Called stash command involves applying stash to working directory ==============
 elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH_COMMAND" = "branch" ]; then
-    echo "DEBUG: Stash pop/apply/branch detected" >&2
+    # echo "DEBUG: Stash pop/apply/branch detected" >&2
 
     if [ -z "$STASH_REF" ]; then
         STASH_REF="stash@{0}"
@@ -313,10 +313,10 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         for index in "${!parsed_file_path_args[@]}"; do
             file_path="${parsed_file_path_args[index]}"
             
-            echo "DEBUG: Matching file_path: '$file_path'...." >&2
+            # echo "DEBUG: Matching file_path: '$file_path'...." >&2
             # Match pattern to stashed FCStd and changefiles and ensure user has lock
             if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
-                echo "DEBUG: file_path contains wildcards or is a directory" >&2
+                # echo "DEBUG: file_path contains wildcards or is a directory" >&2
         
                 mapfile -t stashed_files_matching_pattern < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -F -- "$file_path")
                 for file in "${stashed_files_matching_pattern[@]}"; do
@@ -331,7 +331,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                         FCSTD_FILES_IN_STASH_BEING_APPLIED+=("$file")
                     
                     elif [[ "$file" =~ \.changefile$ ]]; then
-                        echo "DEBUG: Matched '$file'" >&2
+                        # echo "DEBUG: Matched '$file'" >&2
                         FCStd_file_path=$(get_FCStd_file_from_changefile "$file") || exit_fstash $FAIL
                         
                         FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
@@ -351,7 +351,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                 # If specified FCStd file has invalid lock
             # If valid, change file_path in parsed_file_path_args to the FCStd_dir_path
             elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
-                echo "DEBUG: file_path is an FCStd file" >&2
+                # echo "DEBUG: file_path is an FCStd file" >&2
                 FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file_path") || exit_fstash $FAIL
 
                 if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
@@ -363,7 +363,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                 
             # Check user has lock for changefile being stashed
             elif [[ "$file_path" =~ \.changefile$ ]]; then
-                echo "DEBUG: file_path is a changefile" >&2
+                # echo "DEBUG: file_path is a changefile" >&2
                 FCStd_file_path=$(get_FCStd_file_from_changefile "$file_path") || exit_fstash $FAIL
                 
                 FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
@@ -376,7 +376,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                 CHANGEFILES_IN_STASH_BEING_APPLIED+=("$file_path")
             
             else
-                echo "DEBUG: file_path '$file_path' is not an FCStd file, changefile, directory, or wildcard..... skipping" >&2
+                # echo "DEBUG: file_path '$file_path' is not an FCStd file, changefile, directory, or wildcard..... skipping" >&2
                 :
             fi
         done
@@ -384,13 +384,13 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         mapfile -t CHANGEFILES_IN_STASH_BEING_APPLIED < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.changefile$' || true)
         mapfile -t FCSTD_FILES_IN_STASH_BEING_APPLIED < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -i -- '\.fcstd$' || true)
         
-        echo -e "\nDEBUG: checking stashed changefiles: '$(echo "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
-        echo -e "\nDEBUG: checking stashed FCStd files: '$(echo "${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
+        # echo -e "\nDEBUG: checking stashed changefiles: '$(echo "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
+        # echo -e "\nDEBUG: checking stashed FCStd files: '$(echo "${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]}")'" >&2
 
         # Note 1: If a user stashes both a .FCStd file and its associated .changefile at the same time, the .FCStd file will be overwritten with .changefile data during the import stage later.
         # Note 2: User is prevented from stashing .FCStd files using this script.
         for changefile_path in "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}"; do
-            echo -e "\nDEBUG: checking '$changefile_path'....$(grep 'File Last Exported On:' "$changefile_path")" >&2
+            # echo -e "\nDEBUG: checking '$changefile_path'....$(grep 'File Last Exported On:' "$changefile_path")" >&2
 
             # Note: code mostly copied from utils `get_FCStd_file_from_changefile()` except we check the stashed .changefile instead of the working dir .changefile
                 # Read the line with FCStd_file_relpath
@@ -425,7 +425,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         done
         
         for FCStd_file_path in "${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]}"; do
-            echo -e -n "\nDEBUG: checking '$FCStd_file_path'...." >&2
+            # echo -e -n "\nDEBUG: checking '$FCStd_file_path'...." >&2
             FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
             # echo -e "$(grep 'File Last Exported On:' "$FCStd_dir_path/.changefile")" >&2
 
@@ -455,7 +455,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
 
     # Synchronize .FCStd files with applied changes
     for changefile_path in "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}"; do
-        echo -e "\nDEBUG: checking '$changefile_path'....$(grep -F -- 'File Last Exported On:' "$changefile_path")" >&2
+        # echo -e "\nDEBUG: checking '$changefile_path'....$(grep -F -- 'File Last Exported On:' "$changefile_path")" >&2
         
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || continue
         
@@ -465,7 +465,6 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         }
         echo "SUCCESS" >&2
 
-        # ToDo: For some reason, although this runs successfully the file tends to show up as modified still after the fcmod operation.
         "$git_path" fcmod "$FCStd_file_path"
     done
 
@@ -477,7 +476,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
 
 # ===== Called stash command involves stashing away working directory changes (creating stashes) =====
 elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH_COMMAND" = "create" ]; then
-    echo "DEBUG: Stash push/save/create detected" >&2
+    # echo "DEBUG: Stash push/save/create detected" >&2
     
     GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
     mapfile -t MODIFIED_FCSTD_FILES < <(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$' || true)
@@ -494,12 +493,12 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
         for index in "${!parsed_file_path_args[@]}"; do
             file_path="${parsed_file_path_args[index]}"
             
-            echo "DEBUG: Matching file_path: '$file_path'...." >&2
+            # echo "DEBUG: Matching file_path: '$file_path'...." >&2
             # Match pattern to modified FCStd and changefiles
                 # If pattern matches FCStd file, exit early
             # Ensure user has lock for changefiles being stashed
             if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
-                echo "DEBUG: file_path contains wildcards or is a directory" >&2
+                # echo "DEBUG: file_path contains wildcards or is a directory" >&2
         
                 mapfile -t modified_files_matching_pattern < <(GIT_COMMAND="ls-files" "$git_path" ls-files -m "$file_path")
                 for file in "${modified_files_matching_pattern[@]}"; do
@@ -508,7 +507,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
                         exit_fstash $FAIL
                     
                     elif [[ "$file" =~ \.changefile$ ]]; then
-                        echo "DEBUG: Matched '$file'" >&2
+                        # echo "DEBUG: Matched '$file'" >&2
                         FCStd_file_path=$(get_FCStd_file_from_changefile "$file") || exit_fstash $FAIL
                         
                         FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
@@ -525,7 +524,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
                 # If specified FCStd file has invalid lock
             # If valid, change file_path in parsed_file_path_args to the FCStd_dir_path
             elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
-                echo "DEBUG: file_path is an FCStd file" >&2
+                # echo "DEBUG: file_path is an FCStd file" >&2
                 
                 if printf '%s\n' "${MODIFIED_FCSTD_FILES[@]}" | grep -Fxq -- "$file_path"; then
                     echo "Error: Cannot stash '$file_path', export it first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
@@ -544,7 +543,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
                 
             # Check user has lock for changefile being stashed
             elif [[ "$file_path" =~ \.changefile$ ]]; then
-                echo "DEBUG: file_path is a changefile" >&2
+                # echo "DEBUG: file_path is a changefile" >&2
                 FCStd_file_path=$(get_FCStd_file_from_changefile "$file_path") || exit_fstash $FAIL
                 
                 FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
@@ -554,7 +553,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
                     exit_fstash $FAIL
                 fi
             else
-                echo "DEBUG: file_path '$file_path' is not an FCStd file, changefile, directory, or wildcard..... skipping" >&2
+                # echo "DEBUG: file_path '$file_path' is not an FCStd file, changefile, directory, or wildcard..... skipping" >&2
                 :
             fi
         done
@@ -586,16 +585,16 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
     GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
     mapfile -t BEFORE_STASH_CHANGEFILES < <(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
     
-    echo "DEBUG: retrieved before stash changefiles..." >&2
+    # echo "DEBUG: retrieved before stash changefiles..." >&2
 
     # Execute git stash
         # Note: `git stash` sometimes calls clean filter...
         # Note: As of git v2.52.0, the FILE_SEPARATOR is only valid for the "push" STASH_COMMAND
     if [ "$FILE_SEPARATOR_FLAG" = "$TRUE" ]; then
-        echo "DEBUG: '$git_path stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"'" >&2
+        # echo "DEBUG: '$git_path stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"'" >&2
         GIT_COMMAND="stash" "$git_path" stash "${stash_command_args[@]}" -- "${parsed_file_path_args[@]}"
     else
-        echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
+        # echo "DEBUG: '$git_path stash ${stash_args[@]}'" >&2
         GIT_COMMAND="stash" "$git_path" stash "${stash_args[@]}"
     fi
     STASH_RESULT=$?
@@ -612,11 +611,11 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
     # Find files present before stash but not after stash (files that were stashed)
     STASHED_CHANGEFILES=$(comm -23 <(printf '%s\n' "${BEFORE_STASH_CHANGEFILES[@]}") <(printf '%s\n' "${AFTER_STASH_CHANGEFILE[@]}"))
 
-    echo -e "\nDEBUG: Importing stashed changefiles: '${STASHED_CHANGEFILES[@]}'" >&2
+    # echo -e "\nDEBUG: Importing stashed changefiles: '${STASHED_CHANGEFILES[@]}'" >&2
 
     # Import the files that are no longer modified (those that were stashed)
     for changefile_path in "${STASHED_CHANGEFILES[@]}"; do
-        echo -e "\nDEBUG: checking '$changefile_path'....$(grep -F -- 'File Last Exported On:' "$changefile_path")" >&2
+        # echo -e "\nDEBUG: checking '$changefile_path'....$(grep -F -- 'File Last Exported On:' "$changefile_path")" >&2
         
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || continue
         

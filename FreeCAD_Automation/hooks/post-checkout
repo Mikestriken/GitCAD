@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "DEBUG: ============== post-checkout hook trap-card triggered! ==============" >&2
+# echo "DEBUG: ============== post-checkout hook trap-card triggered! ==============" >&2
 # ==============================================================================================
 #                                         GIT LFS Hooks
 # ==============================================================================================
@@ -22,14 +22,14 @@ fi
 #                                      Pull LFS files
 # ==============================================================================================
 git lfs pull
-echo "DEBUG: Pulled lfs files" >&2
+# echo "DEBUG: Pulled lfs files" >&2
 
 # ==============================================================================================
 #                                  Handle Rebase Edge-case
 # ==============================================================================================
 # Note: Rebase logic handled by Post-Rewrite hook. If rebase detected (rebase-merge or rebase-apply dirs exit in .git), skip post-commit hook logic
 if [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; then
-    echo "DEBUG: Rebase detected, skipping post-checkout hook logic..." >&2
+    # echo "DEBUG: Rebase detected, skipping post-checkout hook logic..." >&2
     exit $SUCCESS
 
 # ==============================================================================================
@@ -37,7 +37,7 @@ if [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --
 # ==============================================================================================
 # Note, Args: $1=old-head-sha $2=new-head-sha $3=checkout-type (1=branch, 0=file)
 elif [ "$3" = "1" ]; then
-    echo "DEBUG: Processing Branch Checkout...." >&2
+    # echo "DEBUG: Processing Branch Checkout...." >&2
 
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         CURRENT_USER=$(git config --get user.name) || {
@@ -60,19 +60,19 @@ elif [ "$3" = "1" ]; then
         }
     fi
 
-    echo "DEBUG: diffing <remote sha1>='$1'..'$2'=<local sha1>" >&2
+    # echo "DEBUG: diffing <remote sha1>='$1'..'$2'=<local sha1>" >&2
     changed_files=$(GIT_COMMAND="diff-tree" git diff-tree --no-commit-id --name-only -r "$1" "$2")
 
     # Get changed `.changefile`s
     changefiles_changed_between_commits=$(printf '%s\n' "$changed_files" | grep -i -- '\.changefile$')
 
-    echo -e "\nDEBUG: checking changed changefiles: '$(echo "$changefiles_changed_between_commits" | xargs)'" >&2
+    # echo -e "\nDEBUG: checking changed changefiles: '$(echo "$changefiles_changed_between_commits" | xargs)'" >&2
 
     mapfile -t changefiles_changed_between_commits <<<"$changefiles_changed_between_commits"
     for changefile in "${changefiles_changed_between_commits[@]}"; do
         [ -z "$changefile" ] && continue
         
-        echo -e "\nDEBUG: checking '$changefile'....$(grep -F -- 'File Last Exported On:' "$changefile")" >&2
+        # echo -e "\nDEBUG: checking '$changefile'....$(grep -F -- 'File Last Exported On:' "$changefile")" >&2
 
         FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
 
@@ -95,11 +95,11 @@ elif [ "$3" = "1" ]; then
             if printf '%s\n' "${CURRENT_LOCKS[@]}" | grep -Fxq -- "$lockfile"; then
                 # User has lock, set .FCStd file to writable
                 make_writable "$FCStd_file_path"
-                echo "DEBUG: set '$FCStd_file_path' writable." >&2
+                # echo "DEBUG: set '$FCStd_file_path' writable." >&2
             else
                 # User doesn't have lock, set .FCStd file to readonly
                 make_readonly "$FCStd_file_path"
-                echo "DEBUG: set '$FCStd_file_path' readonly." >&2
+                # echo "DEBUG: set '$FCStd_file_path' readonly." >&2
             fi
         fi
     done
@@ -114,11 +114,11 @@ elif [ "$3" = "1" ]; then
     
     # Even if non-FCStd file logic was implemented for git fco, the environments are different enough I don't mind having duplicate code.
 elif [ "$3" = "0" ]; then
-    echo "DEBUG: Processing File Checkout...." >&2
+    # echo "DEBUG: Processing File Checkout...." >&2
     
     # >>>>>>>>>>>>>>>>>>> Prevent Infinite Loop With GitCAD Activated <<<<<<<<<<<<<<<<<<<
     if [ -n "$FILE_CHECKOUT_IN_PROGRESS" ]; then
-        echo "DEBUG: File checkout in progress, skipping..." >&2
+        # echo "DEBUG: File checkout in progress, skipping..." >&2
         :
 
     else

@@ -32,12 +32,12 @@ shift
 parsed_file_path_args=()
 FORCE_FLAG=$FALSE
 while [ $# -gt 0 ]; do
-    echo "DEBUG: parsing '$1'..." >&2
+    # echo "DEBUG: parsing '$1'..." >&2
     case $1 in
         # Set boolean flag if arg is a valid flag
         "--force")
             FORCE_FLAG=$TRUE
-            echo "DEBUG: FORCE_FLAG set" >&2
+            # echo "DEBUG: FORCE_FLAG set" >&2
             ;;
         
         -*)
@@ -49,23 +49,23 @@ while [ $# -gt 0 ]; do
             if [ -n "$CALLER_SUBDIR" ]; then
                 case $1 in
                     ".")
-                        echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
+                        # echo "DEBUG: '$1' -> '$CALLER_SUBDIR'" >&2
                         parsed_file_path_args+=("$CALLER_SUBDIR")
                         ;;
                     *)
-                        echo "DEBUG: prepend '$1'" >&2
+                        # echo "DEBUG: prepend '$1'" >&2
                         parsed_file_path_args+=("${CALLER_SUBDIR}${1}")
                         ;;
                 esac
             else
-                echo "DEBUG: Don't prepend '$1'" >&2
+                # echo "DEBUG: Don't prepend '$1'" >&2
                 parsed_file_path_args+=("$1")
             fi
             ;;
     esac
     shift
 done
-echo "DEBUG: Args='$parsed_file_path_args'" >&2
+# echo "DEBUG: Args='$parsed_file_path_args'" >&2
 
 # ==============================================================================================
 #                                          Lock File
@@ -93,14 +93,14 @@ if [ "$FORCE_FLAG" = "$TRUE" ]; then
         exit $FAIL
     }
 
-    echo "DEBUG: Stealing..." >&2
+    # echo "DEBUG: Stealing..." >&2
     
     if printf '%s\n' "$LOCK_INFO" | grep -Fq -- "$CURRENT_USER"; then
-        echo "DEBUG: lock already owned, no need to steal." >&2
+        # echo "DEBUG: lock already owned, no need to steal." >&2
         :
     
     elif [ -n "$LOCK_INFO" ]; then
-        echo "DEBUG: Forcefully unlocking..." >&2
+        # echo "DEBUG: Forcefully unlocking..." >&2
         git lfs unlock --force "$lockfile_path" || exit $FAIL
     fi
 fi
@@ -108,6 +108,6 @@ fi
 git lfs lock "$lockfile_path" || exit $FAIL
 
 make_writable "$FCStd_file_path" || exit $FAIL
-echo "DEBUG: '$FCStd_file_path' now writable and locked" >&2
+# echo "DEBUG: '$FCStd_file_path' now writable and locked" >&2
 
 exit $SUCCESS
