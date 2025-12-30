@@ -1,5 +1,5 @@
 ## GitCAD
-This repository contains tools and scripts to automate the git workflow for committing `.FCStd` files in their uncompressed form (GitCAD is the name of the collection of tools and scripts). The complete documentation for these tools and scripts can be found on the [Official GitCAD repository](https://github.com/Mikestriken/GitCAD).
+This repository contains tools and scripts to automate the git workflow for committing `.FCStd` files in their uncompressed form (GitCAD is the name of the collection of tools and scripts). The complete documentation for these tools and scripts can be found on the [Official GitCAD repository](https://github.com/MikeOpsGit/GitCAD).
 
 ### Setting Up This Repository
 Video Demo:  

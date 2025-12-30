@@ -129,7 +129,7 @@ def get_FCStd_dir_path(FCStd_file_path:str, config:dict) -> str:
     Returns:
         str: Path to uncompressed FCStd file directory.
     """
-    # Fix for https://github.com/Mikestriken/GitCAD/issues/2
+    # Fix for https://github.com/MikeOpsGit/GitCAD/issues/2
     if not os.path.exists(FCStd_file_path):
         raise FileNotFoundError(f"ERR: FCStd file '{FCStd_file_path}' does not exist.")
     
