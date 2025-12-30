@@ -264,7 +264,7 @@ await_user_modification() {
         
         elif [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
             echo "Please modify '$file' in FreeCAD and save it. Press enter when done."
-            start "$file"
+            start "" "$file"
             read -r dummy
             if GIT_COMMAND="status" git status --porcelain -z | grep -q -- "^.M $file$"; then
                 taskkill //IM freecad.exe //F
@@ -301,7 +301,7 @@ confirm_user() {
         
         elif [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
             echo "$message (y/n)"
-            start "$file"
+            start "" "$file"
             read -r response
             taskkill //IM freecad.exe //F
             case $response in
