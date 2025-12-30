@@ -59,7 +59,8 @@ fi
 echo "=============================================================================================="
 echo "                                    Create Config File"
 echo "=============================================================================================="
-DEFAULT_CONFIG='{
+DEFAULT_CONFIG=$(cat <<EOF
+{
     "freecad-python-instance-path": "",
 
     "require-lock-to-modify-FreeCAD-files": true,
@@ -84,7 +85,9 @@ DEFAULT_CONFIG='{
         "compression-level": 9,
         "zip-file-prefix": "compressed_binaries_"
     }
-}'
+}
+EOF
+)
 
 if [ ! -f "FreeCAD_Automation/config.json" ]; then
     echo "$DEFAULT_CONFIG" > "FreeCAD_Automation/config.json"
