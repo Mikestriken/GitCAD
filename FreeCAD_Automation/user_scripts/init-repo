@@ -9,7 +9,7 @@ FALSE=1
 # ==============================================================================================
 
 # Check if inside a Git repository, ensure pwd is root of repository
-git_repo_root_path=$(git rev-parse --show-toplevel)
+git_repo_root_path="$(git rev-parse --show-toplevel)"
 if [ "$?" = "$SUCCESS" ]; then
     cd "$git_repo_root_path"
 else 
@@ -54,12 +54,12 @@ if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
     echo "All bash scripts and hooks made executable."
 
     if [ -n "$SUDO_USER" ]; then
-        OWNER=$SUDO_USER
+        OWNER="$SUDO_USER"
     else
-        OWNER=$(whoami)
+        OWNER="$(whoami)"
     fi
 
-    if ! chown -R "$OWNER":"$OWNER" $(pwd); then
+    if ! chown -R "$OWNER":"$OWNER" "$(pwd)"; then
         echo "Error: Permission denied for chown. Please run this script with sudo." >&2
         exit $FAIL
     fi
@@ -127,7 +127,7 @@ if ! command -v git-lfs >/dev/null; then
 fi
 echo "git-lfs is installed"
 
-GIT_ROOT=$(git rev-parse --show-toplevel)
+GIT_ROOT="$(git rev-parse --show-toplevel)"
 cd "$GIT_ROOT"
 
 # Import code used in this script
@@ -242,7 +242,7 @@ setup_git_FCStd_filter() {
     local desired_value="$2"
     local purpose="$3"
 
-    CURRENT_VALUE=$(git config --get "filter.FCStd.$filter_type" 2>/dev/null)
+    CURRENT_VALUE="$(git config --get "filter.FCStd.$filter_type" 2>/dev/null)"
 
     if [ -n "$CURRENT_VALUE" ]; then
         if [ "$CURRENT_VALUE" = "$desired_value" ]; then
@@ -418,7 +418,7 @@ setup_git_alias() {
     local desired_value="$2"
     local purpose="$3"
 
-    CURRENT_VALUE=$(git config --get "alias.$alias" 2>/dev/null)
+    CURRENT_VALUE="$(git config --get "alias.$alias" 2>/dev/null)"
 
     if [ -n "$CURRENT_VALUE" ]; then
         if [ "$CURRENT_VALUE" = "$desired_value" ]; then
@@ -466,15 +466,15 @@ setup_git_alias "lock" "!bash FreeCAD_Automation/git_aliases/lock.sh \"\${GIT_PR
 setup_git_alias "unlock" "!bash FreeCAD_Automation/git_aliases/unlock.sh \"\${GIT_PREFIX}\"" "Adds \`git unlock\` as alias to run unlock.sh"
 setup_git_alias "locks" "lfs locks" "1 to 1 alias for \`git lfs locks\`"
 setup_git_alias "ftool" "!bash FreeCAD_Automation/git_aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\"" "Adds \`git ftool\` as alias to run FCStdFileTool.py"
-setup_git_alias "fimport" "!bash FreeCAD_Automation/git_aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --import" "Adds \`git fimport\` as alias to run FCStdFileTool.py with preset import args"
-setup_git_alias "fexport" "!bash FreeCAD_Automation/git_aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\" --CONFIG-FILE --export" "Adds \`git fexport\` as alias to run FCStdFileTool.py with preset export args"
+setup_git_alias "fimport" "!bash FreeCAD_Automation/git_aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\" --fimport" "Adds \`git fimport\` as alias to run FCStdFileTool.py with preset import args"
+setup_git_alias "fexport" "!bash FreeCAD_Automation/git_aliases/FCStd-file-tool.sh \"\${GIT_PREFIX}\" --fexport" "Adds \`git fexport\` as alias to run FCStdFileTool.py with preset export args"
 setup_git_alias "fstash" "!bash FreeCAD_Automation/git_aliases/git-stash-and-sync-FCStd-files.sh \"\${GIT_PREFIX}\"" "Adds \`git fstash\` as alias to run git-stash-and-sync-FCStd-files.sh"
 setup_git_alias "freset" "!bash FreeCAD_Automation/git_aliases/git-reset-and-sync-FCStd-files.sh" "Adds \`git freset\` as alias to run git-reset-and-sync-FCStd-files.sh"
 
 echo "=============================================================================================="
 echo "                               Synchronizing \`.FCStd\` Files"
 echo "=============================================================================================="
-FCStd_file_paths=$(GIT_COMMAND="ls-files" git ls-files | grep -i -- '\.fcstd$')
+FCStd_file_paths="$(GIT_COMMAND="ls-files" git ls-files | grep -i -- '\.fcstd$')"
 
 if [ -n "$FCStd_file_paths" ]; then
     echo "Do you want to import data from all uncompressed FreeCAD dirs to their respective \`.FCStd\` files?: "

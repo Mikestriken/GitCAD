@@ -3,7 +3,7 @@
 #                                  Verify and Retrieve Dependencies
 # ==============================================================================================
 # Ensure working dir is the root of the repo
-GIT_ROOT=$(git rev-parse --show-toplevel)
+GIT_ROOT="$(git rev-parse --show-toplevel)"
 cd "$GIT_ROOT"
 
 # Import code used in this script

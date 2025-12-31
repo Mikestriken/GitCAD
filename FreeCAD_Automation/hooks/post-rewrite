@@ -28,7 +28,7 @@ git lfs pull
 #                         Update .FCStd files with uncompressed files
 # ==============================================================================================
 if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-    CURRENT_USER=$(git config --get user.name) || {
+    CURRENT_USER="$(git config --get user.name)" || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
     }
@@ -49,10 +49,10 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
 fi
 
 # echo "DEBUG: diffing <remote sha1>='ORIG_HEAD'..'HEAD'=<local sha1>" >&2
-changed_files=$(GIT_COMMAND="diff-tree" git diff-tree --no-commit-id --name-only -r "ORIG_HEAD" "HEAD")
+changed_files="$(GIT_COMMAND="diff-tree" git diff-tree --no-commit-id --name-only -r "ORIG_HEAD" "HEAD")"
 
 # Get changed `.changefile`s
-changed_changefiles=$(printf '%s\n' "$changed_files" | grep -i -- '\.changefile$')
+changed_changefiles="$(printf '%s\n' "$changed_files" | grep -i -- '\.changefile$')"
 
 # echo -e "\nDEBUG: checking changed lockfiles: '$(echo "$changed_changefiles" | xargs)'" >&2
 
@@ -62,7 +62,7 @@ for changefile in "${changed_changefiles[@]}"; do
     
     # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
-    FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile") || continue
+    FCStd_file_path="$(get_FCStd_file_from_changefile "$changefile")" || continue
 
     echo -n "IMPORTING: '$FCStd_file_path'...." >&2
 
@@ -76,7 +76,7 @@ for changefile in "${changed_changefiles[@]}"; do
 
     git fcmod "$FCStd_file_path"
 
-    FCStd_dir_path=$(dirname "$changefile")
+    FCStd_dir_path="$(dirname "$changefile")"
     lockfile="$FCStd_dir_path/.lockfile"
 
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then

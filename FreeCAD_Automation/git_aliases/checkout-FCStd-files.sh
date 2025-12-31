@@ -40,7 +40,7 @@ git lfs pull
 # CALLER_SUBDIR=${GIT_PREFIX}:
     # If caller's pwd is $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
     # If caller's pwd is $GIT_ROOT, $(GIT_PREFIX) = ""
-CALLER_SUBDIR=$1
+CALLER_SUBDIR="$1"
 shift
 
 # Parse arguments: CHECKOUT_COMMIT FILE [FILE ...] OR -- CHECKOUT_COMMIT FILE [FILE ...]
@@ -49,7 +49,7 @@ if [ $# -lt 2 ]; then
     exit $FAIL
 fi
 
-CHECKOUT_COMMIT=$1
+CHECKOUT_COMMIT="$1"
 shift
 
 # Note: In case user uses `git fco CHECKOUT_COMMIT -- FILE [FILE ...]` format
@@ -98,8 +98,8 @@ done
 #                                     HEAD Checkout Edgecase
 # ==============================================================================================
 # Note: If checking out HEAD (resetting modified files), We also need to check if the FCStd_dir_path or FCStd_file_path is modified in the working directory PRIOR to checkout
-HEAD_SHA=$("$git_path" rev-parse HEAD)
-CHECKOUT_SHA=$("$git_path" rev-parse "$CHECKOUT_COMMIT")
+HEAD_SHA="$("$git_path" rev-parse HEAD)"
+CHECKOUT_SHA="$("$git_path" rev-parse "$CHECKOUT_COMMIT")"
 IS_HEAD_CHECKOUT=$FALSE
 changefiles_with_modifications_not_yet_committed=""
 
@@ -110,10 +110,10 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
     GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
 
     # List of all modified changefiles
-    changefiles_with_modifications_not_yet_committed=$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$')
+    changefiles_with_modifications_not_yet_committed="$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$')"
     # echo "DEBUG: Found modified changefiles for HEAD checkout: $(echo "$changefiles_with_modifications_not_yet_committed" | xargs)" >&2
     
-    FCStd_files_with_modifications_not_yet_committed=$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$')
+    FCStd_files_with_modifications_not_yet_committed="$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.fcstd$')"
     # echo "DEBUG: Found modified FCStd files for HEAD checkout: $(echo "$FCStd_files_with_modifications_not_yet_committed" | xargs)" >&2
     
     # For each modified FCStd file, find its changefile and add it to the list of modified changefiles
@@ -122,7 +122,7 @@ if [ "$HEAD_SHA" = "$CHECKOUT_SHA" ]; then
         [ -z "$FCStd_file_path" ] && continue
         
         # echo "DEBUG: Finding changefile for FCStd file: '$FCStd_file_path'" >&2
-        FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+        FCStd_dir_path="$(get_FCStd_dir "$FCStd_file_path")" || continue
         changefile_path="$FCStd_dir_path/.changefile"
 
         if printf '%s\n' "$changefiles_with_modifications_not_yet_committed" | grep -Fxq -- "$changefile_path"; then
@@ -197,11 +197,11 @@ fi
     # We'll only checkout dirs for files that will actually change between commits OR if it's currently modified (HEAD checkout case).
 FCStd_dirs_to_checkout=()
 declare -A FCStd_dir_to_file_dict # Bash Dictionary
-changefiles_changed_between_commits=$(GIT_COMMAND="diff-tree" "$git_path" diff-tree --no-commit-id --name-only -r "$CHECKOUT_COMMIT" HEAD | grep -i -- '\.changefile$')
+changefiles_changed_between_commits="$(GIT_COMMAND="diff-tree" "$git_path" diff-tree --no-commit-id --name-only -r "$CHECKOUT_COMMIT" HEAD | grep -i -- '\.changefile$')"
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
     
-    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+    FCStd_dir_path="$(get_FCStd_dir "$FCStd_file_path")" || continue
     changefile_path="$FCStd_dir_path/.changefile"
     
     if printf '%s\n' "$changefiles_changed_between_commits" | grep -Fxq -- "$changefile_path" || printf '%s\n' "$changefiles_with_modifications_not_yet_committed" | grep -Fxq -- "$changefile_path"; then
@@ -261,7 +261,7 @@ for FCStd_dir_path in "${FCStd_dirs_to_checkout[@]}"; do
 
     # Handle locks
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || continue
+        FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$FCStd_file_path")" || continue
 
         if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
             # User doesn't have lock, set .FCStd file to readonly

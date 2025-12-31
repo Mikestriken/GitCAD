@@ -3,7 +3,7 @@
 #                                  Verify and Retrieve Dependencies
 # ==============================================================================================
 # Ensure working dir is the root of the repo
-GIT_ROOT=$(git rev-parse --show-toplevel)
+GIT_ROOT="$(git rev-parse --show-toplevel)"
 cd "$GIT_ROOT"
 
 # Import code used in this script
@@ -148,7 +148,7 @@ tearDown() {
     done
 
     # Get list of local active_test* branches and delete them
-    LOCAL_ACTIVE_TEST_BRANCHES=$(git branch --list "$TEST_BRANCH*" | sed 's/^* //;s/^  //')
+    LOCAL_ACTIVE_TEST_BRANCHES="$(git branch --list "$TEST_BRANCH*" | sed 's/^* //;s/^  //')"
     if [ -n "$LOCAL_ACTIVE_TEST_BRANCHES" ]; then
         echo "Local active_test* branches: '$LOCAL_ACTIVE_TEST_BRANCHES'"
         echo "$LOCAL_ACTIVE_TEST_BRANCHES" | xargs -r git branch -D >/dev/null 2>&1 || true
@@ -255,7 +255,7 @@ await_user_modification() {
             disown
             read -r dummy
             if GIT_COMMAND="status" git status --porcelain -z | grep -q -- "^.M $file$"; then
-                freecad_pid=$(pgrep -n -i FreeCAD)
+                freecad_pid="$(pgrep -n -i FreeCAD)"
                 kill "$freecad_pid"
                 break
             else
@@ -290,7 +290,7 @@ confirm_user() {
             xdg-open "$file" > /dev/null &
             disown
             read -r response
-            freecad_pid=$(pgrep -n -i FreeCAD)
+            freecad_pid="$(pgrep -n -i FreeCAD)"
             kill "$freecad_pid"
 
             case $response in
@@ -361,7 +361,7 @@ test_sandbox() {
 
     echo ">>>>>> TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_sandbox"; exit $FAIL; }
+    REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || { tearDown "test_sandbox"; exit $FAIL; }
     echo ">>>>>> TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -373,11 +373,11 @@ test_sandbox() {
 
     echo ">>>>>> TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
-    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_sandbox"; exit $FAIL; }
+    Assembly_dir_path="$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd")" || { tearDown "test_sandbox"; exit $FAIL; }
     echo ">>>>>> TEST: Assembly_dir_path=$Assembly_dir_path" >&2
     assert_dir_exists "$Assembly_dir_path"; echo
     local BIM_dir_path
-    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_sandbox"; exit $FAIL; }
+    BIM_dir_path="$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd")" || { tearDown "test_sandbox"; exit $FAIL; }
     echo ">>>>>> TEST: BIM_dir_path=$BIM_dir_path" >&2
     assert_dir_exists "$BIM_dir_path"; echo
 
@@ -407,7 +407,7 @@ test_FCStd_clean_filter() {
 
     echo ">>>>>> TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_FCStd_clean_filter"; exit $FAIL; }
+    REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || { tearDown "test_FCStd_clean_filter"; exit $FAIL; }
     echo ">>>>>> TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -419,7 +419,7 @@ test_FCStd_clean_filter() {
 
     echo ">>>>>> TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
-    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_FCStd_clean_filter"; exit $FAIL; }
+    FCStd_dir_path="$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd")" || { tearDown "test_FCStd_clean_filter"; exit $FAIL; }
     echo ">>>>>> TEST: FCStd_dir_path=$FCStd_dir_path" >&2
     assert_dir_exists "$FCStd_dir_path"; echo
 
@@ -477,7 +477,7 @@ test_pre_commit_hook() {
 
     echo ">>>>>> TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_pre_commit_hook"; exit $FAIL; }
+    REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || { tearDown "test_pre_commit_hook"; exit $FAIL; }
     echo ">>>>>> TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -489,7 +489,7 @@ test_pre_commit_hook() {
 
     echo ">>>>>> TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
-    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_pre_commit_hook"; exit $FAIL; }
+    FCStd_dir_path="$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd")" || { tearDown "test_pre_commit_hook"; exit $FAIL; }
     echo ">>>>>> TEST: FCStd_dir_path=$FCStd_dir_path" >&2
     assert_dir_exists "$FCStd_dir_path"; echo
 
@@ -553,7 +553,7 @@ test_pre_push_hook() {
 
     echo ">>>>>> TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || { tearDown "test_pre_push_hook"; exit $FAIL; }
     echo ">>>>>> TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -562,11 +562,11 @@ test_pre_push_hook() {
 
     echo ">>>>>> TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
-    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    Assembly_dir_path="$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd")" || { tearDown "test_pre_push_hook"; exit $FAIL; }
     echo ">>>>>> TEST: Assembly_dir_path=$Assembly_dir_path" >&2
     assert_dir_exists "$Assembly_dir_path"; echo
     local BIM_dir_path
-    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_pre_push_hook"; exit $FAIL; }
+    BIM_dir_path="$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd")" || { tearDown "test_pre_push_hook"; exit $FAIL; }
     echo ">>>>>> TEST: BIM_dir_path=$BIM_dir_path" >&2
     assert_dir_exists "$BIM_dir_path"; echo
 
@@ -684,7 +684,7 @@ test_post_checkout_hook() {
 
     echo ">>>>>> TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_post_checkout_hook"; exit $FAIL; }
+    REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || { tearDown "test_post_checkout_hook"; exit $FAIL; }
     echo ">>>>>> TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -693,11 +693,11 @@ test_post_checkout_hook() {
 
     echo ">>>>>> TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
-    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_post_checkout_hook"; exit $FAIL; }
+    Assembly_dir_path="$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd")" || { tearDown "test_post_checkout_hook"; exit $FAIL; }
     echo ">>>>>> TEST: Assembly_dir_path=$Assembly_dir_path" >&2
     assert_dir_exists "$Assembly_dir_path"; echo
     local BIM_dir_path
-    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_post_checkout_hook"; exit $FAIL; }
+    BIM_dir_path="$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd")" || { tearDown "test_post_checkout_hook"; exit $FAIL; }
     echo ">>>>>> TEST: BIM_dir_path=$BIM_dir_path" >&2
     assert_dir_exists "$BIM_dir_path"; echo
 
@@ -880,7 +880,7 @@ test_post_checkout_hook() {
 
     
     # TEST: git fco / post-checkout hook synchronizes (imports) FCStd files while cd'd into subdir
-    local Original_Working_Directory=$(pwd)
+    local Original_Working_Directory="$(pwd)"
     echo ">>>>>> TEST: Changing Directory to '$TEST_DIR'" >&2
     assert_command_succeeds "cd \"$TEST_DIR\""
 
@@ -919,7 +919,7 @@ test_stashing() {
 
     echo ">>>>>> TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_stashing"; exit $FAIL; }
+    REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || { tearDown "test_stashing"; exit $FAIL; }
     echo ">>>>>> TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -931,7 +931,7 @@ test_stashing() {
 
     echo ">>>>>> TEST: Assert get_FCStd_dir for \`AssemblyExample.FCStd\` exists now" >&2
     local FCStd_dir_path
-    FCStd_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_stashing"; exit $FAIL; }
+    FCStd_dir_path="$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd")" || { tearDown "test_stashing"; exit $FAIL; }
     echo ">>>>>> TEST: FCStd_dir_path=$FCStd_dir_path" >&2
     assert_dir_exists "$FCStd_dir_path"; echo
 
@@ -1072,7 +1072,7 @@ test_post_merge_hook() {
 
     echo ">>>>>> TEST: Get REQUIRE_LOCKS configuration" >&2
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || { tearDown "test_post_merge_hook"; exit $FAIL; }
+    REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || { tearDown "test_post_merge_hook"; exit $FAIL; }
     echo ">>>>>> TEST: REQUIRE_LOCKS=$REQUIRE_LOCKS" >&2
     echo
 
@@ -1081,11 +1081,11 @@ test_post_merge_hook() {
 
     echo ">>>>>> TEST: Assert get_FCStd_dir exists now for both \`AssemblyExample.FCStd\` and \`BIMExample.FCStd\`" >&2
     local Assembly_dir_path
-    Assembly_dir_path=$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd") || { tearDown "test_post_merge_hook"; exit $FAIL; }
+    Assembly_dir_path="$(get_FCStd_dir "$TEST_DIR/AssemblyExample.FCStd")" || { tearDown "test_post_merge_hook"; exit $FAIL; }
     echo ">>>>>> TEST: Assembly_dir_path=$Assembly_dir_path" >&2
     assert_dir_exists "$Assembly_dir_path"; echo
     local BIM_dir_path
-    BIM_dir_path=$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd") || { tearDown "test_post_merge_hook"; exit $FAIL; }
+    BIM_dir_path="$(get_FCStd_dir "$TEST_DIR/BIMExample.FCStd")" || { tearDown "test_post_merge_hook"; exit $FAIL; }
     echo ">>>>>> TEST: BIM_dir_path=$BIM_dir_path" >&2
     assert_dir_exists "$BIM_dir_path"; echo
 

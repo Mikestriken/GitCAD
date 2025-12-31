@@ -39,12 +39,12 @@ fi
     # If `.fcmod` timestamp is newer or equal, show as not modified.
     # If `.fcmod` timestamp is older, then proceed.
     # If `.fcmod` doesn't exist then proceed.
-FCStd_dir_path=$(get_FCStd_dir "$1") || exit $FAIL
+FCStd_dir_path="$(get_FCStd_dir "$1")" || exit $FAIL
 fcmod_path="$FCStd_dir_path/.fcmod"
 
 if [ -f "$fcmod_path" ]; then
-    FCStd_file_modification_time=$(date -u -d @"$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')
-    fcmod_timestamp=$(cat "$fcmod_path")
+    FCStd_file_modification_time="$(date -u -d @"$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')"
+    fcmod_timestamp="$(cat "$fcmod_path")"
 
     if [[ "$fcmod_timestamp" > "$FCStd_file_modification_time" || "$fcmod_timestamp" == "$FCStd_file_modification_time" ]]; then
         # echo "DEBUG: '$1' not modified since last clear, showing empty .FCStd file and skipping export.... EXIT SUCCESS (Clean Filter)" >&2
@@ -60,8 +60,8 @@ fi
 changefile_path="$FCStd_dir_path/.changefile"
 
 if [ -f "$changefile_path" ]; then
-    FCStd_file_modification_time=$(date -u -d @"$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')
-    changefile_modification_time=$(date -u -d @"$(stat -c %Y "$changefile_path" 2>/dev/null || stat -f %m "$changefile_path" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')
+    FCStd_file_modification_time="$(date -u -d @"$(stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')"
+    changefile_modification_time="$(date -u -d @"$(stat -c %Y "$changefile_path" 2>/dev/null || stat -f %m "$changefile_path" 2>/dev/null)" '+%Y-%m-%dT%H:%M:%S.%6N%:z')"
     
     if [[ "$changefile_modification_time" > "$FCStd_file_modification_time" || "$changefile_modification_time" == "$FCStd_file_modification_time" ]]; then
         # echo "DEBUG: \`$1\` already exported, skipping export.... EXIT SUCCESS (Clean Filter)" >&2
@@ -162,7 +162,7 @@ if [ "$BYPASS_LOCK" = "$TRUE" ]; then
     :
 
 else
-    FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$1") || exit $FAIL
+    FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$1")" || exit $FAIL
 
     # echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 

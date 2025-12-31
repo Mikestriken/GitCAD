@@ -12,24 +12,24 @@ FALSE=1
 CONFIG_FILE="FreeCAD_Automation/config.json"
 
 # DESCRIPTION: Function to extract FreeCAD Python path from config file
-    # USAGE: `PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL`
+    # USAGE: `PYTHON_PATH="$(get_freecad_python_path "$CONFIG_FILE")" || exit $FAIL`
 get_freecad_python_path() {
-    local file=$1
+    local file="$1"
     local key="freecad-python-instance-path"
     
     # Find the line containing the key
-    local line=$(grep -F -- "\"$key\"" "$file")
+    local line="$(grep -F -- "\"$key\"" "$file")"
     if [ -z "$line" ]; then
         echo "Error: Key '$key' not found in $file" >&2
         return $FAIL
     fi
 
     # Extract value after : (stops at , or } for simple cases)
-    local value=$(echo "$line" | sed 's/.*"'"$key"'": \([^,}]*\).*/\1/')
+    local value="$(echo "$line" | sed 's/.*"'"$key"'": \([^,}]*\).*/\1/')"
     
     # Strip surrounding quotes if it's a string
     if [[ $value =~ ^\".*\"$ ]]; then
-        value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+        value="$(echo "$value" | sed 's/^"//' | sed 's/"$//')"
     fi
     
     if [ -z "$value" ]; then
@@ -43,7 +43,7 @@ get_freecad_python_path() {
 
 # Only set if the config file exists
 if [ -f "$CONFIG_FILE" ]; then
-    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
+    PYTHON_PATH="$(get_freecad_python_path "$CONFIG_FILE")" || exit $FAIL
 fi
 
 if [ -z "$PYTHON_PATH" ]; then
@@ -54,8 +54,8 @@ fi
 # ==============================================================================================
 #                                     Export Python Path
 # ==============================================================================================
-FREECAD_ROOT=$(dirname "$PYTHON_PATH")
-FREECAD_ROOT=$(realpath "$FREECAD_ROOT/..")
+FREECAD_ROOT="$(dirname "$PYTHON_PATH")"
+FREECAD_ROOT="$(realpath "$FREECAD_ROOT/..")"
 
 export FREECAD_ROOT="$FREECAD_ROOT"
 export PYTHONPATH="$FREECAD_ROOT/lib/python3.11/site-packages:$FREECAD_ROOT/lib:$PYTHONPATH"

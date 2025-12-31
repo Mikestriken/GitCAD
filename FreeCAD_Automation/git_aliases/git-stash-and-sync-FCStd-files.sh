@@ -55,7 +55,7 @@ if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
 fi
 
 if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-    CURRENT_USER=$("$git_path" config --get user.name) || {
+    CURRENT_USER="$("$git_path" config --get user.name)" || {
         echo "Error: git config user.name not set!" >&2
         exit_fstash $FAIL
     }
@@ -82,7 +82,7 @@ fi
     # If caller's pwd is $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
     # If caller's pwd is $GIT_ROOT, $(GIT_PREFIX) = ""
 
-CALLER_SUBDIR=$1
+CALLER_SUBDIR="$1"
 shift
 
 stash_args=("$@")
@@ -321,7 +321,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                 mapfile -t stashed_files_matching_pattern < <(GIT_COMMAND="stash" "$git_path" stash show --name-only "$STASH_REF" 2>/dev/null | grep -F -- "$file_path")
                 for file in "${stashed_files_matching_pattern[@]}"; do
                     if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
-                        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file") || exit_fstash $FAIL
+                        FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$file")" || exit_fstash $FAIL
 
                         if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                             echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
@@ -332,9 +332,9 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                     
                     elif [[ "$file" =~ \.changefile$ ]]; then
                         # echo "DEBUG: Matched '$file'" >&2
-                        FCStd_file_path=$(get_FCStd_file_from_changefile "$file") || exit_fstash $FAIL
+                        FCStd_file_path="$(get_FCStd_file_from_changefile "$file")" || exit_fstash $FAIL
                         
-                        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+                        FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$FCStd_file_path")" || exit_fstash $FAIL
 
                         if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                             echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
@@ -352,7 +352,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
             # If valid, change file_path in parsed_file_path_args to the FCStd_dir_path
             elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                 # echo "DEBUG: file_path is an FCStd file" >&2
-                FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file_path") || exit_fstash $FAIL
+                FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$file_path")" || exit_fstash $FAIL
 
                 if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                     echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
@@ -364,9 +364,9 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
             # Check user has lock for changefile being stashed
             elif [[ "$file_path" =~ \.changefile$ ]]; then
                 # echo "DEBUG: file_path is a changefile" >&2
-                FCStd_file_path=$(get_FCStd_file_from_changefile "$file_path") || exit_fstash $FAIL
+                FCStd_file_path="$(get_FCStd_file_from_changefile "$file_path")" || exit_fstash $FAIL
                 
-                FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+                FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$FCStd_file_path")" || exit_fstash $FAIL
 
                 if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                     echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
@@ -394,19 +394,19 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
 
             # Note: code mostly copied from utils `get_FCStd_file_from_changefile()` except we check the stashed .changefile instead of the working dir .changefile
                 # Read the line with FCStd_file_relpath
-                FCStd_file_relpath_line_in_changefile=$(git cat-file -p "$STASH_REF":"$changefile_path" | grep -F -- "FCStd_file_relpath=")
+                FCStd_file_relpath_line_in_changefile="$(git cat-file -p "$STASH_REF":"$changefile_path" | grep -F -- "FCStd_file_relpath=")"
                 if [ -z "$FCStd_file_relpath_line_in_changefile" ]; then
                     echo "Error: FCStd_file_relpath not found in '$changefile_path'" >&2
                     exit_fstash $FAIL
                 fi
 
                 # Extract the FCStd_file_relpath value
-                FCStd_file_relpath=$(echo "$FCStd_file_relpath_line_in_changefile" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")
+                FCStd_file_relpath="$(echo "$FCStd_file_relpath_line_in_changefile" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")"
 
                 # Derive the FCStd_file_path from the FCStd_file_relpath
-                FCStd_dir_path=$(dirname "$changefile_path")
+                FCStd_dir_path="$(dirname "$changefile_path")"
                 
-                FCStd_file_path=$(realpath "$FCStd_dir_path/$FCStd_file_relpath")
+                FCStd_file_path="$(realpath "$FCStd_dir_path/$FCStd_file_relpath")"
 
                 if [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
                     FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
@@ -416,7 +416,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
 
                 FCStd_file_paths_derived_from_stashed_changefiles+=("$FCStd_file_path")
 
-            FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+            FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$FCStd_file_path")" || exit_fstash $FAIL
 
             if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                 echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
@@ -426,10 +426,10 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         
         for FCStd_file_path in "${FCSTD_FILES_IN_STASH_BEING_APPLIED[@]}"; do
             # echo -e -n "\nDEBUG: checking '$FCStd_file_path'...." >&2
-            FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+            FCStd_dir_path="$(get_FCStd_dir "$FCStd_file_path")" || continue
             # echo -e "$(grep 'File Last Exported On:' "$FCStd_dir_path/.changefile")" >&2
 
-            FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+            FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$FCStd_file_path")" || exit_fstash $FAIL
 
             if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                 echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
@@ -457,7 +457,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
     for changefile_path in "${CHANGEFILES_IN_STASH_BEING_APPLIED[@]}"; do
         # echo -e "\nDEBUG: checking '$changefile_path'....$(grep -F -- 'File Last Exported On:' "$changefile_path")" >&2
         
-        FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || continue
+        FCStd_file_path="$(get_FCStd_file_from_changefile "$changefile_path")" || continue
         
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
@@ -508,9 +508,9 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
                     
                     elif [[ "$file" =~ \.changefile$ ]]; then
                         # echo "DEBUG: Matched '$file'" >&2
-                        FCStd_file_path=$(get_FCStd_file_from_changefile "$file") || exit_fstash $FAIL
+                        FCStd_file_path="$(get_FCStd_file_from_changefile "$file")" || exit_fstash $FAIL
                         
-                        FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+                        FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$FCStd_file_path")" || exit_fstash $FAIL
 
                         if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                             echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
@@ -531,22 +531,22 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
                     exit_fstash $FAIL
                 fi
 
-                FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$file_path") || exit_fstash $FAIL
+                FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$file_path")" || exit_fstash $FAIL
 
                 if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                     echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
                     exit_fstash $FAIL
                 fi
 
-                FCStd_dir_path=$(get_FCStd_dir "$file_path") || exit_fstash $FAIL
+                FCStd_dir_path="$(get_FCStd_dir "$file_path")" || exit_fstash $FAIL
                 parsed_file_path_args[index]="$FCStd_dir_path"
                 
             # Check user has lock for changefile being stashed
             elif [[ "$file_path" =~ \.changefile$ ]]; then
                 # echo "DEBUG: file_path is a changefile" >&2
-                FCStd_file_path=$(get_FCStd_file_from_changefile "$file_path") || exit_fstash $FAIL
+                FCStd_file_path="$(get_FCStd_file_from_changefile "$file_path")" || exit_fstash $FAIL
                 
-                FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+                FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$FCStd_file_path")" || exit_fstash $FAIL
 
                 if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                     echo "Error: User does not have valid lock for '$FCStd_file_path' in stash" >&2
@@ -570,9 +570,9 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
 
         # Check locks for changefiles being stashed
         for changefile_path in "${MODIFIED_CHANGEFILES[@]}"; do
-            FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || exit_fstash $FAIL
+            FCStd_file_path="$(get_FCStd_file_from_changefile "$changefile_path")" || exit_fstash $FAIL
             
-            FCSTD_FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "$FCStd_file_path") || exit_fstash $FAIL
+            FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$FCStd_file_path")" || exit_fstash $FAIL
             
             if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
                 echo "Error: User does not have valid lock for '$FCStd_file_path'" >&2
@@ -609,7 +609,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
     mapfile -t AFTER_STASH_CHANGEFILE < <(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)
 
     # Find files present before stash but not after stash (files that were stashed)
-    STASHED_CHANGEFILES=$(comm -23 <(printf '%s\n' "${BEFORE_STASH_CHANGEFILES[@]}") <(printf '%s\n' "${AFTER_STASH_CHANGEFILE[@]}"))
+    STASHED_CHANGEFILES="$(comm -23 <(printf '%s\n' "${BEFORE_STASH_CHANGEFILES[@]}") <(printf '%s\n' "${AFTER_STASH_CHANGEFILE[@]}"))"
 
     # echo -e "\nDEBUG: Importing stashed changefiles: '${STASHED_CHANGEFILES[@]}'" >&2
 
@@ -617,7 +617,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
     for changefile_path in "${STASHED_CHANGEFILES[@]}"; do
         # echo -e "\nDEBUG: checking '$changefile_path'....$(grep -F -- 'File Last Exported On:' "$changefile_path")" >&2
         
-        FCStd_file_path=$(get_FCStd_file_from_changefile "$changefile_path") || continue
+        FCStd_file_path="$(get_FCStd_file_from_changefile "$changefile_path")" || continue
         
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {

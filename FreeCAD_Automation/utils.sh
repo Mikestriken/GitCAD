@@ -30,7 +30,7 @@ fi
 # ==============================================================================================
 # Note: This script will exit the script sourcing this script early if config requires GitCAD be activated, but it is not active.
     # In some cases this is not desired such as when initializing the repository with init-repo, in that case the --ignore-GitCAD-activation flag can be used when sourcing this script
-ignore_GitCAD_activation=$FALSE
+ignore_GitCAD_activation="$FALSE"
 
 # Note: shifting in here will shift the args for both this script and the parent script sourcing this script.
     # This array will save a backup of all args that aren't used by this script. Later the unused args will be restored to "$@"
@@ -42,7 +42,7 @@ while [ $# -gt 0 ]; do
     case $1 in
         # Set boolean flag if arg is a valid flag
         "--ignore-GitCAD-activation")
-            ignore_GitCAD_activation=$TRUE
+            ignore_GitCAD_activation="$TRUE"
             # echo "DEBUG: ignore_GitCAD_activation flag set" >&2
             ;;
         
@@ -65,24 +65,24 @@ fi
 # ==============================================================================================
 
 # DESCRIPTION: Function to extract FreeCAD Python path from config file
-    # USAGE: `KEY_VALUE=$(get_json_value_from_key "$JSON_FILE" "$KEY") || exit $FAIL`
+    # USAGE: `KEY_VALUE="$(get_json_value_from_key "$JSON_FILE" "$KEY")" || exit $FAIL`
 get_json_value_from_key() {
-    local json_file=$1
-    local key=$2
+    local json_file="$1"
+    local key="$2"
     
     # Find the line containing the key
-    local line=$(grep -F -- "\"$key\"" "$json_file")
+    local line="$(grep -F -- "\"$key\"" "$json_file")"
     if [ -z "$line" ]; then
         echo "Error: Key '$key' not found in $json_file" >&2
         return $FAIL
     fi
 
     # Extract value after : (stops at , or } for simple cases)
-    local value=$(echo "$line" | sed 's/.*"'"$key"'": \([^,}]*\).*/\1/')
+    local value="$(echo "$line" | sed 's/.*"'"$key"'": \([^,}]*\).*/\1/')"
     
     # Strip surrounding quotes if it's a string
     if [[ $value =~ ^\".*\"$ ]]; then
-        value=$(echo "$value" | sed 's/^"//' | sed 's/"$//')
+        value="$(echo "$value" | sed 's/^"//' | sed 's/"$//')"
     fi
     
     echo "$value"
@@ -90,13 +90,13 @@ get_json_value_from_key() {
 }
 
 # DESCRIPTION: Function to extract FreeCAD Python path from config file
-    # USAGE: `PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL`
+    # USAGE: `PYTHON_PATH="$(get_freecad_python_path "$CONFIG_FILE")" || exit $FAIL`
 get_freecad_python_path() {
     local config_file="$1"
     local key="freecad-python-instance-path"
 
     # Get python_path from config file
-    local python_path=$(get_json_value_from_key "$config_file" "$key") || return $FAIL
+    local python_path="$(get_json_value_from_key "$config_file" "$key")" || return $FAIL
     
     if [ -z "$python_path" ]; then
         echo "Error: Python path is empty" >&2
@@ -109,14 +109,14 @@ get_freecad_python_path() {
 
 # DESCRIPTION: Function to extract require-lock-to-modify-FreeCAD-files boolean from config file
 # USAGE:
-    # `REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL`
+    # `REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || exit $FAIL`
     # `if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then echo "Locks required"; elif [ "$REQUIRE_LOCKS" = "$FALSE" ]; then echo "Locks not required"; fi`
 get_require_locks_bool() {
-    local config_file=$1
+    local config_file="$1"
     local key="require-lock-to-modify-FreeCAD-files"
     
     # Get require_locks value from config file
-    local require_locks_value=$(get_json_value_from_key "$config_file" "$key") || return $FAIL
+    local require_locks_value="$(get_json_value_from_key "$config_file" "$key")" || return $FAIL
     
     if [ -z "$require_locks_value" ]; then
         echo "Error: Require locks value is empty" >&2
@@ -142,14 +142,14 @@ get_require_locks_bool() {
 
 # DESCRIPTION: Function to extract require-GitCAD-activation boolean from config file
 # USAGE:
-    # `REQUIRE_GITCAD=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL`
+    # `REQUIRE_GITCAD="$(get_require_gitcad_activation_bool "$CONFIG_FILE")" || exit $FAIL`
     # `if [ "$REQUIRE_GITCAD" = "$TRUE" ]; then echo "GitCAD activation required"; elif [ "$REQUIRE_GITCAD" = "$FALSE" ]; then echo "GitCAD activation not required"; fi`
 get_require_gitcad_activation_bool() {
-    local config_file=$1
+    local config_file="$1"
     local key="require-GitCAD-activation"
     
     # Get require_activation_value value from config file
-    local require_activation_value=$(get_json_value_from_key "$config_file" "$key") || return $FAIL
+    local require_activation_value="$(get_json_value_from_key "$config_file" "$key")" || return $FAIL
     
     if [ -z "$require_activation_value" ]; then
         echo "Error: Require GitCAD activation value is empty" >&2
@@ -220,13 +220,13 @@ make_writable() {
 }
 
 # DESCRIPTION: Function to get the uncompressed directory path for a .FCStd file
-# USAGE: `FCStd_dir_path=$(get_FCStd_dir "path/to/file.FCStd") || exit $FAIL`
+# USAGE: `FCStd_dir_path="$(get_FCStd_dir "path/to/file.FCStd")" || exit $FAIL`
 get_FCStd_dir() {
     local FCStd_file_path="$1"
 
     # Get the lockfile path (which gives us the directory structure)
     local FCStd_dir_path
-    FCStd_dir_path=$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")") || {
+    FCStd_dir_path="$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")")" || {
         echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
         return $FAIL
     }
@@ -239,13 +239,13 @@ get_FCStd_dir() {
 
 # DESCRIPTION: Function to check if FCStd file has valid lock. Returns $TRUE (0) if valid (no lock required or lock held), $FALSE (1) if invalid (lock required but not held)
 # USAGE:
-    # `FILE_HAS_VALID_LOCK=$(FCStd_file_has_valid_lock "path/to/file.FCStd") || exit $FAIL`
+    # `FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "path/to/file.FCStd")" || exit $FAIL`
     # `if [ "$FILE_HAS_VALID_LOCK" = "$TRUE" ]; then echo "File has valid lock"; elif [ "$FILE_HAS_VALID_LOCK" = "$FALSE" ]; then echo "File has invalid lock"; fi`
 FCStd_file_has_valid_lock() {
     local FCStd_file_path="$1"
 
     local REQUIRE_LOCKS
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || return $FAIL
+    REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || return $FAIL
 
     # If locks not required, return valid
     if [ "$REQUIRE_LOCKS" = "$FALSE" ]; then
@@ -264,7 +264,7 @@ FCStd_file_has_valid_lock() {
     # File is tracked, get the .lockfile path
     local FCStd_dir_path
     local lockfile_path
-    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
+    FCStd_dir_path="$(get_FCStd_dir "$FCStd_file_path")" || exit $FAIL
     lockfile_path="$FCStd_dir_path/.lockfile"
 
     # Lockfile not tracked by git (new export), no lock needed (valid lock)
@@ -276,13 +276,13 @@ FCStd_file_has_valid_lock() {
 
     # Check if user has lock
     local LOCK_INFO
-    LOCK_INFO=$(git lfs locks --path="$lockfile_path") || {
+    LOCK_INFO="$(git lfs locks --path="$lockfile_path")" || {
         echo "Error: failed to get lock info for '$lockfile_path'" >&2
         return $FAIL
     }
 
     local CURRENT_USER
-    CURRENT_USER=$(git config --get user.name) || {
+    CURRENT_USER="$(git config --get user.name)" || {
         echo "Error: git config user.name not set!" >&2
         return $FAIL
     }
@@ -299,7 +299,7 @@ FCStd_file_has_valid_lock() {
 }
 
 # DESCRIPTION: Function to get the .FCStd file path from its uncompressed directory's .changefile, relative to repo root
-# USAGE: `FCStd_file_path=$(get_FCStd_file_from_changefile "path/to/.changefile") || exit $FAIL`
+# USAGE: `FCStd_file_path="$(get_FCStd_file_from_changefile "path/to/.changefile")" || exit $FAIL`
 get_FCStd_file_from_changefile() {
     local changefile_path="$1"
 
@@ -309,19 +309,19 @@ get_FCStd_file_from_changefile() {
     fi
 
     # Read the line with FCStd_file_relpath
-    local FCStd_file_relpath_line_in_changefile=$(grep -F -- "FCStd_file_relpath=" "$changefile_path")
+    local FCStd_file_relpath_line_in_changefile="$(grep -F -- "FCStd_file_relpath=" "$changefile_path")"
     if [ -z "$FCStd_file_relpath_line_in_changefile" ]; then
         echo "Error: FCStd_file_relpath not found in '$changefile_path'" >&2
         return $FAIL
     fi
 
     # Extract the FCStd_file_relpath value
-    local FCStd_file_relpath=$(echo "$FCStd_file_relpath_line_in_changefile" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")
+    local FCStd_file_relpath="$(echo "$FCStd_file_relpath_line_in_changefile" | sed "s/FCStd_file_relpath='\([^']*\)'/\1/")"
 
     # Derive the FCStd_file_path from the FCStd_file_relpath
-    local FCStd_dir_path=$(dirname "$changefile_path")
+    local FCStd_dir_path="$(dirname "$changefile_path")"
     
-    local FCStd_file_path=$(realpath "$FCStd_dir_path/$FCStd_file_relpath")
+    local FCStd_file_path="$(realpath "$FCStd_dir_path/$FCStd_file_relpath")"
 
     if [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
         FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
@@ -335,7 +335,7 @@ get_FCStd_file_from_changefile() {
 
 # DESCRIPTION: Function to check if a directory has changes between two commits
 # USAGE:
-    # `DIR_HAS_CHANGES=$(dir_has_changes "path/to/dir") || exit $FAIL`
+    # `DIR_HAS_CHANGES="$(dir_has_changes "path/to/dir")" || exit $FAIL`
     # `if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then echo "dir has changed files"; elif [ "$DIR_HAS_CHANGES" = "$FALSE" ]; then echo "No changed files in dir"; fi`
 dir_has_changes() {
     local dir_path="$1"
@@ -359,9 +359,9 @@ dir_has_changes() {
 # ==============================================================================================
 # Only set if the config file exists
 if [ -f "$CONFIG_FILE" ]; then
-    PYTHON_PATH=$(get_freecad_python_path "$CONFIG_FILE") || exit $FAIL
-    REQUIRE_LOCKS=$(get_require_locks_bool "$CONFIG_FILE") || exit $FAIL
-    REQUIRE_GITCAD_ACTIVATION=$(get_require_gitcad_activation_bool "$CONFIG_FILE") || exit $FAIL
+    PYTHON_PATH="$(get_freecad_python_path "$CONFIG_FILE")" || exit $FAIL
+    REQUIRE_LOCKS="$(get_require_locks_bool "$CONFIG_FILE")" || exit $FAIL
+    REQUIRE_GITCAD_ACTIVATION="$(get_require_gitcad_activation_bool "$CONFIG_FILE")" || exit $FAIL
 
     if [ "$REQUIRE_GITCAD_ACTIVATION" = "$TRUE" ] && [ "$ignore_GitCAD_activation" = "$FALSE" ]; then
         if [ -z "$GITCAD_ACTIVATED" ] || [ "$GITCAD_ACTIVATED" = "$FALSE" ]; then

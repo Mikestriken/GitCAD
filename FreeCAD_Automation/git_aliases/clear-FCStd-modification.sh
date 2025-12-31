@@ -26,7 +26,7 @@ fi
 # Get staged `.FCStd` files
 # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
 GIT_COMMAND="update-index" git update-index --refresh -q >/dev/null 2>&1
-STAGED_FCSTD_FILES=$(GIT_COMMAND="diff-index" git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.fcstd$')
+STAGED_FCSTD_FILES="$(GIT_COMMAND="diff-index" git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.fcstd$')"
 
 if [ -n "$STAGED_FCSTD_FILES" ]; then
     mapfile -t STAGED_FCSTD_FILES <<<"$STAGED_FCSTD_FILES"
@@ -39,7 +39,7 @@ fi
 # CALLER_SUBDIR=${GIT_PREFIX}:
     # If caller's pwd is $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
     # If caller's pwd is $GIT_ROOT, $(GIT_PREFIX) = ""
-CALLER_SUBDIR=$1
+CALLER_SUBDIR="$1"
 shift
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
@@ -111,12 +111,12 @@ fi
 # ==============================================================================================
 #                              Create .fcmod Files For Matched FCStd Files
 # ==============================================================================================
-current_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")
+current_timestamp="$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")"
 
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
 
-    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+    FCStd_dir_path="$(get_FCStd_dir "$FCStd_file_path")" || continue
     fcmod_path="$FCStd_dir_path/.fcmod"
 
     mkdir -p "$(dirname "$fcmod_path")"

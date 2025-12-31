@@ -25,7 +25,7 @@ fi
 # CALLER_SUBDIR=${GIT_PREFIX}:
     # If caller's pwd is $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
     # If caller's pwd is $GIT_ROOT, $(GIT_PREFIX) = ""
-CALLER_SUBDIR=$1
+CALLER_SUBDIR="$1"
 shift
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
@@ -110,13 +110,13 @@ fi
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
 
-    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+    FCStd_dir_path="$(get_FCStd_dir "$FCStd_file_path")" || continue
     lockfile_path="$FCStd_dir_path/.lockfile"
 
     if [ "$FORCE_FLAG" = "$TRUE" ]; then
         # Check if locked by someone else
-        LOCK_INFO=$(git lfs locks --path="$lockfile_path")
-        CURRENT_USER=$(git config --get user.name) || {
+        LOCK_INFO="$(git lfs locks --path="$lockfile_path")"
+        CURRENT_USER="$(git config --get user.name)" || {
             echo "Error: git config user.name not set!" >&2
             exit $FAIL
         }
@@ -135,7 +135,7 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
 
     echo -n "LOCKING: '$FCStd_file_path'...." >&2
 
-    lock_output=$(git lfs lock "$lockfile_path" 2>&1)
+    lock_output="$(git lfs lock "$lockfile_path" 2>&1)"
 
     if [ $? -eq $SUCCESS ]; then
         echo "SUCCESS" >&2

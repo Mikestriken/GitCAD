@@ -25,7 +25,7 @@ fi
 # CALLER_SUBDIR=${GIT_PREFIX}:
     # If caller's pwd is $GIT_ROOT/subdir, $(GIT_PREFIX) = "subdir/"
     # If caller's pwd is $GIT_ROOT, $(GIT_PREFIX) = ""
-CALLER_SUBDIR=$1
+CALLER_SUBDIR="$1"
 shift
 
 # Parse remaining args: prepend CALLER_SUBDIR to paths (skip args containing '-')
@@ -109,26 +109,26 @@ fi
 # ==============================================================================================
 if [ "$FORCE_FLAG" = "$FALSE" ]; then
     # ToDo? Consider bringing back using upstream branch as reference first if it exists?
-        # UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)
+        # UPSTREAM="$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)"
         # if [ -n "$UPSTREAM" ]; then; REFERENCE_BRANCH="$UPSTREAM"; fi;
 
     # echo "DEBUG: Looking for closest reference branch..." >&2
 
     # Reference the remote branch with the closest merge-base (fewest commits)
     mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//') # Convert line 'origin/HEAD -> origin/main' to 'origin/HEAD' and 'origin/main' lines
-    FIRST_MERGE_BASE=$(git merge-base "${REMOTE_BRANCHES[0]}" HEAD 2>/dev/null)
+    FIRST_MERGE_BASE="$(git merge-base "${REMOTE_BRANCHES[0]}" HEAD 2>/dev/null)"
     
-    REFERENCE_BRANCH=${REMOTE_BRANCHES[0]}
-    smallest_num_commits_to_merge_base=$(git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)
+    REFERENCE_BRANCH="${REMOTE_BRANCHES[0]}"
+    smallest_num_commits_to_merge_base="$(git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)"
     # echo "DEBUG: Initial guess: '$REFERENCE_BRANCH' @ '$smallest_num_commits_to_merge_base' commits away" >&2
     
     # echo "DEBUG: List to try='${REMOTE_BRANCHES[@]}'" >&2
     for remote_branch in "${REMOTE_BRANCHES[@]}"; do
-        MERGE_BASE=$(git merge-base "$remote_branch" HEAD 2>/dev/null)
+        MERGE_BASE="$(git merge-base "$remote_branch" HEAD 2>/dev/null)"
         # echo "DEBUG: Trying '$remote_branch' @ hash '$MERGE_BASE'" >&2
         
         if [ -n "$MERGE_BASE" ]; then
-            num_commits_to_merge_base=$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)
+            num_commits_to_merge_base="$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)"
             
             if [ "$num_commits_to_merge_base" -lt "$smallest_num_commits_to_merge_base" ]; then
                 smallest_num_commits_to_merge_base="$num_commits_to_merge_base"
@@ -151,12 +151,12 @@ fi
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
 
-    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
+    FCStd_dir_path="$(get_FCStd_dir "$FCStd_file_path")" || continue
     lockfile_path="$FCStd_dir_path/.lockfile"
 
     # Check for unpushed changes if not force
     if [ "$FORCE_FLAG" = "$FALSE" ]; then
-        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || continue
+        DIR_HAS_CHANGES="$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD")" || continue
 
         if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then
             echo "Error: Cannot unlock '$FCStd_file_path' with unpushed changes. Use --force to override." >&2
@@ -169,12 +169,12 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         fi
 
         # Check for stashed changes
-        STASH_COUNT=$(GIT_COMMAND="stash" git stash list | wc -l)
+        STASH_COUNT="$(GIT_COMMAND="stash" git stash list | wc -l)"
         stashed_changes_found=$FALSE
         for i in $(seq 0 $((STASH_COUNT - 1))); do
             # echo "DEBUG: checking stash '$i'...." >&2
             
-            stashed_files=$(GIT_COMMAND="stash" git stash show --name-only "stash@{$i}" 2>/dev/null)
+            stashed_files="$(GIT_COMMAND="stash" git stash show --name-only "stash@{$i}" 2>/dev/null)"
 
             if printf '%s\n' "$stashed_files" | grep -q -- "^$FCStd_dir_path/" || \
                printf '%s\n' "$stashed_files" | grep -Fxq -- "$FCStd_file_path"; then
@@ -197,10 +197,10 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
 
     echo -n "UNLOCKING: '$FCStd_file_path'...." >&2
     if [ "$FORCE_FLAG" = "$TRUE" ]; then
-        unlock_output=$(git lfs unlock --force "$lockfile_path" 2>&1)
+        unlock_output="$(git lfs unlock --force "$lockfile_path" 2>&1)"
         
     else
-        unlock_output=$(git lfs unlock "$lockfile_path" 2>&1)
+        unlock_output="$(git lfs unlock "$lockfile_path" 2>&1)"
     fi
 
     if [ $? -eq $SUCCESS ]; then

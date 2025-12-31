@@ -14,7 +14,7 @@ source "$FUNCTIONS_FILE"
 # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
 # Note: Excluding (A)dded because newly added .FCStd files ARE empty, we're checking that the .FCStd files don't get modified past this point.... at least that is what I think I was intending...
 GIT_COMMAND="update-index" git update-index --refresh -q >/dev/null 2>&1
-STAGED_FCSTD_FILES=$(GIT_COMMAND="diff-index" git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.fcstd$')
+STAGED_FCSTD_FILES="$(GIT_COMMAND="diff-index" git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.fcstd$')"
 # echo -e "\nDEBUG: checking staged FCStd files: '$(echo "$STAGED_FCSTD_FILES" | xargs)'" >&2
 
 mapfile -t STAGED_FCSTD_FILES <<<"$STAGED_FCSTD_FILES"
@@ -33,7 +33,7 @@ done
 #                         Check if user allowed to modify .FCStd files
 # ==============================================================================================
 if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-    CURRENT_USER=$(git config --get user.name) || {
+    CURRENT_USER="$(git config --get user.name)" || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
     }
@@ -55,7 +55,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
     # Get staged `.changefile`s
     # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
     GIT_COMMAND="update-index" git update-index --refresh -q >/dev/null 2>&1
-    STAGED_CHANGEFILES=$(GIT_COMMAND="diff-index" git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.changefile$')
+    STAGED_CHANGEFILES="$(GIT_COMMAND="diff-index" git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.changefile$')"
     # echo -e "\nDEBUG: checking staged changefiles: '$(echo "$STAGED_CHANGEFILES" | xargs)'" >&2
 
     mapfile -t STAGED_CHANGEFILES <<<"$STAGED_CHANGEFILES"
@@ -64,7 +64,7 @@ if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         
         # echo -e "\nDEBUG: checking '$changefile'....$(grep 'File Last Exported On:' "$changefile")" >&2
 
-        FCStd_dir_path=$(dirname "$changefile")
+        FCStd_dir_path="$(dirname "$changefile")"
         lockfile="$FCStd_dir_path/.lockfile"
 
         if printf '%s\n' "${CURRENT_LOCKS[@]}" | grep -Fxq -- "$lockfile"; then
