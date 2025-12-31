@@ -193,7 +193,7 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         unlock_output=$(git lfs unlock "$lockfile_path" 2>&1)
     fi
 
-    if [ $? -eq $SUCCESS]; then
+    if [ $? -eq $SUCCESS ]; then
         echo "SUCCESS" >&2
     else
         echo "ERROR: '$unlock_output'" >&2
