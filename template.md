@@ -2,7 +2,6 @@
 This repository contains tools and scripts to automate the git workflow for committing `.FCStd` files in their uncompressed form (GitCAD is the name of the collection of tools and scripts). The complete documentation for these tools and scripts can be found on the [Official GitCAD repository](https://github.com/MikeOpsGit/GitCAD).
 
 ### Setting Up This Repository
-Video Demo:  
 1. Dependencies
    - [Git](https://git-scm.com)
    - [Git-LFS](https://git-lfs.com)
@@ -21,10 +20,15 @@ Video Demo:
    ```
    *This will create a `FreeCAD_Automation/config.json` file.*
    
-5. Configure the newly added `FreeCAD_Automation/config.json` (from initialization script).  
-    - Set `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
-      *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*
-      *IE LINUX: `/path/to/FreeCAD_Extracted_AppImage/usr/bin/python`* -- **LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**
+5. Configure the settings in newly added `FreeCAD_Automation/config.json` (from initialization script) as needed.  
+   
+   **Make sure to configure:**
+    - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
+      *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*  
+      -- **NOTE: MUST BE `/`, NOT `\`**  
+      
+      *IE LINUX: `/path/to/FreeCAD_Extracted_AppImage/usr/bin/python`*  
+      -- **NOTE: LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**  
 
 6. Run the initialization script one last time to complete the initialization:
    ```bash
@@ -33,7 +37,7 @@ Video Demo:
    *The Script can be ran multiple times without error.*  
    *When the script asks "Do you want to import data from all uncompressed FreeCAD dirs?" in the "Synchronizing \`.FCStd\` Files" section, press `y`*
 
-### If GitCAD For This Repository Updates:
+### If The GitCAD Plugin For This Repository Updates:
 1. Backup/make note of your `freecad-python-instance-path` in `FreeCAD_Automation/config.json`.
 
 2. Delete `FreeCAD_Automation/config.json`
@@ -48,6 +52,7 @@ Video Demo:
 4. Paste your saved `freecad-python-instance-path` back into the newly re-created `FreeCAD_Automation/config.json`
 
 ### Git Aliases
+#### DESCRIPTION
 GitCAD adds some unique aliases to manage `.FCStd` files in accordance with git. Full documentation for all of these files can be found in the [added-aliases.md](FreeCAD_Automation/docs/added-aliases.md) file.
 
 These aliases help ensure the `.FCStd` files in your working directory are correctly synced with their corresponding uncompressed directories.
@@ -56,12 +61,17 @@ They are also important for manually resynchronizing them in case you forgot to 
 
 For examples see the [examples.md](FreeCAD_Automation/docs/examples.md) file.
 
-#### IMPORTANT ALIASES / TL;DR:
+### IMPORTANT ALIASES / TL;DR:
+*Note: See the [GitCAD Activation Section](FreeCAD_Automation/docs/added-aliases.md#gitcad-activation) for more information on with/without GitCAD Activation means.*
+
+#### With GitCAD Activation
+1. `git lock path/to/file.FCStd` / `git unlock path/to/file.FCStd` / `git locks` -- Do what you expect
+
+#### Without GitCAD Activation
 1. Use `git fadd` instead of `git add` to export `.FCStd` files.
 2. Use `git freset` instead of `git reset`
 3. Use `git fstash` instead of `git stash`
 4. Use `git fco COMMIT FILE [FILE ...]` instead of `git checkout COMMIT -- FILE [FILE ...]`  
-   *Note: **ONLY** for `.FCStd` files (and their dirs), any other type of file can be checked out manually using the normal `git checkout COMMIT -- FILE [FILE ...]`.*
 5. `git lock path/to/file.FCStd` / `git unlock path/to/file.FCStd` / `git locks` -- Do what you expect
 
 #### If you forgot to use one of the above commands instead:

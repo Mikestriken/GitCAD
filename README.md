@@ -123,6 +123,7 @@ They are also important for manually resynchronizing them in case you forgot to 
 For examples see the [examples.md](FreeCAD_Automation/docs/examples.md) file.
 
 ### IMPORTANT ALIASES / TL;DR:
+*Note: See the [GitCAD Activation Section](FreeCAD_Automation/docs/added-aliases.md#gitcad-activation) for more information on with/without GitCAD Activation means.*
 #### With GitCAD Activation
 1. `git lock path/to/file.FCStd` / `git unlock path/to/file.FCStd` / `git locks` -- Do what you expect
 
