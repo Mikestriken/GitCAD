@@ -185,11 +185,19 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         # echo "DEBUG: No uncommitted changes to '$FCStd_dir_path', clear to unlock!" >&2
     fi
 
+    echo -n "UNLOCKING: '$FCStd_file_path'...." >&2
     if [ "$FORCE_FLAG" = "$TRUE" ]; then
-        git lfs unlock --force "$lockfile_path" || continue
+        unlock_output=$(git lfs unlock --force "$lockfile_path" 2>&1)
         
     else
-        git lfs unlock "$lockfile_path" || continue
+        unlock_output=$(git lfs unlock "$lockfile_path" 2>&1)
+    fi
+
+    if [ $? -eq $SUCCESS]; then
+        echo "SUCCESS" >&2
+    else
+        echo "ERROR: '$unlock_output'" >&2
+        continue
     fi
 
     make_readonly "$FCStd_file_path" || continue

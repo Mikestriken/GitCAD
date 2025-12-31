@@ -133,7 +133,16 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         fi
     fi
 
-    git lfs lock "$lockfile_path" || continue
+    echo -n "LOCKING: '$FCStd_file_path'...." >&2
+
+    lock_output=$(git lfs lock "$lockfile_path" 2>&1)
+
+    if [ $? -eq $SUCCESS]; then
+        echo "SUCCESS" >&2
+    else
+        echo "ERROR: '$lock_output'" >&2
+        continue
+    fi
 
     make_writable "$FCStd_file_path" || continue
     # echo "DEBUG: '$FCStd_file_path' now writable and locked" >&2
