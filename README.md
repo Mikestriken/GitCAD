@@ -123,11 +123,14 @@ They are also important for manually resynchronizing them in case you forgot to 
 For examples see the [examples.md](FreeCAD_Automation/docs/examples.md) file.
 
 ### IMPORTANT ALIASES / TL;DR:
+#### With GitCAD Activation
+1. `git lock path/to/file.FCStd` / `git unlock path/to/file.FCStd` / `git locks` -- Do what you expect
+
+#### Without GitCAD Activation
 1. Use `git fadd` instead of `git add` to export `.FCStd` files.
 2. Use `git freset` instead of `git reset`
 3. Use `git fstash` instead of `git stash`
 4. Use `git fco COMMIT FILE [FILE ...]` instead of `git checkout COMMIT -- FILE [FILE ...]`  
-   *Note: **ONLY** for `.FCStd` files (and their dirs), any other type of file can be checked out manually using the normal `git checkout COMMIT -- FILE [FILE ...]`.*
 5. `git lock path/to/file.FCStd` / `git unlock path/to/file.FCStd` / `git locks` -- Do what you expect
 
 ### If you forgot to use one of the above commands instead:
