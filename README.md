@@ -147,7 +147,8 @@ If not mentioned here, you can just assume that changing the configuration value
 ### Changing `uncompressed-directory-structure`
 If you change any value inside the `uncompressed-directory-structure` JSON key, you will need to follow this checklist to properly propagate that configuration change to your repository.
 - [ ] `git lock --force "*.FCStd"` to get edit permissions.  
-      *Note: Only necessary if the user has already committed the uncompressed directory to git*
+      *Note 1: Only necessary if the user has already committed the uncompressed directory to git*  
+      *Note 2: The `"` surrounding the `*.FCStd` are important, without it your shell might expand it to just the files in the root directory, instead of ALL the `.FCStd` files in the repository.*  
 
 - [ ] `git mv path/to/unchanged/dir path/to/changed/dir` all uncompressed FCStd file folders to move them from their old location to the new location specified in the updated `uncompressed-directory-structure` JSON key.
 
@@ -160,7 +161,8 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
       *Note: Only necessary if the user has already committed the uncompressed directory or config file to git*
 
 - [ ] `git unlock "*.FCStd"` to get edit permissions.  
-      *Note: Only necessary if the user has already committed the uncompressed directory to git*
+      *Note 1: Only necessary if the user has already committed the uncompressed directory to git*
+      *Note 2: The `"` surrounding the `*.FCStd` are important, without it your shell might expand it to just the files in the root directory, instead of ALL the `.FCStd` files in the repository.*  
 
 ## Configuration Options
 ```jsonc
