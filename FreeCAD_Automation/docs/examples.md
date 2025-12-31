@@ -9,10 +9,17 @@
    ```
    *This will create a `FreeCAD_Automation/config.json` file.*
 
-3. Configure the newly added `FreeCAD_Automation/config.json` (from initialization script).  
-    - Set `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
-      *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*
-      *IE LINUX: `/path/to/FreeCAD_Extracted_AppImage/usr/bin/python`* -- **LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**
+3. Configure the settings in newly added `FreeCAD_Automation/config.json` (from initialization script) as needed.  
+   *Note 1: When you re-run the initialization script later in this installation guide this file will be added to `.gitignore` automatically.*  
+   *Note 2: For documentation on what every json item does see the [Configuration Options](#configuration-options) section.*
+   
+   **Make sure to configure:**
+    - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
+      *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*  
+      -- **NOTE: MUST BE `/`, NOT `\`**  
+      
+      *IE LINUX: `/path/to/FreeCAD_Extracted_AppImage/usr/bin/python`*  
+      -- **NOTE: LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**  
 
 4. Run the initialization script one last time to complete the initialization:
    ```bash
