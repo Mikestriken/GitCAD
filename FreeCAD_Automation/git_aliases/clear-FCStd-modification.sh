@@ -122,6 +122,8 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     mkdir -p "$(dirname "$fcmod_path")"
     echo "$current_timestamp" > "$fcmod_path"
     # echo "DEBUG: Created/updated .fcmod for '$FCStd_file_path' with timestamp '$current_timestamp'" >&2
+    
+    echo "Cleared modification for '$FCStd_file_path'" >&2
 done
 
 # ==============================================================================================
