@@ -18,6 +18,7 @@ else
 fi
 
 HOOKS=("post-checkout" "post-commit" "post-merge" "post-rewrite" "pre-commit" "pre-push") # Note: This array is used again in the `Setup Git Hooks` section
+USER_SCRIPTS=("activate" "init-repo")
 
 if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
     echo "=============================================================================================="
@@ -41,6 +42,15 @@ if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
             exit $FAIL
         fi
     done
+
+    for script in "${USER_SCRIPTS[@]}"; do
+        if ! chmod 755 "FreeCAD_Automation/user_scripts/$script" 2>/dev/null; then
+            echo "Error: Permission denied for chmod on '$script'." >&2
+            echo "       Please run this script with sudo." >&2
+            exit $FAIL
+        fi
+    done
+    
     echo "All bash scripts and hooks made executable."
 
     if [ -n "$SUDO_USER" ]; then
