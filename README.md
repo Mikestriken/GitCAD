@@ -10,10 +10,10 @@ Sets `.FCStd` files to readonly if not locked by the user. Prevents user from co
   
 - **Locking Mechanism**: Users use the git aliases `git lock path/to/file.FCStd` and `git unlock path/to/file.FCStd` lock a `.lockfile` inside the uncompressed data directory instead of the `.FCStd` file itself.  
    NOTE: THE COMMAND IS **NOT** `git lfs lock`/`git lfs unlock`
-   - Why lock `.lockfile` instead of `.FCStd` directly? 
-      - *`.FCStd` files are filtered to appear empty to git to save space.  
+   - Why lock `.lockfile` instead of `.FCStd` directly?  
+      *`.FCStd` files are filtered to appear empty to git to save space.  
       If the `.FCStd` files were directly locked you would be storing the entire `.FCStd` file in git-lfs,  
-      which would somewhat defeat one of the secondary purpose of extracting the `.FCStd` files in the first place...  
+      which would somewhat defeat one of the secondary purposes of extracting the `.FCStd` files in the first place...  
       To efficiently store the diffable contents separate from the binary contents.*
 
 ### Alternative Solutions to GitCAD (SVN)
@@ -31,7 +31,7 @@ To tell svn that it can simply extract the zipped files contents to get some tex
 [Here is a demo of TortoiseSVN locking](https://www.youtube.com/watch?v=7TPpwFhEAJA).
 
 ## Installation
-Video Demo:  
+**Video Demo:**  
 1. Dependencies
    - [Git](https://git-scm.com)
    - [Git-LFS](https://git-lfs.com)
@@ -51,18 +51,22 @@ Video Demo:
    ```
 
 5. Configure the settings in newly added `FreeCAD_Automation/config.json` (from initialization script) as needed.  
-   *Note: When you re-run the initialization script later in this installation guide this file will be added to `.gitignore` automatically.*  
+   *Note 1: When you re-run the initialization script later in this installation guide this file will be added to `.gitignore` automatically.*  
+   *Note 2: For documentation on what every json item does see the [Configuration Options](#configuration-options) section.*
+   
    **Make sure to configure:**
     - `freecad-python-instance-path` -- Path to FreeCAD's Python executable.  
-      *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`* -- **MUST BE `/`, NOT `\`**  
-      *IE LINUX: `/path/to/FreeCAD_Extracted_AppImage/usr/bin/python`* -- **LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**  
-    - For documentation on what every json item does see the [Configuration Options](#configuration-options) section.
+      *IE WINDOWS: `C:/Path/To/FreeCAD 1.0/bin/python.exe`*  
+      -- **NOTE: MUST BE `/`, NOT `\`**  
+      
+      *IE LINUX: `/path/to/FreeCAD_Extracted_AppImage/usr/bin/python`*  
+      -- **NOTE: LINUX USERS WILL NEED TO `FreeCAD.AppImage --appimage-extract`**  
 
 6. Run the initialization script one last time:
    ```bash
    ./FreeCAD_Automation/user_scripts/init-repo
    ```
-   *The Script can be ran multiple times without error (Assuming config wasn't changed).*  
+   *The Script can be ran multiple times without error (assuming the config wasn't changed).*  
    To see how to change `x` configuration post initialization see the [Changing Things](#changing-things) section.
 
 7. Test your configurations:
@@ -90,14 +94,16 @@ Video Demo:
    *Template available in [Template.md](template.md).*
 
 ## Updating
-Video Demo:  
-1. Backup/make note of the default `FreeCAD_Automation/config.json` defined in `FreeCAD_Automation/init-repo`, and your `freecad-python-instance-path` in `FreeCAD_Automation/config.json`.
+**Video Demo:**  
+1. Backup/make note of:  
+   - The *default* `config.json` defined in `FreeCAD_Automation/user_scripts/init-repo`  
+   - Your `freecad-python-instance-path` in `FreeCAD_Automation/config.json`.
 
 2. Delete `FreeCAD_Automation/config.json`
 
 3. Download and extract the latest release into the root of your FreeCAD project's git repository.
 
-4. Manually merge (if required) your backup of the default `FreeCAD_Automation/config.json` into the new (updated?) default `FreeCAD_Automation/config.json` defined in `FreeCAD_Automation/init-repo`.
+4. Manually merge (if required) your backup of the `config.json` into the new (updated?) default `FreeCAD_Automation/config.json` defined in `FreeCAD_Automation/user_scripts/init-repo`.
 
 5. Run the initialization script:
    ```bash
@@ -125,8 +131,8 @@ For examples see the [examples.md](FreeCAD_Automation/docs/examples.md) file.
 5. `git lock path/to/file.FCStd` / `git unlock path/to/file.FCStd` / `git locks` -- Do what you expect
 
 ### If you forgot to use one of the above commands instead:
-1. Use `git fimport` to manually import the contents of a dir to its `.FCStd` file.
-2. Use `git fcmod` to make git think your `.FCStd` file is empty (clears the modification in git's view assuming an empty `.FCStd` has already been committed).
+1. Use `git fimport path/to/file.FCStd` to manually import the uncompressed data to its `.FCStd` file.
+2. Use `git fcmod path/to/file.FCStd` to make git think your `.FCStd` file is empty (clears the modification in git's view assuming an empty `.FCStd` has already been committed).
 
 ## Changing Things
 Some configurations in `FreeCAD_Automation/config.json` cannot be changed by simply changing its value in the JSON file. After you have already initialized the repository with the `init-repo` script.
@@ -147,11 +153,11 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
 
 - [ ] Change the values of the `uncompressed-directory-structure` JSON key to match.
 
-- [ ] `git add FreeCAD_Automation/config.json` (**DO NOT `git add .`**)  
-      *Note: Only necessary if the user has already committed the config file to git*
-
-- [ ] `git commit` changes.
+- [ ] `git commit` & `git push` changes.
       *Note: Only necessary if the user has already committed the uncompressed directory or config file to git*
+
+- [ ] `git unlock *.FCStd` to get edit permissions.  
+      *Note: Only necessary if the user has already committed the uncompressed directory to git*
 
 ## Configuration Options
 ```jsonc
@@ -171,6 +177,13 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
     // If you change this post-initialization, 
     // make sure to re-run the `init-repo` script.
     "require-lock-to-modify-FreeCAD-files": true,
+
+    // ------------------------------------------------------------------
+    
+    // If true most* git operations will fail unless you activate the GitCAD environment
+      // PowerShell Activation Command: .\FreeCAD_Automation\user_scripts\activate.ps1
+      //       Bash Activation Command: source FreeCAD_Automation/user_scripts/activate
+    "require-GitCAD-activation": true,
 
     // ------------------------------------------------------------------
     
