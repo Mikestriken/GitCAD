@@ -210,6 +210,7 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         # echo "DEBUG: Added '$FCStd_dir_path' to checkout list (changefile has changes or is modified)" >&2
     else
         # echo "DEBUG: Skipping '$FCStd_dir_path' (no changefile changes between $CHECKOUT_COMMIT and HEAD, and not modified)" >&2
+        :
     fi
 done
 
