@@ -96,6 +96,10 @@ done
 
 if [ ${#MATCHED_FCStd_file_paths[@]} -gt 0 ]; then
     mapfile -t MATCHED_FCStd_file_paths < <(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u) # Remove duplicates (creates an empty element if no elements)
+
+else
+    echo "Error: No valid .FCStd files found. Usage: lock.sh [path/to/file.FCStd ...] [--force]" >&2
+    exit $FAIL
 fi
 
 # echo "DEBUG: matched '${#MATCHED_FCStd_file_paths[@]}' .FCStd files: '${MATCHED_FCStd_file_paths[@]}'" >&2
@@ -103,12 +107,9 @@ fi
 # ==============================================================================================
 #                                          Lock Files
 # ==============================================================================================
-if [ ${#MATCHED_FCStd_file_paths[@]} -eq 0 ]; then
-    echo "Error: No valid .FCStd files found. Usage: lock.sh [path/to/file.FCStd ...] [--force]" >&2
-    exit $FAIL
-fi
-
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
+    # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
+
     FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
     lockfile_path="$FCStd_dir_path/.lockfile"
 

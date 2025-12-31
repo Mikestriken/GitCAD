@@ -96,19 +96,17 @@ done
 
 if [ ${#MATCHED_FCStd_file_paths[@]} -gt 0 ]; then
     mapfile -t MATCHED_FCStd_file_paths < <(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u) # Remove duplicates (creates an empty element if no elements)
+
+else
+    echo "Error: No valid .FCStd files found. Usage: unlock.sh [path/to/file.FCStd ...] [--force]" >&2
+    exit $FAIL
 fi
 
 # echo "DEBUG: matched '${#MATCHED_FCStd_file_paths[@]}' .FCStd files: '${MATCHED_FCStd_file_paths[@]}'" >&2
 
 # ==============================================================================================
-#                                          Unlock Files
+#                                   Find Closest Remote Branch                                  
 # ==============================================================================================
-if [ ${#MATCHED_FCStd_file_paths[@]} -eq 0 ]; then
-    echo "Error: No valid .FCStd files found. Usage: unlock.sh [path/to/file.FCStd ...] [--force]" >&2
-    exit $FAIL
-fi
-
-# Find reference branch for unpushed changes check
 if [ "$FORCE_FLAG" = "$FALSE" ]; then
     # ToDo? Consider bringing back using upstream branch as reference first if it exists?
         # UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)
@@ -139,22 +137,30 @@ if [ "$FORCE_FLAG" = "$FALSE" ]; then
             fi
         fi
     done
+    
     # echo "DEBUG: Closest reference='$REFERENCE_BRANCH'" >&2
+    if [ -z "$REFERENCE_BRANCH" ]; then
+        echo "Error: Couldn't find remote reference branch to diff unpushed changes!" >&2
+        exit $FAIL
+    fi
 fi
 
+# ==============================================================================================
+#                                          Unlock Files
+# ==============================================================================================
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
+    # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
+
     FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
     lockfile_path="$FCStd_dir_path/.lockfile"
 
     # Check for unpushed changes if not force
     if [ "$FORCE_FLAG" = "$FALSE" ]; then
-        if [ -n "$REFERENCE_BRANCH" ]; then
-            DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
+        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
 
-            if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then
-                echo "Error: Cannot unlock '$FCStd_file_path' with unpushed changes. Use --force to override." >&2
-                continue
-            fi
+        if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then
+            echo "Error: Cannot unlock '$FCStd_file_path' with unpushed changes. Use --force to override." >&2
+            continue
         fi
 
         # Check for stashed changes
