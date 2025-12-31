@@ -68,46 +68,74 @@ done
 # echo "DEBUG: Args='$parsed_file_path_args'" >&2
 
 # ==============================================================================================
-#                                          Lock File
+#                                   Match Args to FCStd Files
 # ==============================================================================================
-# Ensure num args shouldn't exceed 2 and if 2, 1 arg must be --force flag, the other the path, else if just 1 arg it should just be the path.
-if [ ${#parsed_file_path_args[@]} != 1 ]; then
-    echo "Error: Invalid arguments. Usage: lock.sh path/to/file.FCStd [--force]" >&2
-    exit $FAIL
-fi
+MATCHED_FCStd_file_paths=()
+for file_path in "${parsed_file_path_args[@]}"; do
+    # echo "DEBUG: Matching file_path: '$file_path'...." >&2
 
-FCStd_file_path="${parsed_file_path_args[0]}"
-if [ -z "$FCStd_file_path" ]; then
-    echo "Error: No file path provided" >&2
-    exit $FAIL
-fi
+    if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
+        # echo "DEBUG: file_path contains wildcards or is a directory" >&2
+        
+        mapfile -t FCStd_files_matching_pattern < <(GIT_COMMAND="ls-files" git ls-files "$file_path")
+        for file in "${FCStd_files_matching_pattern[@]}"; do
+            if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+                # echo "DEBUG: Matched '$file'" >&2
+                MATCHED_FCStd_file_paths+=("$file")
+            fi
+        done
 
-FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
-lockfile_path="$FCStd_dir_path/.lockfile"
-
-if [ "$FORCE_FLAG" = "$TRUE" ]; then
-    # Check if locked by someone else
-    LOCK_INFO=$(git lfs locks --path="$lockfile_path")
-    CURRENT_USER=$(git config --get user.name) || {
-        echo "Error: git config user.name not set!" >&2
-        exit $FAIL
-    }
-
-    # echo "DEBUG: Stealing..." >&2
-    
-    if printf '%s\n' "$LOCK_INFO" | grep -Fq -- "$CURRENT_USER"; then
-        # echo "DEBUG: lock already owned, no need to steal." >&2
+    elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+        # echo "DEBUG: file_path is an FCStd file" >&2
+        MATCHED_FCStd_file_paths+=("$file_path")
+    else
+        # echo "DEBUG: file_path '$file_path' is not an FCStd file, directory, or wildcard..... skipping" >&2
         :
-    
-    elif [ -n "$LOCK_INFO" ]; then
-        # echo "DEBUG: Forcefully unlocking..." >&2
-        git lfs unlock --force "$lockfile_path" || exit $FAIL
     fi
+done
+
+if [ ${#MATCHED_FCStd_file_paths[@]} -gt 0 ]; then
+    mapfile -t MATCHED_FCStd_file_paths < <(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u) # Remove duplicates (creates an empty element if no elements)
 fi
 
-git lfs lock "$lockfile_path" || exit $FAIL
+# echo "DEBUG: matched '${#MATCHED_FCStd_file_paths[@]}' .FCStd files: '${MATCHED_FCStd_file_paths[@]}'" >&2
 
-make_writable "$FCStd_file_path" || exit $FAIL
-# echo "DEBUG: '$FCStd_file_path' now writable and locked" >&2
+# ==============================================================================================
+#                                          Lock Files
+# ==============================================================================================
+if [ ${#MATCHED_FCStd_file_paths[@]} -eq 0 ]; then
+    echo "Error: No valid .FCStd files found. Usage: lock.sh [path/to/file.FCStd ...] [--force]" >&2
+    exit $FAIL
+fi
+
+for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
+    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
+    lockfile_path="$FCStd_dir_path/.lockfile"
+
+    if [ "$FORCE_FLAG" = "$TRUE" ]; then
+        # Check if locked by someone else
+        LOCK_INFO=$(git lfs locks --path="$lockfile_path")
+        CURRENT_USER=$(git config --get user.name) || {
+            echo "Error: git config user.name not set!" >&2
+            exit $FAIL
+        }
+
+        # echo "DEBUG: Stealing..." >&2
+        
+        if printf '%s\n' "$LOCK_INFO" | grep -Fq -- "$CURRENT_USER"; then
+            # echo "DEBUG: lock already owned, no need to steal." >&2
+            :
+        
+        elif [ -n "$LOCK_INFO" ]; then
+            # echo "DEBUG: Forcefully unlocking..." >&2
+            git lfs unlock --force "$lockfile_path" || exit $FAIL
+        fi
+    fi
+
+    git lfs lock "$lockfile_path" || exit $FAIL
+
+    make_writable "$FCStd_file_path" || exit $FAIL
+    # echo "DEBUG: '$FCStd_file_path' now writable and locked" >&2
+done
 
 exit $SUCCESS

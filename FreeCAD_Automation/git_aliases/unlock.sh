@@ -68,24 +68,47 @@ done
 # echo "DEBUG: Args='$parsed_file_path_args'" >&2
 
 # ==============================================================================================
-#                                          Unlock File
+#                                   Match Args to FCStd Files
 # ==============================================================================================
-# Ensure valid args
-if [ ${#parsed_file_path_args[@]} != 1 ]; then
-    echo "Error: Invalid arguments. Usage: unlock.sh path/to/file.FCStd [--force]" >&2
+MATCHED_FCStd_file_paths=()
+for file_path in "${parsed_file_path_args[@]}"; do
+    # echo "DEBUG: Matching file_path: '$file_path'...." >&2
+
+    if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
+        # echo "DEBUG: file_path contains wildcards or is a directory" >&2
+        
+        mapfile -t FCStd_files_matching_pattern < <(GIT_COMMAND="ls-files" git ls-files "$file_path")
+        for file in "${FCStd_files_matching_pattern[@]}"; do
+            if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+                # echo "DEBUG: Matched '$file'" >&2
+                MATCHED_FCStd_file_paths+=("$file")
+            fi
+        done
+
+    elif [[ "$file_path" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
+        # echo "DEBUG: file_path is an FCStd file" >&2
+        MATCHED_FCStd_file_paths+=("$file_path")
+    else
+        # echo "DEBUG: file_path '$file_path' is not an FCStd file, directory, or wildcard..... skipping" >&2
+        :
+    fi
+done
+
+if [ ${#MATCHED_FCStd_file_paths[@]} -gt 0 ]; then
+    mapfile -t MATCHED_FCStd_file_paths < <(printf '%s\n' "${MATCHED_FCStd_file_paths[@]}" | sort -u) # Remove duplicates (creates an empty element if no elements)
+fi
+
+# echo "DEBUG: matched '${#MATCHED_FCStd_file_paths[@]}' .FCStd files: '${MATCHED_FCStd_file_paths[@]}'" >&2
+
+# ==============================================================================================
+#                                          Unlock Files
+# ==============================================================================================
+if [ ${#MATCHED_FCStd_file_paths[@]} -eq 0 ]; then
+    echo "Error: No valid .FCStd files found. Usage: unlock.sh [path/to/file.FCStd ...] [--force]" >&2
     exit $FAIL
 fi
 
-FCStd_file_path="${parsed_file_path_args[0]}"
-if [ -z "$FCStd_file_path" ]; then
-    echo "Error: No file path provided" >&2
-    exit $FAIL
-fi
-
-FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
-lockfile_path="$FCStd_dir_path/.lockfile"
-
-# Check for unpushed changes if not force
+# Find reference branch for unpushed changes check
 if [ "$FORCE_FLAG" = "$FALSE" ]; then
     # ToDo? Consider bringing back using upstream branch as reference first if it exists?
         # UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{upstream} 2>/dev/null)
@@ -117,41 +140,54 @@ if [ "$FORCE_FLAG" = "$FALSE" ]; then
         fi
     done
     # echo "DEBUG: Closest reference='$REFERENCE_BRANCH'" >&2
+fi
 
-    if [ -n "$REFERENCE_BRANCH" ]; then
-        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
+for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
+    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
+    lockfile_path="$FCStd_dir_path/.lockfile"
 
-        if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then
-            echo "Error: Cannot unlock file with unpushed changes. Use --force to override." >&2
-            exit $FAIL
+    # Check for unpushed changes if not force
+    if [ "$FORCE_FLAG" = "$FALSE" ]; then
+        if [ -n "$REFERENCE_BRANCH" ]; then
+            DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
+
+            if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then
+                echo "Error: Cannot unlock '$FCStd_file_path' with unpushed changes. Use --force to override." >&2
+                continue
+            fi
         fi
+
+        # Check for stashed changes
+        STASH_COUNT=$(GIT_COMMAND="stash" git stash list | wc -l)
+        stashed_changes_found=$FALSE
+        for i in $(seq 0 $((STASH_COUNT - 1))); do
+            # echo "DEBUG: checking stash '$i'...." >&2
+            
+            stashed_files=$(GIT_COMMAND="stash" git stash show --name-only "stash@{$i}" 2>/dev/null)
+
+            if printf '%s\n' "$stashed_files" | grep -q -- "^$FCStd_dir_path/" || \
+               printf '%s\n' "$stashed_files" | grep -Fxq -- "$FCStd_file_path"; then
+                echo "Error: Cannot unlock '$FCStd_file_path' with stashed changes. Use --force to override." >&2
+                stashed_changes_found=$TRUE
+                break
+            fi
+        done
+
+        if [ "$stashed_changes_found" = "$TRUE" ]; then
+            continue
+        fi
+        # echo "DEBUG: No uncommitted changes to '$FCStd_dir_path', clear to unlock!" >&2
     fi
 
-    # Check for stashed changes
-    STASH_COUNT=$(GIT_COMMAND="stash" git stash list | wc -l)
-    for i in $(seq 0 $((STASH_COUNT - 1))); do
-        # echo "DEBUG: checking stash '$i'...." >&2
+    if [ "$FORCE_FLAG" = "$TRUE" ]; then
+        git lfs unlock --force "$lockfile_path" || exit $FAIL
         
-        stashed_files=$(GIT_COMMAND="stash" git stash show --name-only "stash@{$i}" 2>/dev/null)
+    else
+        git lfs unlock "$lockfile_path" || exit $FAIL
+    fi
 
-        if printf '%s\n' "$stashed_files" | grep -q -- "^$FCStd_dir_path/" || \
-           printf '%s\n' "$stashed_files" | grep -Fxq -- "$FCStd_file_path"; then
-            echo "Error: Cannot unlock file with stashed changes. Use --force to override." >&2
-            exit $FAIL
-            break
-        fi
-    done
-    # echo "DEBUG: No uncommitted changes to '$FCStd_dir_path', clear to unlock!" >&2
-fi
-
-if [ "$FORCE_FLAG" = "$TRUE" ]; then
-    git lfs unlock --force "$lockfile_path" || exit $FAIL
-    
-else
-    git lfs unlock "$lockfile_path" || exit $FAIL
-fi
-
-make_readonly "$FCStd_file_path" || exit $FAIL
-# echo "DEBUG: '$FCStd_file_path' now readonly" >&2
+    make_readonly "$FCStd_file_path" || exit $FAIL
+    # echo "DEBUG: '$FCStd_file_path' now readonly" >&2
+done
 
 exit $SUCCESS
