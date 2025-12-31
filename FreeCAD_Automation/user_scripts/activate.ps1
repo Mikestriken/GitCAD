@@ -2,7 +2,7 @@
 #                                       Script Overview
 # ==============================================================================================
 # Source this file to activate GitCAD workflow for this PowerShell session
-# Usage: .\FreeCAD_Automation\activate.ps1
+# Usage: .\FreeCAD_Automation\user_scripts\activate.ps1
 
 # ==============================================================================================
 #                                       Constant Globals
