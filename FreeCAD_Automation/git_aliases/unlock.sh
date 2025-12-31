@@ -151,12 +151,12 @@ fi
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
 
-    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
+    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
     lockfile_path="$FCStd_dir_path/.lockfile"
 
     # Check for unpushed changes if not force
     if [ "$FORCE_FLAG" = "$FALSE" ]; then
-        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || exit $FAIL
+        DIR_HAS_CHANGES=$(dir_has_changes "$FCStd_dir_path" "$REFERENCE_BRANCH" "HEAD") || continue
 
         if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then
             echo "Error: Cannot unlock '$FCStd_file_path' with unpushed changes. Use --force to override." >&2
@@ -186,13 +186,13 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     fi
 
     if [ "$FORCE_FLAG" = "$TRUE" ]; then
-        git lfs unlock --force "$lockfile_path" || exit $FAIL
+        git lfs unlock --force "$lockfile_path" || continue
         
     else
-        git lfs unlock "$lockfile_path" || exit $FAIL
+        git lfs unlock "$lockfile_path" || continue
     fi
 
-    make_readonly "$FCStd_file_path" || exit $FAIL
+    make_readonly "$FCStd_file_path" || continue
     # echo "DEBUG: '$FCStd_file_path' now readonly" >&2
 done
 

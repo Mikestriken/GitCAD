@@ -110,7 +110,7 @@ fi
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
     # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
 
-    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || exit $FAIL
+    FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
     lockfile_path="$FCStd_dir_path/.lockfile"
 
     if [ "$FORCE_FLAG" = "$TRUE" ]; then
@@ -129,13 +129,13 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         
         elif [ -n "$LOCK_INFO" ]; then
             # echo "DEBUG: Forcefully unlocking..." >&2
-            git lfs unlock --force "$lockfile_path" || exit $FAIL
+            git lfs unlock --force "$lockfile_path" || continue
         fi
     fi
 
-    git lfs lock "$lockfile_path" || exit $FAIL
+    git lfs lock "$lockfile_path" || continue
 
-    make_writable "$FCStd_file_path" || exit $FAIL
+    make_writable "$FCStd_file_path" || continue
     # echo "DEBUG: '$FCStd_file_path' now writable and locked" >&2
 done
 
