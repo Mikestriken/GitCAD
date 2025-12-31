@@ -199,7 +199,7 @@ FCStd_dirs_to_checkout=()
 declare -A FCStd_dir_to_file_dict # Bash Dictionary
 changefiles_changed_between_commits=$(GIT_COMMAND="diff-tree" "$git_path" diff-tree --no-commit-id --name-only -r "$CHECKOUT_COMMIT" HEAD | grep -i -- '\.changefile$')
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
-    # echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
+    # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
     
     FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
     changefile_path="$FCStd_dir_path/.changefile"

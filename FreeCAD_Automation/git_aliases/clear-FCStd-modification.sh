@@ -114,7 +114,7 @@ fi
 current_timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%6N%:z")
 
 for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
-    # echo "DEBUG: Processing FCStd file: $FCStd_file_path" >&2
+    # echo "DEBUG: Processing FCStd file: '$FCStd_file_path'" >&2
 
     FCStd_dir_path=$(get_FCStd_dir "$FCStd_file_path") || continue
     fcmod_path="$FCStd_dir_path/.fcmod"
