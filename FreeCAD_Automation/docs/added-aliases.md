@@ -126,6 +126,7 @@ This is basically how you `git checkout COMMIT -- FILE [FILE ...]` `.FCStd` (and
 The `.FCStd` file will be checked out as empty without importing from the uncompressed directory. In other words, nothing will happen, so simply re-run the command.  
 
 ## `git fcmod`
+### __DESCRIPTION:__
 Manually tells git to observe a `.FCStd` file as empty (unmodified). Unfortunately to do this it will first restore any currently staged (added) `.FCStd` files.
 
 *Behind the scenes all this does is call `git restore --staged $STAGED_FCSTD_FILES` then puts the current utc time in a `.gitignored` `.fcmod` file located in the uncompressed directory. When the FCStd clean filter is triggered it compares the current time to the time in the `.fcmod` file to determine if the modification has been cleared or not.*
@@ -134,18 +135,26 @@ Manually tells git to observe a `.FCStd` file as empty (unmodified). Unfortunate
 - `git fcmod FILE.FCStd [FILE.FCStd ...]` (same as `git add`)
 
 ## `git ftool`
+### __DESCRIPTION:__
 Runs the `FCStdFileTool.py` script for manual export or import of `.FCStd` files. Useful for advanced operations, troubleshooting, or direct manipulation of `.FCStd` files outside the normal Git workflow.
 
-Run: `git ftool` (no args) to see usage details.
+### __USAGE:__
+- `git ftool` (no args) to see usage details.
 
 ## `git fimport`
+### __DESCRIPTION:__
 Runs the `FCStdFileTool.py` script with preset args to manually import data to specified `.FCStd` file according to the `FreeCAD_Automation/config.json`.
+
+**IMPORTANT NOTE:** Does not support wildcards. Must be done one file at a time.   
 
 ### __USAGE:__
 - `git fimport FILE.FCStd`
 
 ## `git fexport`
+### __DESCRIPTION:__
 Runs the `FCStdFileTool.py` script with preset args to manually export data from specified `.FCStd` file according to the `FreeCAD_Automation/config.json`.
+
+**IMPORTANT NOTE:** Does not support wildcards. Must be done one file at a time.   
 
 ### __USAGE:__
 - `git fexport FILE.FCStd`
