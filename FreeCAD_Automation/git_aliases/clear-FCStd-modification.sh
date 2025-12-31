@@ -98,6 +98,7 @@ for file_path in "${parsed_file_path_args[@]}"; do
         MATCHED_FCStd_file_paths+=("$file_path")
     else
         # echo "DEBUG: file_path '$file_path' is not an FCStd file, directory, or wildcard..... skipping" >&2
+        :
     fi
 done
 
