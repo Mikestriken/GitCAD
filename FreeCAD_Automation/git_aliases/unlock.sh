@@ -160,7 +160,12 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
 
         if [ "$DIR_HAS_CHANGES" = "$TRUE" ]; then
             echo "Error: Cannot unlock '$FCStd_file_path' with unpushed changes. Use --force to override." >&2
-            continue
+            if [ ${#MATCHED_FCStd_file_paths[@]} -eq 1 ]; then
+                exit $FAIL
+            
+            else
+                continue
+            fi
         fi
 
         # Check for stashed changes
@@ -180,7 +185,12 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         done
 
         if [ "$stashed_changes_found" = "$TRUE" ]; then
-            continue
+            if [ ${#MATCHED_FCStd_file_paths[@]} -eq 1 ]; then
+                exit $FAIL
+            
+            else
+                continue
+            fi
         fi
         # echo "DEBUG: No uncommitted changes to '$FCStd_dir_path', clear to unlock!" >&2
     fi
@@ -197,7 +207,12 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         echo "SUCCESS" >&2
     else
         echo "ERROR: '$unlock_output'" >&2
-        continue
+        if [ ${#MATCHED_FCStd_file_paths[@]} -eq 1 ]; then
+            exit $FAIL
+        
+        else
+            continue
+        fi
     fi
 
     make_readonly "$FCStd_file_path" || continue

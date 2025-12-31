@@ -141,7 +141,12 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         echo "SUCCESS" >&2
     else
         echo "ERROR: '$lock_output'" >&2
-        continue
+        if [ ${#MATCHED_FCStd_file_paths[@]} -eq 1 ]; then
+            exit $FAIL
+        
+        else
+            continue
+        fi
     fi
 
     make_writable "$FCStd_file_path" || continue
