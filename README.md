@@ -185,7 +185,7 @@ If you change any value inside the `uncompressed-directory-structure` JSON key, 
 
     // ------------------------------------------------------------------
     
-    // If true most* git operations will fail unless you activate the GitCAD environment
+    // If true, most* (not all, notably `git checkout`) git operations will fail unless you activate the GitCAD environment
       // PowerShell Activation Command: .\FreeCAD_Automation\user_scripts\activate.ps1
       //       Bash Activation Command: source FreeCAD_Automation/user_scripts/activate
     "require-GitCAD-activation": true,
