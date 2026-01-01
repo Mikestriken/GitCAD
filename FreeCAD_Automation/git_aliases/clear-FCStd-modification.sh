@@ -85,7 +85,7 @@ for file_path in "${parsed_file_path_args[@]}"; do
     if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
         # echo "DEBUG: file_path contains wildcards or is a directory" >&2
         
-        mapfile -t modified_files_matching_pattern < <(GIT_COMMAND="ls-files" git ls-files -m "$file_path")
+        mapfile -t modified_files_matching_pattern < <(GIT_COMMAND="ls-files" git ls-files -m -- "$file_path")
         for file in "${modified_files_matching_pattern[@]}"; do
             if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                 # echo "DEBUG: Matched '$file'" >&2
