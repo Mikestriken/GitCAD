@@ -143,18 +143,14 @@ Runs the `FCStdFileTool.py` script for manual export or import of `.FCStd` files
 
 ## `git fimport`
 ### __DESCRIPTION:__
-Runs the `FCStdFileTool.py` script with preset args to manually import data to specified `.FCStd` file according to the `FreeCAD_Automation/config.json`.
-
-**IMPORTANT NOTE:** Does not support wildcards. Must be done one file at a time.   
+Runs the `FCStdFileTool.py` script with preset args to manually import data to specified `.FCStd` file according to the `FreeCAD_Automation/config.json`. 
 
 ### __USAGE:__
 - `git fimport FILE.FCStd`
 
 ## `git fexport`
 ### __DESCRIPTION:__
-Runs the `FCStdFileTool.py` script with preset args to manually export data from specified `.FCStd` file according to the `FreeCAD_Automation/config.json`.
-
-**IMPORTANT NOTE:** Does not support wildcards. Must be done one file at a time.   
+Runs the `FCStdFileTool.py` script with preset args to manually export data from specified `.FCStd` file according to the `FreeCAD_Automation/config.json`. 
 
 ### __USAGE:__
 - `git fexport FILE.FCStd`
