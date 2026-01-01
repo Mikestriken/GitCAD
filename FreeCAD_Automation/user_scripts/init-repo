@@ -64,6 +64,14 @@ if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
         exit $FAIL
     fi
     echo "Given ownership of all files to user."
+
+elif [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" == "MINGW"* ]]; then
+    echo "=============================================================================================="
+    echo "                                   Set Windows Permissions"
+    echo "=============================================================================================="
+    if ! powershell.exe -Command 'Get-ChildItem -Path ".\FreeCAD_Automation" -Recurse | Unblock-File'; then
+        echo "Warning: Couldn't unblock scripts!" >&2
+    fi
 fi
 
 echo "=============================================================================================="
