@@ -75,7 +75,7 @@ DEFAULT_CONFIG=$(cat <<EOF
 
     "require-lock-to-modify-FreeCAD-files": true,
 
-    "require-GitCAD-activation": false,
+    "require-GitCAD-activation": true,
     
     "include-thumbnails": true,
 
