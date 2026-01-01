@@ -131,6 +131,32 @@ case $ALIAS_MODE in
         ;;
 
     "--fexport")
+        for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
+            echo -n "EXPORTING: '$FCStd_file_path'...." >&2
+            
+            # Import data to FCStd file
+            "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$FCStd_file_path" || {
+                echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+                continue
+            }
+            
+            echo "SUCCESS" >&2
+            
+            # Handle locks
+            if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
+                FCSTD_FILE_HAS_VALID_LOCK="$(FCStd_file_has_valid_lock "$FCStd_file_path")" || continue
+
+                if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
+                    # User doesn't have lock, set .FCStd file to readonly
+                    make_readonly "$FCStd_file_path"
+                    # echo "DEBUG: Set '$FCStd_file_path' readonly." >&2
+                else
+                    # User has lock, set .FCStd file to writable
+                    make_writable "$FCStd_file_path"
+                    # echo "DEBUG: Set '$FCStd_file_path' writable." >&2
+                fi
+            fi
+        done
         ;;
 
     *)
