@@ -76,12 +76,7 @@ try {
 
 # Store the repository root
 $gitcad_repo_root = & git rev-parse --show-toplevel 2>$null
-if ($env:OS -match "Windows") {
-    # Convert drive letters if needed (similar to Bash logic)
-    $env:GITCAD_REPO_ROOT = $gitcad_repo_root -replace '^([A-Za-z]):/', '/${1}/' | ForEach-Object { $_.ToLower() }
-} else {
-    $env:GITCAD_REPO_ROOT = $gitcad_repo_root
-}
+$env:GITCAD_REPO_ROOT = $gitcad_repo_root -replace '/', '\'
 
 if (-not $env:GITCAD_REPO_ROOT) {
     Write-Error "Error: Not in a git repository"
@@ -96,7 +91,7 @@ $env:REAL_GIT = (Get-Command git).Source
 
 # Add git wrapper script to PATH Environment variable
 $env:GITCAD_ACTIVATED = $BASH_TRUE
-$env:GIT_WRAPPER_PATH = "$env:GITCAD_REPO_ROOT/FreeCAD_Automation"
+$env:GIT_WRAPPER_PATH = "$env:GITCAD_REPO_ROOT\FreeCAD_Automation"
 $env:PATH = "$env:GIT_WRAPPER_PATH;$env:PATH"
 
 # Set the prompt to include the env name
