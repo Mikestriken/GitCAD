@@ -3,6 +3,7 @@
 # ==============================================================================================
 # PowerShell script to call bash scripts with proper PATH setup
 # Usage: .\FreeCAD_Automation\bash.ps1 [args...]
+# ! WARNING: This is a legacy script. Instead just call bash directly without pathing to it.
 
 if (-not $global:BASH_GLOBALS_EXIST) {
     # ==============================================================================================
