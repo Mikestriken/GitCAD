@@ -8,6 +8,6 @@
 # ==============================================================================================
 #                                  Call init-repo with Git Bash
 # ==============================================================================================
-& bash "$PSScriptRoot\git" @args 
+& "FreeCAD_Automation\bash.ps1" "$PSScriptRoot\git" @args 
 
 exit $SUCCESS

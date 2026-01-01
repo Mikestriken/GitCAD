@@ -7,6 +7,6 @@
 # ==============================================================================================
 #                                  Call init-repo with Git Bash
 # ==============================================================================================
-& bash "FreeCAD_Automation/user_scripts/init-repo" @args 
+& "FreeCAD_Automation\bash.ps1" "FreeCAD_Automation/user_scripts/init-repo" @args 
 
 exit $SUCCESS
