@@ -27,20 +27,20 @@ fi
 # ==============================================================================================
 #                                     Pull LFS files
 # ==============================================================================================
-git lfs pull
+GIT_COMMAND="lfs" git lfs pull
 # echo "DEBUG: Pulled lfs files" >&2
 
 # ==============================================================================================
 #                         Update .FCStd files with uncompressed files
 # ==============================================================================================
 if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-    CURRENT_USER="$(git config --get user.name)" || {
+    CURRENT_USER="$(GIT_COMMAND="config" git config --get user.name)" || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
     }
 
     mapfile -t CURRENT_LOCKS < <(
-        git lfs locks |
+        GIT_COMMAND="lfs" git lfs locks |
         awk -v user="$CURRENT_USER" '
             match($0, /^(.*)[[:space:]]+([^[:space:]]+)[[:space:]]+ID:[0-9]+$/, m) &&
             m[2] == user {
@@ -74,13 +74,14 @@ for changefile in "${changed_changefiles[@]}"; do
 
     # Import data to FCStd file
     "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
-        echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+        echo >&2
+        echo "ERROR: Failed to import '$FCStd_file_path', skipping..." >&2
         continue
     }
 
     echo "SUCCESS" >&2
 
-    git fcmod "$FCStd_file_path"
+    GIT_COMMAND="fcmod" git fcmod "$FCStd_file_path"
 
     FCStd_dir_path="$(dirname "$changefile")"
     lockfile="$FCStd_dir_path/.lockfile"

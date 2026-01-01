@@ -55,13 +55,13 @@ if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
 fi
 
 if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-    CURRENT_USER="$("$git_path" config --get user.name)" || {
+    CURRENT_USER="$(GIT_COMMAND="config" "$git_path" config --get user.name)" || {
         echo "Error: git config user.name not set!" >&2
         exit_fstash $FAIL
     }
 
     mapfile -t CURRENT_LOCKS < <(
-        "$git_path" lfs locks |
+        GIT_COMMAND="lfs" "$git_path" lfs locks |
         awk -v user="$CURRENT_USER" '
             match($0, /^(.*)[[:space:]]+([^[:space:]]+)[[:space:]]+ID:[0-9]+$/, m) &&
             m[2] == user {
@@ -394,7 +394,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
 
             # Note: code mostly copied from utils `get_FCStd_file_from_changefile()` except we check the stashed .changefile instead of the working dir .changefile
                 # Read the line with FCStd_file_relpath
-                FCStd_file_relpath_line_in_changefile="$(git cat-file -p "$STASH_REF":"$changefile_path" | grep -F -- "FCStd_file_relpath=")"
+                FCStd_file_relpath_line_in_changefile="$(GIT_COMMAND="cat-file" git cat-file -p "$STASH_REF":"$changefile_path" | grep -F -- "FCStd_file_relpath=")"
                 if [ -z "$FCStd_file_relpath_line_in_changefile" ]; then
                     echo "Error: FCStd_file_relpath not found in '$changefile_path'" >&2
                     exit_fstash $FAIL
@@ -412,7 +412,7 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
                     FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
                 fi
 
-                FCStd_file_path="$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$FCStd_file_path")"
+                FCStd_file_path="$(realpath --canonicalize-missing --relative-to="$(GIT_COMMAND="rev-parse" git rev-parse --show-toplevel)" "$FCStd_file_path")"
 
                 FCStd_file_paths_derived_from_stashed_changefiles+=("$FCStd_file_path")
 
@@ -461,11 +461,13 @@ elif [ "$STASH_COMMAND" = "pop" ] || [ "$STASH_COMMAND" = "apply" ] || [ "$STASH
         
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
-            echo "Failed to import $FCStd_file_path" >&2
+            echo >&2
+            echo "ERROR: Failed to import '$FCStd_file_path', skipping..." >&2
+            continue
         }
         echo "SUCCESS" >&2
 
-        "$git_path" fcmod "$FCStd_file_path"
+        GIT_COMMAND="fcmod" "$git_path" fcmod "$FCStd_file_path"
     done
 
 
@@ -621,11 +623,13 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
         
         echo -n "IMPORTING: '$FCStd_file_path'...." >&2
         "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
-            echo "Failed to import $FCStd_file_path" >&2
+            echo >&2
+            echo "ERROR: Failed to import '$FCStd_file_path', skipping..." >&2
+            continue
         }
         echo "SUCCESS" >&2
         
-        "$git_path" fcmod "$FCStd_file_path"
+        GIT_COMMAND="fcmod" "$git_path" fcmod "$FCStd_file_path"
     done
 
 else

@@ -212,7 +212,7 @@ def compress_binaries(FCStd_dir_path:str, config:dict):
         FCStd_dir_path (str): Path to the FCStd directory.
         config (dict): Configuration dictionary.
     """
-    assert config['compress_binaries']['enabled'], "ERROR: Attempting to compress binaries despite that config being disabled!"
+    assert config['compress_binaries']['enabled'], "Error: Attempting to compress binaries despite that config being disabled!"
 
     patterns:list = config['compress_binaries']['binary_file_patterns']
     max_size_gb:float = config['compress_binaries']['max_compressed_file_size_gigabyte']

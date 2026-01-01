@@ -167,7 +167,7 @@ else
     # echo "DEBUG: FCSTD_FILE_HAS_VALID_LOCK='$FCSTD_FILE_HAS_VALID_LOCK'" >&2
 
     if [ "$FCSTD_FILE_HAS_VALID_LOCK" = "$FALSE" ]; then
-        echo "ERROR: User doesn't have lock for '$1'... Aborting add operation..." >&2
+        echo "Error: User doesn't have lock for '$1'... Aborting add operation..." >&2
         exit $FAIL
     fi
 fi
@@ -190,6 +190,7 @@ if "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$1" > /dev/n
     exit $SUCCESS
     
 else
+    echo >&2
     echo "FAIL, Rolling back git operation" >&2
     exit $FAIL
 fi

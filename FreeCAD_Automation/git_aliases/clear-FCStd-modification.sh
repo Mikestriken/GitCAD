@@ -15,6 +15,13 @@
 FUNCTIONS_FILE="FreeCAD_Automation/utils.sh"
 source "$FUNCTIONS_FILE"
 
+# Note: Controlled by "FreeCAD_Automation/activate.sh" and "FreeCAD_Automation/git"
+if [ "$GITCAD_ACTIVATED" = "$TRUE" ]; then
+    git_path="$REAL_GIT"
+else
+    git_path="git"
+fi
+
 if [ -z "$PYTHON_PATH" ] || [ -z "$REQUIRE_LOCKS" ]; then
     echo "Error: Config file missing or invalid; cannot proceed." >&2
     exit $FAIL
@@ -25,12 +32,12 @@ fi
 # ==============================================================================================
 # Get staged `.FCStd` files
 # Diff Filter => (A)dded / (C)opied / (D)eleted / (M)odified / (R)enamed / (T)ype changed / (U)nmerged / (X) unknown / (B)roken pairing
-GIT_COMMAND="update-index" git update-index --refresh -q >/dev/null 2>&1
+GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
 STAGED_FCSTD_FILES="$(GIT_COMMAND="diff-index" git diff-index --cached --name-only --diff-filter=CDMRTUXB HEAD | grep -i -- '\.fcstd$')"
 
 if [ -n "$STAGED_FCSTD_FILES" ]; then
     mapfile -t STAGED_FCSTD_FILES <<<"$STAGED_FCSTD_FILES"
-    git restore --staged "${STAGED_FCSTD_FILES[@]}"
+    GIT_COMMAND="restore" "$git_path" restore --staged "${STAGED_FCSTD_FILES[@]}"
 fi
 
 # ==============================================================================================
@@ -85,7 +92,7 @@ for file_path in "${parsed_file_path_args[@]}"; do
     if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
         # echo "DEBUG: file_path contains wildcards or is a directory" >&2
         
-        mapfile -t modified_files_matching_pattern < <(GIT_COMMAND="ls-files" git ls-files -m -- "$file_path")
+        mapfile -t modified_files_matching_pattern < <(GIT_COMMAND="ls-files" "$git_path" ls-files -m -- "$file_path")
         for file in "${modified_files_matching_pattern[@]}"; do
             if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                 # echo "DEBUG: Matched '$file'" >&2
@@ -129,4 +136,4 @@ done
 # ==============================================================================================
 #                              Clear Modifications For Specified Files
 # ==============================================================================================
-git add "${parsed_file_path_args[@]}"
+GIT_COMMAND="fcmod" "$git_path" add "${parsed_file_path_args[@]}"

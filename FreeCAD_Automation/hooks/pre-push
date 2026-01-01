@@ -43,13 +43,13 @@ source "$FUNCTIONS_FILE"
 # echo "DEBUG: args='$@'" >&2
 
 if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-    CURRENT_USER="$(git config --get user.name)" || {
+    CURRENT_USER="$(GIT_COMMAND="config" git config --get user.name)" || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
     }
 
     mapfile -t CURRENT_LOCKS < <(
-        git lfs locks |
+        GIT_COMMAND="lfs" git lfs locks |
         awk -v user="$CURRENT_USER" '
             match($0, /^(.*)[[:space:]]+([^[:space:]]+)[[:space:]]+ID:[0-9]+$/, m) &&
             m[2] == user {

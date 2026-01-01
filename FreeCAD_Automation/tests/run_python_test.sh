@@ -3,7 +3,7 @@
 #                                  Verify and Retrieve Dependencies
 # ==============================================================================================
 # Ensure working dir is the root of the repo
-GIT_ROOT="$(git rev-parse --show-toplevel)"
+GIT_ROOT="$(GIT_COMMAND="rev-parse" git rev-parse --show-toplevel)"
 cd "$GIT_ROOT"
 
 # Import code used in this script
@@ -24,8 +24,8 @@ fi
 # ==============================================================================================
 #                                          Get Binaries
 # ==============================================================================================
-git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
-git fcmod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
+GIT_COMMAND="checkout" git checkout test_binaries -- FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
+GIT_COMMAND="fcmod" git fcmod FreeCAD_Automation/tests/AssemblyExample.FCStd FreeCAD_Automation/tests/BIMExample.FCStd
 
 # ==============================================================================================
 #                                           Run Tests

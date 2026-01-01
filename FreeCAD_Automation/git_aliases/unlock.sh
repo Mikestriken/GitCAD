@@ -115,20 +115,20 @@ if [ "$FORCE_FLAG" = "$FALSE" ]; then
     # echo "DEBUG: Looking for closest reference branch..." >&2
 
     # Reference the remote branch with the closest merge-base (fewest commits)
-    mapfile -t REMOTE_BRANCHES < <(git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//') # Convert line 'origin/HEAD -> origin/main' to 'origin/HEAD' and 'origin/main' lines
-    FIRST_MERGE_BASE="$(git merge-base "${REMOTE_BRANCHES[0]}" HEAD 2>/dev/null)"
+    mapfile -t REMOTE_BRANCHES < <(GIT_COMMAND="branch" git branch -r 2>/dev/null | sed -e 's/ -> /\n/g' -e 's/^[[:space:]]*//') # Convert line 'origin/HEAD -> origin/main' to 'origin/HEAD' and 'origin/main' lines
+    FIRST_MERGE_BASE="$(GIT_COMMAND="merge-base" git merge-base "${REMOTE_BRANCHES[0]}" HEAD 2>/dev/null)"
     
     REFERENCE_BRANCH="${REMOTE_BRANCHES[0]}"
-    smallest_num_commits_to_merge_base="$(git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)"
+    smallest_num_commits_to_merge_base="$(GIT_COMMAND="rev-list" git rev-list --count "$FIRST_MERGE_BASE..HEAD" 2>/dev/null)"
     # echo "DEBUG: Initial guess: '$REFERENCE_BRANCH' @ '$smallest_num_commits_to_merge_base' commits away" >&2
     
     # echo "DEBUG: List to try='${REMOTE_BRANCHES[@]}'" >&2
     for remote_branch in "${REMOTE_BRANCHES[@]}"; do
-        MERGE_BASE="$(git merge-base "$remote_branch" HEAD 2>/dev/null)"
+        MERGE_BASE="$(GIT_COMMAND="merge-base" git merge-base "$remote_branch" HEAD 2>/dev/null)"
         # echo "DEBUG: Trying '$remote_branch' @ hash '$MERGE_BASE'" >&2
         
         if [ -n "$MERGE_BASE" ]; then
-            num_commits_to_merge_base="$(git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)"
+            num_commits_to_merge_base="$(GIT_COMMAND="rev-list" git rev-list --count "$MERGE_BASE..HEAD" 2>/dev/null)"
             
             if [ "$num_commits_to_merge_base" -lt "$smallest_num_commits_to_merge_base" ]; then
                 smallest_num_commits_to_merge_base="$num_commits_to_merge_base"
@@ -197,16 +197,16 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
 
     echo -n "UNLOCKING: '$FCStd_file_path'...." >&2
     if [ "$FORCE_FLAG" = "$TRUE" ]; then
-        unlock_output="$(git lfs unlock --force "$lockfile_path" 2>&1)"
+        unlock_output="$(GIT_COMMAND="lfs" git lfs unlock --force "$lockfile_path" 2>&1)"
         
     else
-        unlock_output="$(git lfs unlock "$lockfile_path" 2>&1)"
+        unlock_output="$(GIT_COMMAND="lfs" git lfs unlock "$lockfile_path" 2>&1)"
     fi
 
     if [ $? -eq $SUCCESS ]; then
         echo "SUCCESS" >&2
     else
-        echo "ERROR: '$unlock_output'" >&2
+        echo "Error: '$unlock_output'" >&2
         if [ ${#MATCHED_FCStd_file_paths[@]} -eq 1 ]; then
             exit $FAIL
         

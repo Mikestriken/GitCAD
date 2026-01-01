@@ -107,7 +107,8 @@ case $ALIAS_MODE in
             
             # Import data to FCStd file
             "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
-                echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+                echo >&2
+                echo "ERROR: Failed to import '$FCStd_file_path', skipping..." >&2
                 continue
             }
             
@@ -134,9 +135,16 @@ case $ALIAS_MODE in
         for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
             echo -n "EXPORTING: '$FCStd_file_path'...." >&2
             
+            if [ ! -s "$1" ]; then
+                echo >&2
+                echo "ERROR: '$FCStd_file_path' is empty, skipping..." >&2
+                continue
+            fi
+
             # Import data to FCStd file
             "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --export "$FCStd_file_path" || {
-                echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+                echo >&2
+                echo "ERROR: Failed to export '$FCStd_file_path', skipping..." >&2
                 continue
             }
             

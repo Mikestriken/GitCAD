@@ -31,7 +31,7 @@ fi
 # ==============================================================================================
 #                                      Pull LFS files
 # ==============================================================================================
-git lfs pull
+GIT_COMMAND="lfs" git lfs pull
 # echo "DEBUG: Pulled lfs files" >&2
 
 # ==============================================================================================
@@ -98,8 +98,8 @@ done
 #                                     HEAD Checkout Edgecase
 # ==============================================================================================
 # Note: If checking out HEAD (resetting modified files), We also need to check if the FCStd_dir_path or FCStd_file_path is modified in the working directory PRIOR to checkout
-HEAD_SHA="$("$git_path" rev-parse HEAD)"
-CHECKOUT_SHA="$("$git_path" rev-parse "$CHECKOUT_COMMIT")"
+HEAD_SHA="$(GIT_COMMAND="rev-parse" "$git_path" rev-parse HEAD)"
+CHECKOUT_SHA="$(GIT_COMMAND="rev-parse" "$git_path" rev-parse "$CHECKOUT_COMMIT")"
 IS_HEAD_CHECKOUT=$FALSE
 changefiles_with_modifications_not_yet_committed=""
 
@@ -147,7 +147,7 @@ fi
 # echo "DEBUG: Checking out '${parsed_file_path_args[@]}' from commit '$CHECKOUT_COMMIT'" >&2
 
 # Note: `FILE_CHECKOUT_IN_PROGRESS=$TRUE` suppresses GitCAD activation warning message
-FILE_CHECKOUT_IN_PROGRESS=$TRUE "$git_path" checkout "$CHECKOUT_COMMIT" -- "${parsed_file_path_args[@]}" > /dev/null  || {
+FILE_CHECKOUT_IN_PROGRESS=$TRUE GIT_COMMAND="checkout" "$git_path" checkout "$CHECKOUT_COMMIT" -- "${parsed_file_path_args[@]}" > /dev/null  || {
     echo "Error: Failed to checkout files from commit '$CHECKOUT_COMMIT'" >&2
     exit $FAIL
 }
@@ -231,7 +231,7 @@ fi
 # echo "DEBUG: Checking out dirs from commit '$CHECKOUT_COMMIT': ${FCStd_dirs_to_checkout[@]}" >&2
 
 # Note: `FILE_CHECKOUT_IN_PROGRESS=$TRUE` suppresses GitCAD activation warning message
-FILE_CHECKOUT_IN_PROGRESS=$TRUE "$git_path" checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
+FILE_CHECKOUT_IN_PROGRESS=$TRUE GIT_COMMAND="checkout" "$git_path" checkout "$CHECKOUT_COMMIT" -- "${FCStd_dirs_to_checkout[@]}" > /dev/null 2>&1  || {
     echo "Error: Failed to checkout dirs from commit '$CHECKOUT_COMMIT'" >&2
     exit $FAIL
 }
@@ -247,7 +247,8 @@ for FCStd_dir_path in "${FCStd_dirs_to_checkout[@]}"; do
     
     # Import data to FCStd file
     "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
-        echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+        echo >&2
+        echo "Error: Failed to import '$FCStd_file_path', skipping..." >&2
         continue
     }
     
@@ -255,7 +256,7 @@ for FCStd_dir_path in "${FCStd_dirs_to_checkout[@]}"; do
     
     # Only clear modification flag when checking out HEAD (resetting modified files)
     if [ "$IS_HEAD_CHECKOUT" = "$TRUE" ]; then
-        "$git_path" fcmod "$FCStd_file_path"
+        GIT_COMMAND="fcmod" "$git_path" fcmod "$FCStd_file_path"
         # echo "DEBUG: Cleared modification flag for '$FCStd_file_path' (HEAD checkout)" >&2
     fi
 

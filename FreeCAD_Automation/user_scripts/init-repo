@@ -9,7 +9,7 @@ FALSE=1
 # ==============================================================================================
 
 # Check if inside a Git repository, ensure pwd is root of repository
-git_repo_root_path="$(git rev-parse --show-toplevel)"
+git_repo_root_path="$(GIT_COMMAND="rev-parse" git rev-parse --show-toplevel)"
 if [ "$?" = "$SUCCESS" ]; then
     cd "$git_repo_root_path"
 else 
@@ -115,7 +115,7 @@ echo "==========================================================================
 echo "                             Verify and Retrieve Dependencies"
 echo "=============================================================================================="
 # Check git user.name and user.email set
-if ! git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
+if ! GIT_COMMAND="config" git config --get user.name > /dev/null || ! git config --get user.email > /dev/null; then
     echo "Error: git config user.name or user.email not set!" >&2
     exit $FAIL
 fi
@@ -127,7 +127,7 @@ if ! command -v git-lfs >/dev/null; then
 fi
 echo "git-lfs is installed"
 
-GIT_ROOT="$(git rev-parse --show-toplevel)"
+GIT_ROOT="$(GIT_COMMAND="rev-parse" git rev-parse --show-toplevel)"
 cd "$GIT_ROOT"
 
 # Import code used in this script
@@ -227,12 +227,12 @@ if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then
     sudo -u "$OWNER" git config lfs.locksverify true
 
 else
-    git config lfs.locksverify true
+    GIT_COMMAND="config" git config lfs.locksverify true
 fi
 echo "Enabled git lfs locksverify for lockable files."
 
-git lfs track ".lockfile" --lockable
-git lfs track "*.zip"
+GIT_COMMAND="lfs" git lfs track ".lockfile" --lockable
+GIT_COMMAND="lfs" git lfs track "*.zip"
 
 echo "=============================================================================================="
 echo "                                     Adding Filters"
@@ -242,7 +242,7 @@ setup_git_FCStd_filter() {
     local desired_value="$2"
     local purpose="$3"
 
-    CURRENT_VALUE="$(git config --get "filter.FCStd.$filter_type" 2>/dev/null)"
+    CURRENT_VALUE="$(GIT_COMMAND="config" git config --get "filter.FCStd.$filter_type" 2>/dev/null)"
 
     if [ -n "$CURRENT_VALUE" ]; then
         if [ "$CURRENT_VALUE" = "$desired_value" ]; then
@@ -259,7 +259,7 @@ setup_git_FCStd_filter() {
                 if [[ "${OSTYPE^^}" == "LINUX-GNU"* ]]; then 
                     sudo -u "$OWNER" git config "filter.FCStd.$filter_type" "$desired_value"
                 else
-                    git config "filter.FCStd.$filter_type" "$desired_value"
+                    GIT_COMMAND="config" git config "filter.FCStd.$filter_type" "$desired_value"
                 fi
 
                 echo "    Updated filter.FCStd.$filter_type"
@@ -274,7 +274,7 @@ setup_git_FCStd_filter() {
             sudo -u "$OWNER" git config "filter.FCStd.$filter_type" "$desired_value"
         
         else
-            git config "filter.FCStd.$filter_type" "$desired_value"
+            GIT_COMMAND="config" git config "filter.FCStd.$filter_type" "$desired_value"
         fi
 
         echo "Set filter.FCStd.$filter_type"
@@ -418,7 +418,7 @@ setup_git_alias() {
     local desired_value="$2"
     local purpose="$3"
 
-    CURRENT_VALUE="$(git config --get "alias.$alias" 2>/dev/null)"
+    CURRENT_VALUE="$(GIT_COMMAND="config" git config --get "alias.$alias" 2>/dev/null)"
 
     if [ -n "$CURRENT_VALUE" ]; then
         if [ "$CURRENT_VALUE" = "$desired_value" ]; then
@@ -436,7 +436,7 @@ setup_git_alias() {
                     sudo -u "$OWNER" git config "alias.$alias" "$desired_value"
                 
                 else
-                    git config "alias.$alias" "$desired_value"
+                    GIT_COMMAND="config" git config "alias.$alias" "$desired_value"
                 fi
 
                 echo "    Updated alias.$alias"
@@ -451,7 +451,7 @@ setup_git_alias() {
             sudo -u "$OWNER" git config "alias.$alias" "$desired_value"
         
         else
-            git config "alias.$alias" "$desired_value"
+            GIT_COMMAND="config" git config "alias.$alias" "$desired_value"
         fi
         echo "Set alias.$alias"
         echo
@@ -488,12 +488,13 @@ if [ -n "$FCStd_file_paths" ]; then
             echo -n "IMPORTING: '$FCStd_file_path'...."
             # Import data to FCStd file
             "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
-                echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+                echo >&2
+                echo "ERROR: Failed to import '$FCStd_file_path', skipping..." >&2
                 continue
             }
             
             echo "SUCCESS"
-            git fcmod "$FCStd_file_path"
+            GIT_COMMAND="fcmod" git fcmod "$FCStd_file_path"
         done
     fi
 

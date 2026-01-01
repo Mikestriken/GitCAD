@@ -39,14 +39,14 @@ GIT_COMMAND="update-index" "$git_path" update-index --refresh -q >/dev/null 2>&1
 BEFORE_RESET_MODIFIED_CHANGEFILES="$(GIT_COMMAND="diff-index" "$git_path" diff-index --name-only HEAD | grep -i -- '\.changefile$' | sort)"
 
 # Get original HEAD before reset
-ORIGINAL_HEAD="$("$git_path" rev-parse HEAD)" || {
+ORIGINAL_HEAD="$(GIT_COMMAND="rev-parse" "$git_path" rev-parse HEAD)" || {
     echo "Error: Failed to get original HEAD" >&2
     exit $FAIL
 }
 
 # Execute git reset with all arguments
     # Note: Sometimes calls clean filter on linux os.
-"$git_path" reset "$@"
+GIT_COMMAND="reset" "$git_path" reset "$@"
 RESET_RESULT=$?
 
 if [ $RESET_RESULT -ne 0 ]; then
@@ -55,7 +55,7 @@ if [ $RESET_RESULT -ne 0 ]; then
 fi
 
 # Get new HEAD after reset
-NEW_HEAD="$("$git_path" rev-parse HEAD)" || {
+NEW_HEAD="$(GIT_COMMAND="rev-parse" "$git_path" rev-parse HEAD)" || {
     echo "Error: Failed to get new HEAD" >&2
     exit $FAIL
 }
@@ -64,13 +64,13 @@ NEW_HEAD="$("$git_path" rev-parse HEAD)" || {
 #                           Update .FCStd files with uncompressed files
 # ==============================================================================================
 if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
-    CURRENT_USER="$("$git_path" config --get user.name)" || {
+    CURRENT_USER="$(GIT_COMMAND="config" "$git_path" config --get user.name)" || {
         echo "Error: git config user.name not set!" >&2
         exit $FAIL
     }
 
     mapfile -t CURRENT_LOCKS < <(
-        "$git_path" lfs locks |
+        GIT_COMMAND="lfs" "$git_path" lfs locks |
         awk -v user="$CURRENT_USER" '
             match($0, /^(.*)[[:space:]]+([^[:space:]]+)[[:space:]]+ID:[0-9]+$/, m) &&
             m[2] == user {
@@ -112,7 +112,7 @@ for FCStd_file_path in "${previously_modified_FCStd_files_currently_shows_no_mod
     [ -z "$FCStd_file_path" ] && continue
     
     echo -n "DECONFLICTING: '$FCStd_file_path'...." >&2
-    FCStd_dir_path="$(realpath --canonicalize-missing --relative-to="$("$git_path" rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")")" || continue
+    FCStd_dir_path="$(realpath --canonicalize-missing --relative-to="$(GIT_COMMAND="rev-parse" "$git_path" rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")")" || continue
     
     if printf '%s\n' "$previously_modified_changefiles_currently_shows_no_modification" | grep -Fxq -- "$FCStd_dir_path/.changefile"; then
         echo "REMOVED" >&2
@@ -133,7 +133,7 @@ for FCStd_file_path in "${FCStd_files_to_process[@]}"; do
     # echo -e "\nDEBUG: processing FCStd '$FCStd_file_path'...." >&2
 
     # Get lockfile path
-    FCStd_dir_path="$(realpath --canonicalize-missing --relative-to="$("$git_path" rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")")" || {
+    FCStd_dir_path="$(realpath --canonicalize-missing --relative-to="$(GIT_COMMAND="rev-parse" "$git_path" rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")")" || {
         echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
         continue
     }
@@ -143,13 +143,14 @@ for FCStd_file_path in "${FCStd_files_to_process[@]}"; do
 
     # Import data to FCStd file
     "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
-        echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+        echo >&2
+        echo "ERROR: Failed to import '$FCStd_file_path', skipping..." >&2
         continue
     }
 
     echo "SUCCESS" >&2
 
-    "$git_path" fcmod "$FCStd_file_path"
+    GIT_COMMAND="fcmod" "$git_path" fcmod "$FCStd_file_path"
 
     if [ "$REQUIRE_LOCKS" = "$TRUE" ]; then
         if printf '%s\n' "${CURRENT_LOCKS[@]}" | grep -Fxq -- "$lockfile_path"; then
@@ -176,13 +177,14 @@ for changefile in "${changefiles_to_process[@]}"; do
 
     # Import data to FCStd file
     "$PYTHON_EXEC" "$FCStdFileTool" --SILENT --CONFIG-FILE --import "$FCStd_file_path" || {
-        echo "Error: Failed to import $FCStd_file_path, skipping..." >&2
+        echo >&2
+        echo "ERROR: Failed to import '$FCStd_file_path', skipping..." >&2
         continue
     }
 
     echo "SUCCESS" >&2
 
-    "$git_path" fcmod "$FCStd_file_path"
+    GIT_COMMAND="fcmod" "$git_path" fcmod "$FCStd_file_path"
 
     FCStd_dir_path="$(dirname "$changefile")"
     lockfile="$FCStd_dir_path/.lockfile"

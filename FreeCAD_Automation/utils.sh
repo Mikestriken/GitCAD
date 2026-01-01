@@ -226,7 +226,7 @@ get_FCStd_dir() {
 
     # Get the lockfile path (which gives us the directory structure)
     local FCStd_dir_path
-    FCStd_dir_path="$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")")" || {
+    FCStd_dir_path="$(realpath --canonicalize-missing --relative-to="$(GIT_COMMAND="rev-parse" git rev-parse --show-toplevel)" "$("$PYTHON_EXEC" "$FCStdFileTool" --CONFIG-FILE --dir "$FCStd_file_path")")" || {
         echo "Error: Failed to get dir path for '$FCStd_file_path'" >&2
         return $FAIL
     }
@@ -255,7 +255,7 @@ FCStd_file_has_valid_lock() {
     fi
 
     # File not tracked by git (new file), no lock needed (valid lock)
-    if ! git cat-file -e HEAD:"$FCStd_file_path" > /dev/null 2>&1; then
+    if ! GIT_COMMAND="cat-file" git cat-file -e HEAD:"$FCStd_file_path" > /dev/null 2>&1; then
         # echo "DEBUG: New .FCStd file, '$FCStd_file_path' lock is valid." >&2
         echo $TRUE
         return $SUCCESS
@@ -268,7 +268,7 @@ FCStd_file_has_valid_lock() {
     lockfile_path="$FCStd_dir_path/.lockfile"
 
     # Lockfile not tracked by git (new export), no lock needed (valid lock)
-    if ! git cat-file -e HEAD:"$lockfile_path" > /dev/null 2>&1; then
+    if ! GIT_COMMAND="cat-file" git cat-file -e HEAD:"$lockfile_path" > /dev/null 2>&1; then
         # echo "DEBUG: New .FCStd file export, '$FCStd_file_path' lock is valid." >&2
         echo $TRUE
         return $SUCCESS
@@ -276,13 +276,13 @@ FCStd_file_has_valid_lock() {
 
     # Check if user has lock
     local LOCK_INFO
-    LOCK_INFO="$(git lfs locks --path="$lockfile_path")" || {
+    LOCK_INFO="$(GIT_COMMAND="lfs" git lfs locks --path="$lockfile_path")" || {
         echo "Error: failed to get lock info for '$lockfile_path'" >&2
         return $FAIL
     }
 
     local CURRENT_USER
-    CURRENT_USER="$(git config --get user.name)" || {
+    CURRENT_USER="$(GIT_COMMAND="config" git config --get user.name)" || {
         echo "Error: git config user.name not set!" >&2
         return $FAIL
     }
@@ -327,7 +327,7 @@ get_FCStd_file_from_changefile() {
         FCStd_file_path="$(echo "${FCStd_file_path#/}" | sed -E 's#^([a-zA-Z])/#\U\1:/#')" # Note: Convert drive letters IE `/d/` to `D:/` 
     fi
 
-    FCStd_file_path="$(realpath --canonicalize-missing --relative-to="$(git rev-parse --show-toplevel)" "$FCStd_file_path")"
+    FCStd_file_path="$(realpath --canonicalize-missing --relative-to="$(GIT_COMMAND="rev-parse" git rev-parse --show-toplevel)" "$FCStd_file_path")"
 
     echo "$FCStd_file_path"
     return $SUCCESS

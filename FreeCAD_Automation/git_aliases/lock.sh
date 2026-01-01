@@ -115,8 +115,8 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
 
     if [ "$FORCE_FLAG" = "$TRUE" ]; then
         # Check if locked by someone else
-        LOCK_INFO="$(git lfs locks --path="$lockfile_path")"
-        CURRENT_USER="$(git config --get user.name)" || {
+        LOCK_INFO="$(GIT_COMMAND="lfs" git lfs locks --path="$lockfile_path")"
+        CURRENT_USER="$(GIT_COMMAND="config" git config --get user.name)" || {
             echo "Error: git config user.name not set!" >&2
             exit $FAIL
         }
@@ -129,18 +129,18 @@ for FCStd_file_path in "${MATCHED_FCStd_file_paths[@]}"; do
         
         elif [ -n "$LOCK_INFO" ]; then
             # echo "DEBUG: Forcefully unlocking..." >&2
-            git lfs unlock --force "$lockfile_path" || continue
+            GIT_COMMAND="lfs" git lfs unlock --force "$lockfile_path" || continue
         fi
     fi
 
     echo -n "LOCKING: '$FCStd_file_path'...." >&2
 
-    lock_output="$(git lfs lock "$lockfile_path" 2>&1)"
+    lock_output="$(GIT_COMMAND="lfs" git lfs lock "$lockfile_path" 2>&1)"
 
     if [ $? -eq $SUCCESS ]; then
         echo "SUCCESS" >&2
     else
-        echo "ERROR: '$lock_output'" >&2
+        echo "Error: '$lock_output'" >&2
         if [ ${#MATCHED_FCStd_file_paths[@]} -eq 1 ]; then
             exit $FAIL
         

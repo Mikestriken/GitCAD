@@ -74,7 +74,7 @@ if [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" ==
     gitcad_repo_root="$(GIT_COMMAND="rev-parse" git rev-parse --show-toplevel 2>/dev/null)"
     export GITCAD_REPO_ROOT="$(echo "$gitcad_repo_root" | sed -E 's#^([A-Za-z]):/#/\L\1/#')" # Note: Convert drive letters IE `D:/` to `/d/`
 else
-    export GITCAD_REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+    export GITCAD_REPO_ROOT="$(GIT_COMMAND="rev-parse" git rev-parse --show-toplevel 2>/dev/null)"
 fi
 
 if [ -z "$GITCAD_REPO_ROOT" ]; then
