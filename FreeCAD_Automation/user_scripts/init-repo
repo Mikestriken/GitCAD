@@ -70,8 +70,10 @@ elif [[ "${OSTYPE^^}" == "CYGWIN"* || "${OSTYPE^^}" == "MSYS"* || "${OSTYPE^^}" 
     echo "                                   Set Windows Permissions"
     echo "=============================================================================================="
     if ! powershell.exe -Command 'Get-ChildItem -Path ".\FreeCAD_Automation" -Recurse | Unblock-File'; then
-        echo "Warning: Couldn't unblock scripts!" >&2
+        echo "Error: Couldn't unblock scripts!" >&2
+        exit $FAIL
     fi
+    echo "Unblocked all files in '.\FreeCAD_Automation'."
 fi
 
 echo "=============================================================================================="
