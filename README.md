@@ -4,7 +4,7 @@
 ## Description
 This repository contains tools and scripts to automate the git workflow for committing uncompressed `.FCStd` files.  
 
-Binary/other non-human-unreadable files in the FreeCAD file, such as `.brp` files, are stored using git LFS, with the option to compress them before storing them as LFS objects.
+Binary/other non-human-readable files in the FreeCAD file, such as `.brp` files, are stored using git LFS, with the option to compress them before storing them as LFS objects.
 
 GitCAD supports locking `.FCStd` files to enable multi-file collaboration. Ensuring 2 people cannot modify the same file at the same time.
 
