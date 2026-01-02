@@ -1,4 +1,6 @@
 # FreeCAD Git Automation
+**Video Demo:** https://youtu.be/wSL3G5QyPD0  
+**Video Tutorial:** https://youtu.be/oCrGdhwICGk  
 ## Description
 This repository contains tools and scripts to automate the git workflow for committing uncompressed `.FCStd` files. Binary/other non-human-unreadable files such as `.brp` files are stored using git LFS (optionally they are compressed before storing them as LFS objects). Also supports locking `.FCStd` files to enable multi file collaboration.
 
@@ -31,7 +33,7 @@ To tell svn that it can simply extract the zipped files contents to get some tex
 [Here is a demo of TortoiseSVN locking](https://www.youtube.com/watch?v=7TPpwFhEAJA).
 
 ## Installation
-**Video Demo:**  
+**Video:** https://youtu.be/t5OylIiA-A0  
 1. Dependencies
    - [Git](https://git-scm.com)
    - [Git-LFS](https://git-lfs.com)
@@ -94,7 +96,7 @@ To tell svn that it can simply extract the zipped files contents to get some tex
    *Template available in [Template.md](template.md).*
 
 ## Updating
-**Video Demo:**  
+**Video:** https://youtu.be/qhY4L0984Lg  
 1. Backup/make note of:  
    - The *default* `config.json` defined in `FreeCAD_Automation/user_scripts/init-repo`  
    - Your `freecad-python-instance-path` in `FreeCAD_Automation/config.json`.
@@ -116,6 +118,9 @@ To tell svn that it can simply extract the zipped files contents to get some tex
 6. Paste your saved `freecad-python-instance-path` back into the newly re-created `FreeCAD_Automation/config.json`
 
 ## [Git Aliases](FreeCAD_Automation/docs/added-aliases.md)
+**Video Demo:** https://youtu.be/wSL3G5QyPD0  
+**Video Tutorial:** https://youtu.be/oCrGdhwICGk  
+### DESCRIPTION
 It is important to read the linked alias documentation (click the heading). These aliases help ensure the `.FCStd` files in your working directory are correctly synced with their corresponding uncompressed directories.
 
 They are also important for manually resynchronizing them in case you forgot to use an alias.

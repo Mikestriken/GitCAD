@@ -2,6 +2,7 @@
 This repository contains tools and scripts to automate the git workflow for committing `.FCStd` files in their uncompressed form (GitCAD is the name of the collection of tools and scripts). The complete documentation for these tools and scripts can be found on the [Official GitCAD repository](https://github.com/MikeOpsGit/GitCAD).
 
 ### Setting Up This Repository
+**Video:** https://youtu.be/uZSZUam3BbI  
 1. Dependencies
    - [Git](https://git-scm.com)
    - [Git-LFS](https://git-lfs.com)
@@ -38,6 +39,7 @@ This repository contains tools and scripts to automate the git workflow for comm
    *When the script asks "Do you want to import data from all uncompressed FreeCAD dirs?" in the "Synchronizing \`.FCStd\` Files" section, press `y`*
 
 ### If The GitCAD Plugin For This Repository Updates:
+**Video:** https://youtu.be/h9ZnDH6Oc8Q  
 1. Backup/make note of your `freecad-python-instance-path` in `FreeCAD_Automation/config.json`.
 
 2. Delete `FreeCAD_Automation/config.json`
@@ -52,6 +54,8 @@ This repository contains tools and scripts to automate the git workflow for comm
 4. Paste your saved `freecad-python-instance-path` back into the newly re-created `FreeCAD_Automation/config.json`
 
 ### Git Aliases
+**Video Demo:** https://youtu.be/wSL3G5QyPD0  
+**Video Tutorial:** https://youtu.be/oCrGdhwICGk  
 #### DESCRIPTION
 GitCAD adds some unique aliases to manage `.FCStd` files in accordance with git. Full documentation for all of these files can be found in the [added-aliases.md](FreeCAD_Automation/docs/added-aliases.md) file.
 
