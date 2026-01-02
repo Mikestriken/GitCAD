@@ -1,4 +1,4 @@
-# FreeCAD Git Automation
+# GitCAD
 **Video Demo:** https://youtu.be/wSL3G5QyPD0  
 **Video Tutorial:** https://youtu.be/oCrGdhwICGk  
 ## Description
