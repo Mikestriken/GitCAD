@@ -502,7 +502,7 @@ elif [ "$STASH_COMMAND" = "push" ] || [ "$STASH_COMMAND" = "save" ] || [ "$STASH
             if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
                 # echo "DEBUG: file_path contains wildcards or is a directory" >&2
         
-                mapfile -t modified_files_matching_pattern < <(GIT_COMMAND="ls-files" "$git_path" ls-files -m "$file_path")
+                mapfile -t modified_files_matching_pattern < <(GIT_COMMAND="ls-files" "$git_path" ls-files -m -- "$file_path")
                 for file in "${modified_files_matching_pattern[@]}"; do
                     if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                         echo "Error: Cannot stash '$file', export it first with \`git fadd\` or \`git add\` with GitCAD activated." >&2
