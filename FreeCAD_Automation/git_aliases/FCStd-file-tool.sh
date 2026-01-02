@@ -71,8 +71,8 @@ if [ -n "$ALIAS_MODE" ]; then
         if [[ -d "$file_path" || "$file_path" == *"*"* || "$file_path" == *"?"* ]]; then
             # echo "DEBUG: file_path contains wildcards or is a directory" >&2
             
-            mapfile -t FCStd_files_matching_pattern < <(GIT_COMMAND="ls-files" git ls-files -- "$file_path" && GIT_COMMAND="ls-files" git ls-files --others --exclude-standard -- "$file_path")
-            for file in "${FCStd_files_matching_pattern[@]}"; do
+            mapfile -t files_matching_pattern < <(GIT_COMMAND="ls-files" git ls-files -- "$file_path" && GIT_COMMAND="ls-files" git ls-files --others --exclude-standard -- "$file_path")
+            for file in "${files_matching_pattern[@]}"; do
                 if [[ "$file" =~ \.[fF][cC][sS][tT][dD]$ ]]; then
                     # echo "DEBUG: Matched '$file'" >&2
                     MATCHED_FCStd_file_paths+=("$file")
