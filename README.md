@@ -2,10 +2,14 @@
 **Video Demo:** https://youtu.be/wSL3G5QyPD0  
 **Video Tutorial:** https://youtu.be/oCrGdhwICGk  
 ## Description
-This repository contains tools and scripts to automate the git workflow for committing uncompressed `.FCStd` files. Binary/other non-human-unreadable files such as `.brp` files are stored using git LFS (optionally they are compressed before storing them as LFS objects). Also supports locking `.FCStd` files to enable multi file collaboration.
+This repository contains tools and scripts to automate the git workflow for committing uncompressed `.FCStd` files.  
+
+Binary/other non-human-unreadable files in the FreeCAD file, such as `.brp` files, are stored using git LFS, with the option to compress them before storing them as LFS objects.
+
+GitCAD supports locking `.FCStd` files to enable multi-file collaboration. Ensuring 2 people cannot modify the same file at the same time.
 
 ### Key Features
-- **Git Clean Filter**: Tricks git into thinking `.FCStd` files are empty and exports `git fadd`(ed) (( `fadd` is a git alias )) `.FCStd` files to their uncompressed directories.
+- **Git Clean Filter**: Tricks git into thinking `.FCStd` files are empty, and exports `git add`(ed) `.FCStd` files to their uncompressed directories.
   
 - **Various Hooks**: Imports uncompressed data into `.FCStd` to keep them synced when git commands cause changes to uncompressed data (the uncompressed data is what is stored in git, not the `.FCStd` file itself).  
 Sets `.FCStd` files to readonly if not locked by the user. Prevents user from committing / pushing changes for `.FCStd` files (and their uncompressed data) that the user doesn't own the lock for.
@@ -13,9 +17,12 @@ Sets `.FCStd` files to readonly if not locked by the user. Prevents user from co
 - **Locking Mechanism**: Users use the git aliases `git lock path/to/file.FCStd` and `git unlock path/to/file.FCStd` lock a `.lockfile` inside the uncompressed data directory instead of the `.FCStd` file itself.  
    NOTE: THE COMMAND IS **NOT** `git lfs lock`/`git lfs unlock`
    - Why lock `.lockfile` instead of `.FCStd` directly?  
-      *`.FCStd` files are filtered to appear empty to git to save space.  
-      If the `.FCStd` files were directly locked you would be storing the entire `.FCStd` file in git-lfs,  
-      which would somewhat defeat one of the secondary purposes of extracting the `.FCStd` files in the first place...  
+   
+      *`.FCStd` files are filtered to appear empty to git to save space.*  
+
+      *If the `.FCStd` files were directly locked you would be storing the entire `.FCStd` file in git-lfs,*  
+
+      *which would somewhat defeat one of the secondary purposes of extracting the `.FCStd` files in the first place...  
       To efficiently store the diffable contents separate from the binary contents.*
 
 ### Alternative Solutions to GitCAD (SVN)
